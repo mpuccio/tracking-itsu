@@ -30,5 +30,5 @@
 
 # Eclipse
 .project
-.classpath
+.cproject
 .settings
