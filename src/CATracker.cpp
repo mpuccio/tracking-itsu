@@ -1,17 +1,17 @@
-/// \file ITSUTracker.cpp
+/// \file CATracker.cpp
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
 
-#include "ITSUTracker.h"
+#include "CATracker.h"
 
-ITSUTracker::ITSUTracker()
+CATracker::CATracker()
 {
   // TODO Auto-generated constructor stub
 
 }
 
-ITSUTracker::~ITSUTracker()
+CATracker::~CATracker()
 {
   // TODO Auto-generated destructor stub
 }
