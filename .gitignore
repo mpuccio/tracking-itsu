@@ -27,3 +27,8 @@
 *.exe
 *.out
 *.app
+
+# Eclipse
+.project
+.classpath
+.settings
