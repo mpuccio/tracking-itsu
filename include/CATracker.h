@@ -13,6 +13,11 @@ class CATracker final
 
     CATracker(const CATracker&) = delete;
     CATracker &operator=(const CATracker &tr) = delete;
+
+//    int ClustersToTracks(AliESDEvent *event);
+//    int LoadClusters(TTree *ct);
+//    void UnloadClusters();
+//    AliCluster *GetCluster(int index) const;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */

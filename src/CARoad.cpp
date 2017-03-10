@@ -23,7 +23,33 @@
 #include "CARoad.h"
 
 CARoad::CARoad()
+    : mCellIds { }, mRoadSize { 0 }
 {
-  // TODO Auto-generated constructor stub
+  resetRoad();
+}
 
+CARoad::CARoad(int cellLayer, int cellId)
+    : CARoad()
+{
+  setCell(cellLayer, cellId);
+}
+
+inline int& CARoad::operator [](const int& i)
+{
+  return mCellIds[i];
+}
+
+inline void CARoad::resetRoad()
+{
+  mCellIds.fill(sEmptyLayer);
+}
+
+void CARoad::setCell(int cellLayer, int cellId)
+{
+  if (mCellIds[cellLayer] == sEmptyLayer) {
+
+    ++mRoadSize;
+  }
+
+  mCellIds[cellLayer] = cellId;
 }

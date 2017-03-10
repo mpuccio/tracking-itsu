@@ -31,8 +31,16 @@ class CARoad
     CARoad();
     CARoad(int, int);
 
+    int &operator[] (const int&);
+
+    void resetRoad();
+    void setCell(int, int);
+
   private:
-    std::array<int, 5> mDoubletIds;
+    std::array<int, 5> mCellIds;
+    int mRoadSize;
+
+    static constexpr int sEmptyLayer = -1;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */
