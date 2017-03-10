@@ -23,7 +23,7 @@
 #include "CARoad.h"
 
 CARoad::CARoad()
-    : mCellIds { }, mRoadSize { 0 }
+    : mCellIds { }, mRoadSize { }
 {
   resetRoad();
 }
@@ -42,6 +42,7 @@ inline int& CARoad::operator [](const int& i)
 inline void CARoad::resetRoad()
 {
   mCellIds.fill(sEmptyLayer);
+  mRoadSize = 0;
 }
 
 void CARoad::setCell(int cellLayer, int cellId)
