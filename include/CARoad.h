@@ -25,7 +25,7 @@
 
 #include <array>
 
-class CARoad
+class CARoad final
 {
   public:
     CARoad();
