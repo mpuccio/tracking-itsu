@@ -1,4 +1,4 @@
-/// \file CACell.h
+/// \file CARoad.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,36 +20,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CACELL_H_
-#define TRACKINGITSU_INCLUDE_CACELL_H_
+#ifndef TRACKINGITSU_INCLUDE_CAROAD_H_
+#define TRACKINGITSU_INCLUDE_CAROAD_H_
 
 #include <array>
-#include <vector>
 
-class CACell final
+class CARoad
 {
   public:
-    CACell(const std::array<int, 3>&, const std::array<int, 2>&, const std::array<float, 3>&, const float);
-
-    const int getXCoordinate() const;
-    const int getYCoordinate() const;
-    const int getZCoordinate() const;
-    const int getLevel() const;
-    const float getCurvature() const;
-    const int getNumberOfNeighbours() const;
-    const std::array<float, 3>& getNormalVectorCoordinates() const;
-
-    void setLevel(const int level);
-
-    bool combineCells(const CACell&, int);
+    CARoad();
+    CARoad(int, int);
 
   private:
-    const std::array<int, 3> mTrackletCoordinates;
-    const std::array<int, 2> mDoubletsIds;
-    const std::array<float, 3> mNormalVectorCoordinates;
-    const float mCurvature;
-    int mLevel;
-    std::vector<int> mNeighbours;
+    std::array<int, 5> mDoubletIds;
 };
 
-#endif /* TRACKINGITSU_INCLUDE_CACELL_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */

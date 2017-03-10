@@ -6,11 +6,10 @@
 #ifndef TRACKINGITSU_INCLUDE_CATRACKER_H_
 #define TRACKINGITSU_INCLUDE_CATRACKER_H_
 
-class CATracker
+class CATracker final
 {
   public:
     CATracker();
-    virtual ~CATracker();
 
     CATracker(const CATracker&) = delete;
     CATracker &operator=(const CATracker &tr) = delete;

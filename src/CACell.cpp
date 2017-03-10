@@ -5,18 +5,9 @@
 
 #include "CACell.h"
 
-CACell::CACell(const std::array<int, 3>& trackletCoordinates,
-  const std::array<float, 3>& normalVectorCoordinates, const float curvature)
-  : mTrackletCoordinates{trackletCoordinates},
-    mNormalVectorCoordinates{normalVectorCoordinates},
-    mCurvature{curvature},
-    mLevel{1},
-    mNeighboursCount{0}
-{
-  // Nothing to do
-}
-
-CACell::~CACell()
+CACell::CACell(const std::array<int, 3>& trackletCoordinates, const std::array<int, 2>& doubletsIds,
+    const std::array<float, 3>& normalVectorCoordinates, const float curvature)
+    : mTrackletCoordinates (trackletCoordinates), mDoubletsIds(doubletsIds), mNormalVectorCoordinates(normalVectorCoordinates), mCurvature { curvature }, mLevel { 1 }, mNeighbours { }
 {
   // Nothing to do
 }
@@ -48,7 +39,7 @@ inline const float CACell::getCurvature() const
 
 inline const int CACell::getNumberOfNeighbours() const
 {
-  return mNeighboursCount;
+  return mNeighbours.size();
 }
 
 inline const std::array<float, 3>& CACell::getNormalVectorCoordinates() const
@@ -61,15 +52,15 @@ void CACell::setLevel(const int level)
   this->mLevel = level;
 }
 
-bool CACell::combineCells(const CACell& otherCell)
+bool CACell::combineCells(const CACell& otherCell, int otherDoubletId)
 {
-  if(this->getYCoordinate() == otherCell.getZCoordinate() && this->getXCoordinate() == otherCell.getYCoordinate()) {
+  if (this->getYCoordinate() == otherCell.getZCoordinate() && this->getXCoordinate() == otherCell.getYCoordinate()) {
 
-    mNeighboursCount++;
+    mNeighbours.push_back(otherDoubletId);
 
     int otherCellLevel = otherCell.getLevel();
 
-    if(otherCellLevel >= getLevel()) {
+    if (otherCellLevel >= getLevel()) {
 
       setLevel(otherCellLevel + 1);
     }

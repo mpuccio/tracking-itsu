@@ -35,3 +35,7 @@
 
 # Doxygen
 doxygen/generated
+
+# Build Folders
+Debug
+Release

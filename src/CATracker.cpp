@@ -11,8 +11,3 @@ CATracker::CATracker()
 
 }
 
-CATracker::~CATracker()
-{
-  // TODO Auto-generated destructor stub
-}
-
