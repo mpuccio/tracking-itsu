@@ -45,7 +45,7 @@ class CACell final
 
   private:
     const std::array<int, 3> mTrackletCoordinates;
-    const std::array<int, 2> mDoubletsIds;
+    const std::array<int, 2> mTrackletIds;
     const std::array<float, 3> mNormalVectorCoordinates;
     const float mCurvature;
     int mLevel;

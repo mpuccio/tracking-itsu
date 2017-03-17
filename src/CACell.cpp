@@ -7,7 +7,7 @@
 
 CACell::CACell(const std::array<int, 3>& trackletCoordinates, const std::array<int, 2>& doubletsIds,
     const std::array<float, 3>& normalVectorCoordinates, const float curvature)
-    : mTrackletCoordinates(trackletCoordinates), mDoubletsIds(doubletsIds), mNormalVectorCoordinates(
+    : mTrackletCoordinates(trackletCoordinates), mTrackletIds(doubletsIds), mNormalVectorCoordinates(
         normalVectorCoordinates), mCurvature { curvature }, mLevel { 1 }, mNeighbours { }
 {
   // Nothing to do

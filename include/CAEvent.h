@@ -1,4 +1,4 @@
-/// \file CARoad.h
+/// \file CAEvent.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,27 +20,31 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CAROAD_H_
-#define TRACKINGITSU_INCLUDE_CAROAD_H_
+#ifndef TRACKINGITSU_INCLUDE_CAEVENT_H_
+#define TRACKINGITSU_INCLUDE_CAEVENT_H_
 
 #include <array>
+#include <vector>
 
-class CARoad final
+#include "CAConstants.h"
+#include "CAHit.h"
+
+class CAEvent final
 {
+
   public:
-    CARoad();
-    CARoad(int, int);
-
-    int &operator[](const int&);
-
-    void resetRoad();
-    void setCell(int, int);
+    CAEvent(const int);
+    const int getEventId() const;
+    void setPrimaryVertex(float, float, float);
+    void printPrimaryVertex() const;
+    const std::array<float, 3>& getPrimaryVertex() const;
+    void pushHitToLayer(int, float, float, float);
+    const std::vector<CAHit>& getLayer(const int) const;
 
   private:
-    std::array<int, 5> mCellIds;
-    int mRoadSize;
-
-    static constexpr int sEmptyLayer = -1;
+    int mEventId;
+    std::array<float, 3> mPrimaryVertex;
+    std::array<std::vector<CAHit>, ITSConstants::ITSLayers> mLayerHits;
 };
 
-#endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CAEVENT_H_ */

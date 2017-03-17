@@ -1,4 +1,4 @@
-/// \file CARoad.h
+/// \file CAHit.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,27 +20,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CAROAD_H_
-#define TRACKINGITSU_INCLUDE_CAROAD_H_
+#ifndef TRACKINGITSU_INCLUDE_CAHIT_H_
+#define TRACKINGITSU_INCLUDE_CAHIT_H_
 
-#include <array>
-
-class CARoad final
+struct CAHit final
 {
   public:
-    CARoad();
-    CARoad(int, int);
-
-    int &operator[](const int&);
-
-    void resetRoad();
-    void setCell(int, int);
+    CAHit(float, float, float);
 
   private:
-    std::array<int, 5> mCellIds;
-    int mRoadSize;
-
-    static constexpr int sEmptyLayer = -1;
+    float xCoordinate;
+    float yCoordinate;
+    float zCoordinate;
+    float phiCoordinate;
 };
 
-#endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CAHIT_H_ */
