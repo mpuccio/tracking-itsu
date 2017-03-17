@@ -45,7 +45,7 @@ std::vector<CAEvent> CAEventLoader::loadEventData(const std::string& fileName)
 
     std::istringstream inputStringStream(line);
 
-    if (!(inputStringStream >> layerId >> xCoordinate >> yCoordinate >> zCoordinate)) {
+    if (inputStringStream >> layerId >> xCoordinate >> yCoordinate >> zCoordinate) {
 
       if (layerId == PrimaryVertexLayerId) {
 
