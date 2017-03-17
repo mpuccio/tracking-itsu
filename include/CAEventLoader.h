@@ -1,4 +1,4 @@
-/// \file CAConstants.h
+/// \file CAEventLoader.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,17 +20,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CACONSTANTS_H_
-#define TRACKINGITSU_INCLUDE_CACONSTANTS_H_
+#ifndef TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_
+#define TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_
 
-namespace MathConstants {
+#include "CAEvent.h"
 
-constexpr float Pi = 3.14159265359;
+namespace CAEventLoader {
+std::vector<CAEvent> loadEventData(const std::string&);
 }
 
-namespace ITSConstants {
-
-constexpr int ITSLayers = 7;
-}
-
-#endif /* TRACKINGITSU_INCLUDE_CACONSTANTS_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_ */

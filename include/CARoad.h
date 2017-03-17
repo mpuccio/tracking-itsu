@@ -39,8 +39,6 @@ class CARoad final
   private:
     std::array<int, 5> mCellIds;
     int mRoadSize;
-
-    static constexpr int sEmptyLayer = -1;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */

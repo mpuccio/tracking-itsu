@@ -22,6 +22,11 @@
 
 #include "CARoad.h"
 
+namespace {
+
+constexpr int EmptyLayerId = -1;
+}
+
 CARoad::CARoad()
     : mCellIds { }, mRoadSize { }
 {
@@ -41,13 +46,13 @@ inline int& CARoad::operator [](const int& i)
 
 inline void CARoad::resetRoad()
 {
-  mCellIds.fill(sEmptyLayer);
+  mCellIds.fill(EmptyLayerId);
   mRoadSize = 0;
 }
 
 void CARoad::setCell(int cellLayer, int cellId)
 {
-  if (mCellIds[cellLayer] == sEmptyLayer) {
+  if (mCellIds[cellLayer] == EmptyLayerId) {
 
     ++mRoadSize;
   }

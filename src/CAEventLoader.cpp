@@ -1,4 +1,4 @@
-/// \file CAConstants.h
+/// \file CAEventLoader.cpp
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,17 +20,44 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CACONSTANTS_H_
-#define TRACKINGITSU_INCLUDE_CACONSTANTS_H_
+#include "CAEventLoader.h"
 
-namespace MathConstants {
+#include <sstream>
+#include <string>
+#include <fstream>
 
-constexpr float Pi = 3.14159265359;
+namespace {
+
+constexpr int PrimaryVertexLayerId = -1;
 }
 
-namespace ITSConstants {
+std::vector<CAEvent> CAEventLoader::loadEventData(const std::string& fileName)
+{
+  std::vector<CAEvent> events;
+  std::ifstream inputStream;
+  std::string line;
+  int layerId;
+  float xCoordinate, yCoordinate, zCoordinate;
 
-constexpr int ITSLayers = 7;
+  inputStream.open(fileName);
+
+  while (std::getline(inputStream, line)) {
+
+    std::istringstream inputStringStream(line);
+
+    if (!(inputStringStream >> layerId >> xCoordinate >> yCoordinate >> zCoordinate)) {
+
+      if (layerId == PrimaryVertexLayerId) {
+
+        events.emplace_back(events.size());
+        events.back().setPrimaryVertex(xCoordinate, yCoordinate, zCoordinate);
+
+      } else {
+
+        events.back().pushHitToLayer(layerId, xCoordinate, yCoordinate, zCoordinate);
+      }
+    }
+  }
+
+  return events;
 }
-
-#endif /* TRACKINGITSU_INCLUDE_CACONSTANTS_H_ */
