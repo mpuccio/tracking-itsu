@@ -26,7 +26,7 @@
 
 #include "CAUtils.h"
 
-CAHit::CAHit(float xCoordinate, float yCoordinate, float zCoordinate)
+CAHit::CAHit(const float xCoordinate, const float yCoordinate, const float zCoordinate)
     : xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
         MathUtils::calculatePhi(xCoordinate, yCoordinate) }
 {

@@ -38,7 +38,6 @@ void CAEvent::setPrimaryVertex(float xCoordinate, float yCoordinate, float zCoor
 
 void CAEvent::pushHitToLayer(int layerIndex, float xCoordinate, float yCoordinate, float zCoordinate)
 {
-
   mLayerHits[layerIndex].emplace_back(xCoordinate, yCoordinate, zCoordinate);
 }
 

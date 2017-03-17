@@ -26,7 +26,7 @@
 struct CAHit final
 {
   public:
-    CAHit(float, float, float);
+    CAHit(const float, const float, const float);
 
   private:
     float xCoordinate;

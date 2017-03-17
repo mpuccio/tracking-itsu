@@ -4,6 +4,7 @@ set(SRCS
   CACell.cxx
   CAEvent.cxx
   CAEventLoader.cxx
+  CAHit.cxx
   CARoad.cxx
   CATracker.cxx
   CAUtils.cxx
