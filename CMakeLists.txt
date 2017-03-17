@@ -6,3 +6,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g")
 
 include_directories(${TRACKING-ITSU_SOURCE_DIR}/include)
 add_subdirectory(src)
+
+add_executable(tracking-itsu-main main.cpp)
+target_link_libraries(tracking-itsu-main src)

@@ -22,6 +22,8 @@
 
 #include "CAUtils.h"
 
+#include <cmath>
+
 #include "CAConstants.h"
 
 float MathUtils::calculatePhi(const float xCoordinate, const float yCoordinate)
