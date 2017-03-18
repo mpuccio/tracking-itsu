@@ -26,8 +26,8 @@
 
 #include "CAUtils.h"
 
-CAHit::CAHit(const float xCoordinate, const float yCoordinate, const float zCoordinate)
+CAHit::CAHit(const float xCoordinate, const float yCoordinate, const float zCoordinate, const int monteCarlo)
     : xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
-        MathUtils::calculatePhi(xCoordinate, yCoordinate) }
+        MathUtils::calculatePhi(xCoordinate, yCoordinate) }, monteCarlo { monteCarlo }
 {
 }

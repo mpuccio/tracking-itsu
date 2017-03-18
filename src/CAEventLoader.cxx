@@ -35,8 +35,8 @@ std::vector<CAEvent> CAEventLoader::loadEventData(const std::string& fileName)
 {
   std::vector<CAEvent> events;
   std::ifstream inputStream;
-  std::string line;
-  int layerId;
+  std::string line, unusedVariable;
+  int layerId, monteCarlo;
   float xCoordinate, yCoordinate, zCoordinate;
 
   inputStream.open(fileName);
@@ -54,7 +54,11 @@ std::vector<CAEvent> CAEventLoader::loadEventData(const std::string& fileName)
 
       } else {
 
-        events.back().pushHitToLayer(layerId, xCoordinate, yCoordinate, zCoordinate);
+        if (inputStringStream >> unusedVariable >> unusedVariable >> unusedVariable >> unusedVariable >> monteCarlo
+            >> unusedVariable) {
+
+          events.back().pushHitToLayer(layerId, xCoordinate, yCoordinate, zCoordinate, monteCarlo);
+        }
       }
     }
   }

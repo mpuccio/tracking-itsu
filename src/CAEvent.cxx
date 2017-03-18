@@ -36,9 +36,10 @@ void CAEvent::setPrimaryVertex(float xCoordinate, float yCoordinate, float zCoor
   mPrimaryVertex[2] = zCoordinate;
 }
 
-void CAEvent::pushHitToLayer(int layerIndex, float xCoordinate, float yCoordinate, float zCoordinate)
+void CAEvent::pushHitToLayer(const int layerIndex, const float xCoordinate, const float yCoordinate,
+    const float zCoordinate, const int monteCarlo)
 {
-  mLayerHits[layerIndex].emplace_back(xCoordinate, yCoordinate, zCoordinate);
+  mLayerHits[layerIndex].emplace_back(xCoordinate, yCoordinate, zCoordinate, monteCarlo);
 }
 
 inline const int CAEvent::getEventId() const

@@ -38,7 +38,7 @@ class CAEvent final
     void setPrimaryVertex(float, float, float);
     void printPrimaryVertex() const;
     const std::array<float, 3>& getPrimaryVertex() const;
-    void pushHitToLayer(int, float, float, float);
+    void pushHitToLayer(const int, const float, const float, const float, const int);
     const std::vector<CAHit>& getLayer(const int) const;
 
   private:

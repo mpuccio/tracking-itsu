@@ -26,13 +26,14 @@
 struct CAHit final
 {
   public:
-    CAHit(const float, const float, const float);
+    CAHit(const float, const float, const float, const int);
 
   private:
     float xCoordinate;
     float yCoordinate;
     float zCoordinate;
     float phiCoordinate;
+    int monteCarlo;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CAHIT_H_ */
