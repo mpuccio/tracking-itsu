@@ -27,3 +27,15 @@
 *.exe
 *.out
 *.app
+
+# Eclipse
+.project
+.cproject
+.settings
+
+# Doxygen
+doxygen/generated
+
+# Build Folders
+Debug
+Release
