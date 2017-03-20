@@ -1,4 +1,4 @@
-/// \file CARoad.cxx
+/// \file CALayer.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -15,38 +15,31 @@
 ///   You should have received a copy of the GNU General Public License
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
+#ifndef INCLUDE_CALAYER_H_
+#define INCLUDE_CALAYER_H_
 
-#include "CARoad.h"
+#include <vector>
 
-namespace {
+#include "CACluster.h"
 
-constexpr int EmptyLayerId = -1;
-}
-
-CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+class CALayer final
 {
-  resetRoad();
-}
+  public:
+    CALayer();
 
-CARoad::CARoad(int cellLayer, int cellId)
-    : CARoad()
+    const std::vector<CACluster>& getClusters() const;
+
+    void addCluster(const int, const float, const float, const float, const int);
+
+  private:
+    std::vector<CACluster> mClusters;
+    float mMinZCoordinate;
+    float mMaxZCoordinate;
+};
+
+inline const std::vector<CACluster>& CALayer::getClusters() const
 {
-  setCell(cellLayer, cellId);
+  return mClusters;
 }
 
-void CARoad::resetRoad()
-{
-  mCellIds.fill(EmptyLayerId);
-  mRoadSize = 0;
-}
-
-void CARoad::setCell(int cellLayer, int cellId)
-{
-  if (mCellIds[cellLayer] == EmptyLayerId) {
-
-    ++mRoadSize;
-  }
-
-  mCellIds[cellLayer] = cellId;
-}
+#endif /* INCLUDE_CALAYER_H_ */

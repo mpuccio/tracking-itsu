@@ -32,29 +32,26 @@ void CAEvent::setPrimaryVertex(float xCoordinate, float yCoordinate, float zCoor
   mPrimaryVertex[2] = zCoordinate;
 }
 
-void CAEvent::pushHitToLayer(const int layerIndex, const float xCoordinate, const float yCoordinate,
-    const float zCoordinate, const int monteCarlo)
-{
-  mLayerHits[layerIndex].emplace_back(xCoordinate, yCoordinate, zCoordinate, monteCarlo);
-}
-
-inline const int CAEvent::getEventId() const
-{
-  return mEventId;
-}
-
 void CAEvent::printPrimaryVertex() const
 {
   std::cout << "-1\t" << mPrimaryVertex[0] << "\t" << mPrimaryVertex[1] << "\t" << mPrimaryVertex[2] << std::endl;
   return;
 }
 
-inline const std::array<float, 3>& CAEvent::getPrimaryVertex() const
+void CAEvent::pushClusterToLayer(const int layerIndex, const int clusterId, const float xCoordinate, const float yCoordinate,
+    const float zCoordinate, const int monteCarlo)
 {
-  return mPrimaryVertex;
+  mLayers[layerIndex].addCluster(clusterId, xCoordinate, yCoordinate, zCoordinate, monteCarlo);
 }
 
-const std::vector<CAHit>& CAEvent::getLayer(const int layerIndex) const
+const int CAEvent::getTotalClusters() const
 {
-  return mLayerHits[layerIndex];
+  int totalClusters = 0;
+
+  for(int iLayer = 0; iLayer < ITSConstants::LayersNumber; ++iLayer) {
+
+    mLayers[iLayer].getClusters()[iLayer];
+  }
+
+  return totalClusters;
 }

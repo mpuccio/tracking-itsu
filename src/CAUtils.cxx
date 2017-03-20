@@ -22,7 +22,12 @@
 
 #include "CAConstants.h"
 
-float MathUtils::calculatePhi(const float xCoordinate, const float yCoordinate)
+float MathUtils::calculatePhiCoordinate(const float xCoordinate, const float yCoordinate)
 {
   return std::atan2(-yCoordinate, -xCoordinate) + MathConstants::Pi;
+}
+
+float MathUtils::calculateRCoordinate(const float xCoordinate, const float yCoordinate)
+{
+  return std::sqrt(std::pow(xCoordinate, 2) + std::pow(yCoordinate, 2));
 }

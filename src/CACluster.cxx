@@ -1,4 +1,4 @@
-/// \file CARoad.cxx
+/// \file CAHit.cxx
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,37 +16,15 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CARoad.h"
+#include <cmath>
 
-namespace {
+#include "CACluster.h"
+#include "CAUtils.h"
 
-constexpr int EmptyLayerId = -1;
-}
-
-CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+CACluster::CACluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
+    const int monteCarlo)
+    : clusterId { clusterId }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
+        MathUtils::calculatePhiCoordinate(xCoordinate, yCoordinate) }, rCoordinate { MathUtils::calculateRCoordinate(
+        xCoordinate, yCoordinate) }, monteCarlo { monteCarlo }
 {
-  resetRoad();
-}
-
-CARoad::CARoad(int cellLayer, int cellId)
-    : CARoad()
-{
-  setCell(cellLayer, cellId);
-}
-
-void CARoad::resetRoad()
-{
-  mCellIds.fill(EmptyLayerId);
-  mRoadSize = 0;
-}
-
-void CARoad::setCell(int cellLayer, int cellId)
-{
-  if (mCellIds[cellLayer] == EmptyLayerId) {
-
-    ++mRoadSize;
-  }
-
-  mCellIds[cellLayer] = cellId;
 }

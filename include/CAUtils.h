@@ -20,7 +20,8 @@
 #define TRACKINGITSU_INCLUDE_CAUTILS_H_
 
 namespace MathUtils {
-float calculatePhi(const float xCoordinate, const float yCoordinate);
+float calculatePhiCoordinate(const float xCoordinate, const float yCoordinate);
+float calculateRCoordinate(const float xCoordinate, const float yCoordinate);
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CAUTILS_H_ */

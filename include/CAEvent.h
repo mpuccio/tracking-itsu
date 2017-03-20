@@ -20,27 +20,62 @@
 #define TRACKINGITSU_INCLUDE_CAEVENT_H_
 
 #include <array>
-#include <vector>
 
 #include "CAConstants.h"
-#include "CAHit.h"
+#include "CALayer.h"
 
 class CAEvent final
 {
 
   public:
-    CAEvent(const int);
+    explicit CAEvent(const int);
+
     const int getEventId() const;
+    const std::array<float, 3>& getPrimaryVertex() const;
+    const float getPrimaryVertexXCoordinate() const;
+    const float getPrimaryVertexYCoordinate() const;
+    const float getPrimaryVertexZCoordinate() const;
+    const CALayer& getLayer(const int) const;
+
     void setPrimaryVertex(float, float, float);
     void printPrimaryVertex() const;
-    const std::array<float, 3>& getPrimaryVertex() const;
-    void pushHitToLayer(const int, const float, const float, const float, const int);
-    const std::vector<CAHit>& getLayer(const int) const;
+    void pushClusterToLayer(const int, const int, const float, const float, const float, const int);
+    const int getTotalClusters() const;
 
   private:
     int mEventId;
     std::array<float, 3> mPrimaryVertex;
-    std::array<std::vector<CAHit>, ITSConstants::ITSLayers> mLayerHits;
+    std::array<CALayer, ITSConstants::LayersNumber> mLayers;
 };
+
+inline const int CAEvent::getEventId() const
+{
+  return mEventId;
+}
+
+inline const std::array<float, 3>& CAEvent::getPrimaryVertex() const
+{
+  return mPrimaryVertex;
+}
+
+inline const CALayer& CAEvent::getLayer(const int layerIndex) const
+{
+  return mLayers[layerIndex];
+}
+
+inline const float CAEvent::getPrimaryVertexXCoordinate() const
+{
+  return mPrimaryVertex[0];
+}
+
+inline const float CAEvent::getPrimaryVertexYCoordinate() const
+{
+  return mPrimaryVertex[1];
+}
+
+inline const float CAEvent::getPrimaryVertexZCoordinate() const
+{
+  return mPrimaryVertex[2];
+}
 
 #endif /* TRACKINGITSU_INCLUDE_CAEVENT_H_ */

@@ -19,18 +19,26 @@
 #ifndef TRACKINGITSU_INCLUDE_CATRACKER_H_
 #define TRACKINGITSU_INCLUDE_CATRACKER_H_
 
+#include "CAConstants.h"
+#include "CAEvent.h"
+
 class CATracker final
 {
   public:
-    CATracker();
+    explicit CATracker(const CAEvent&);
 
     CATracker(const CATracker&) = delete;
-    CATracker &operator=(const CATracker &tr) = delete;
+    CATracker &operator=(const CATracker&) = delete;
 
-//    int ClustersToTracks(AliESDEvent *event);
-//    int LoadClusters(TTree *ct);
-//    void UnloadClusters();
-//    AliCluster *GetCluster(int index) const;
+    int clustersToTracks(CAEvent&);
+
+  protected:
+    void makeCells(int);
+    void selectClusters(const float, const float, const float, const float);
+
+  private:
+    CAEvent mEvent;
+    std::vector<bool> mUsedClustersTable;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */

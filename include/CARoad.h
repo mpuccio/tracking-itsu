@@ -21,6 +21,8 @@
 
 #include <array>
 
+#include "CAConstants.h"
+
 class CARoad final
 {
   public:
@@ -33,8 +35,13 @@ class CARoad final
     void setCell(int, int);
 
   private:
-    std::array<int, 5> mCellIds;
+    std::array<int, ITSConstants::CellsPerRoad> mCellIds;
     int mRoadSize;
 };
+
+inline int& CARoad::operator [](const int& i)
+{
+  return mCellIds[i];
+}
 
 #endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */

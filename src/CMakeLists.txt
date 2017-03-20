@@ -2,9 +2,10 @@ set(MODULE src)
 
 set(SRCS
   CACell.cxx
+  CACluster.cxx
   CAEvent.cxx
   CAEventLoader.cxx
-  CAHit.cxx
+  CALayer.cxx
   CARoad.cxx
   CATracker.cxx
   CAUtils.cxx

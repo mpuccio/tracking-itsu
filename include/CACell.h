@@ -48,4 +48,39 @@ class CACell final
     std::vector<int> mNeighbours;
 };
 
+inline const int CACell::getXCoordinate() const
+{
+  return mTrackletCoordinates[0];
+}
+
+inline const int CACell::getYCoordinate() const
+{
+  return mTrackletCoordinates[1];
+}
+
+inline const int CACell::getZCoordinate() const
+{
+  return mTrackletCoordinates[2];
+}
+
+inline const int CACell::getLevel() const
+{
+  return mLevel;
+}
+
+inline const float CACell::getCurvature() const
+{
+  return mCurvature;
+}
+
+inline const int CACell::getNumberOfNeighbours() const
+{
+  return mNeighbours.size();
+}
+
+inline const std::array<float, 3>& CACell::getNormalVectorCoordinates() const
+{
+  return mNormalVectorCoordinates;
+}
+
 #endif /* TRACKINGITSU_INCLUDE_CACELL_H_ */

@@ -20,13 +20,13 @@
 #define TRACKINGITSU_INCLUDE_CACONSTANTS_H_
 
 namespace MathConstants {
-
 constexpr float Pi = 3.14159265359;
 }
 
 namespace ITSConstants {
-
-constexpr int ITSLayers = 7;
+constexpr int LayersNumber = 7;
+constexpr int TrackletsPerRoad = 6;
+constexpr int CellsPerRoad = LayersNumber - 2;
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CACONSTANTS_H_ */

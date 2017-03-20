@@ -19,17 +19,17 @@
 #ifndef TRACKINGITSU_INCLUDE_CAHIT_H_
 #define TRACKINGITSU_INCLUDE_CAHIT_H_
 
-struct CAHit final
+struct CACluster final
 {
-  public:
-    CAHit(const float, const float, const float, const int);
+  CACluster(const int, const float, const float, const float, const int);
 
-  private:
-    float xCoordinate;
-    float yCoordinate;
-    float zCoordinate;
-    float phiCoordinate;
-    int monteCarlo;
+  int clusterId;
+  float xCoordinate;
+  float yCoordinate;
+  float zCoordinate;
+  float phiCoordinate;
+  float rCoordinate;
+  int monteCarlo;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CAHIT_H_ */

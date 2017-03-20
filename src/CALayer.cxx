@@ -1,4 +1,4 @@
-/// \file CAHit.cxx
+/// \file CALayer.cxx
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,14 +16,26 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CAHit.h"
+#include "CALayer.h"
 
-#include <cmath>
+#include <limits>
 
-#include "CAUtils.h"
-
-CAHit::CAHit(const float xCoordinate, const float yCoordinate, const float zCoordinate, const int monteCarlo)
-    : xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
-        MathUtils::calculatePhi(xCoordinate, yCoordinate) }, monteCarlo { monteCarlo }
+CALayer::CALayer()
+    : mMinZCoordinate { std::numeric_limits<float>::max() }, mMaxZCoordinate { -std::numeric_limits<float>::max() }
 {
+}
+
+void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
+    const int monteCarlo)
+{
+  mClusters.emplace_back(clusterId, xCoordinate, yCoordinate, zCoordinate, monteCarlo);
+
+  if(mMinZCoordinate > zCoordinate) {
+
+    mMinZCoordinate = zCoordinate;
+
+  } else if(mMaxZCoordinate < zCoordinate) {
+
+    mMaxZCoordinate = zCoordinate;
+  }
 }
