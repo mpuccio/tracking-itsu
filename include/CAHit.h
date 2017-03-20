@@ -1,4 +1,4 @@
-/// \file CACell.h
+/// \file CAHit.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,36 +20,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CACELL_H_
-#define TRACKINGITSU_INCLUDE_CACELL_H_
+#ifndef TRACKINGITSU_INCLUDE_CAHIT_H_
+#define TRACKINGITSU_INCLUDE_CAHIT_H_
 
-#include <array>
-#include <vector>
-
-class CACell final
+struct CAHit final
 {
   public:
-    CACell(const std::array<int, 3>&, const std::array<int, 2>&, const std::array<float, 3>&, const float);
-
-    const int getXCoordinate() const;
-    const int getYCoordinate() const;
-    const int getZCoordinate() const;
-    const int getLevel() const;
-    const float getCurvature() const;
-    const int getNumberOfNeighbours() const;
-    const std::array<float, 3>& getNormalVectorCoordinates() const;
-
-    void setLevel(const int level);
-
-    bool combineCells(const CACell&, int);
+    CAHit(const float, const float, const float, const int);
 
   private:
-    const std::array<int, 3> mTrackletCoordinates;
-    const std::array<int, 2> mTrackletIds;
-    const std::array<float, 3> mNormalVectorCoordinates;
-    const float mCurvature;
-    int mLevel;
-    std::vector<int> mNeighbours;
+    float xCoordinate;
+    float yCoordinate;
+    float zCoordinate;
+    float phiCoordinate;
+    int monteCarlo;
 };
 
-#endif /* TRACKINGITSU_INCLUDE_CACELL_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CAHIT_H_ */

@@ -1,4 +1,4 @@
-/// \file CARoad.h
+/// \file CAUtils.cpp
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,25 +20,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CAROAD_H_
-#define TRACKINGITSU_INCLUDE_CAROAD_H_
+#include "CAUtils.h"
 
-#include <array>
+#include <cmath>
 
-class CARoad final
+#include "CAConstants.h"
+
+float MathUtils::calculatePhi(const float xCoordinate, const float yCoordinate)
 {
-  public:
-    CARoad();
-    CARoad(int, int);
-
-    int &operator[](const int&);
-
-    void resetRoad();
-    void setCell(int, int);
-
-  private:
-    std::array<int, 5> mCellIds;
-    int mRoadSize;
-};
-
-#endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */
+  return std::atan2(-yCoordinate, -xCoordinate) + MathConstants::Pi;
+}

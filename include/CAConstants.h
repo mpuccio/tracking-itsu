@@ -1,4 +1,4 @@
-/// \file CARoad.h
+/// \file CAConstants.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,25 +20,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CAROAD_H_
-#define TRACKINGITSU_INCLUDE_CAROAD_H_
+#ifndef TRACKINGITSU_INCLUDE_CACONSTANTS_H_
+#define TRACKINGITSU_INCLUDE_CACONSTANTS_H_
 
-#include <array>
+namespace MathConstants {
 
-class CARoad final
-{
-  public:
-    CARoad();
-    CARoad(int, int);
+constexpr float Pi = 3.14159265359;
+}
 
-    int &operator[](const int&);
+namespace ITSConstants {
 
-    void resetRoad();
-    void setCell(int, int);
+constexpr int ITSLayers = 7;
+}
 
-  private:
-    std::array<int, 5> mCellIds;
-    int mRoadSize;
-};
-
-#endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CACONSTANTS_H_ */

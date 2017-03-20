@@ -1,4 +1,4 @@
-/// \file CACell.h
+/// \file main.cpp
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,36 +20,23 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CACELL_H_
-#define TRACKINGITSU_INCLUDE_CACELL_H_
-
-#include <array>
+#include <iostream>
 #include <vector>
 
-class CACell final
-{
-  public:
-    CACell(const std::array<int, 3>&, const std::array<int, 2>&, const std::array<float, 3>&, const float);
+#include "CAEventLoader.h"
 
-    const int getXCoordinate() const;
-    const int getYCoordinate() const;
-    const int getZCoordinate() const;
-    const int getLevel() const;
-    const float getCurvature() const;
-    const int getNumberOfNeighbours() const;
-    const std::array<float, 3>& getNormalVectorCoordinates() const;
+int main(int argc, char** argv) {
 
-    void setLevel(const int level);
+  if( argv[1] == NULL ) {
 
-    bool combineCells(const CACell&, int);
+    std::cerr << "Please, provide a data file." << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-  private:
-    const std::array<int, 3> mTrackletCoordinates;
-    const std::array<int, 2> mTrackletIds;
-    const std::array<float, 3> mNormalVectorCoordinates;
-    const float mCurvature;
-    int mLevel;
-    std::vector<int> mNeighbours;
-};
+  std::string fileName(argv[1]);
+  std::vector<CAEvent> events = CAEventLoader::loadEventData(fileName);
 
-#endif /* TRACKINGITSU_INCLUDE_CACELL_H_ */
+  std::cout << "Hello World!!" << std::endl;
+}
+
+

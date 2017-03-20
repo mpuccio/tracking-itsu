@@ -1,4 +1,4 @@
-/// \file CARoad.h
+/// \file CARoad.cpp
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,25 +20,42 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#ifndef TRACKINGITSU_INCLUDE_CAROAD_H_
-#define TRACKINGITSU_INCLUDE_CAROAD_H_
+#include "CARoad.h"
 
-#include <array>
+namespace {
 
-class CARoad final
+constexpr int EmptyLayerId = -1;
+}
+
+CARoad::CARoad()
+    : mCellIds { }, mRoadSize { }
 {
-  public:
-    CARoad();
-    CARoad(int, int);
+  resetRoad();
+}
 
-    int &operator[](const int&);
+CARoad::CARoad(int cellLayer, int cellId)
+    : CARoad()
+{
+  setCell(cellLayer, cellId);
+}
 
-    void resetRoad();
-    void setCell(int, int);
+inline int& CARoad::operator [](const int& i)
+{
+  return mCellIds[i];
+}
 
-  private:
-    std::array<int, 5> mCellIds;
-    int mRoadSize;
-};
+inline void CARoad::resetRoad()
+{
+  mCellIds.fill(EmptyLayerId);
+  mRoadSize = 0;
+}
 
-#endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */
+void CARoad::setCell(int cellLayer, int cellId)
+{
+  if (mCellIds[cellLayer] == EmptyLayerId) {
+
+    ++mRoadSize;
+  }
+
+  mCellIds[cellLayer] = cellId;
+}
