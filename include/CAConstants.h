@@ -21,12 +21,15 @@
 
 namespace MathConstants {
 constexpr float Pi = 3.14159265359;
+constexpr float TwoPi = 2.0 * Pi;
 }
 
 namespace ITSConstants {
 constexpr int LayersNumber = 7;
 constexpr int TrackletsPerRoad = 6;
 constexpr int CellsPerRoad = LayersNumber - 2;
+constexpr int LookupTableZBins = 20;
+constexpr int LookupTablePhiBins = 20;
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CACONSTANTS_H_ */

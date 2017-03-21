@@ -28,6 +28,10 @@ class CALayer final
     CALayer();
 
     const std::vector<CACluster>& getClusters() const;
+    const CACluster& getCluster(int) const;
+    const int getClustersSize() const;
+    const float getMinZCoordinate() const;
+    const float getMaxZCoordinate() const;
 
     void addCluster(const int, const float, const float, const float, const int);
 
@@ -40,6 +44,26 @@ class CALayer final
 inline const std::vector<CACluster>& CALayer::getClusters() const
 {
   return mClusters;
+}
+
+inline const CACluster& CALayer::getCluster(int clusterIndex) const
+{
+  return mClusters[clusterIndex];
+}
+
+inline const int CALayer::getClustersSize() const
+{
+  return mClusters.size();
+}
+
+inline const float CALayer::getMinZCoordinate() const
+{
+  return mMinZCoordinate;
+}
+
+inline const float CALayer::getMaxZCoordinate() const
+{
+  return mMaxZCoordinate;
 }
 
 #endif /* INCLUDE_CALAYER_H_ */

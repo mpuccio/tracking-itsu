@@ -18,9 +18,12 @@
 
 #include "CATracker.h"
 
+#include <cmath>
+
 CATracker::CATracker(const CAEvent& event)
     : mEvent { event }, mUsedClustersTable(event.getTotalClusters(), false)
 {
+  // Nothing to do
 }
 
 int CATracker::clustersToTracks(CAEvent& event)
@@ -35,24 +38,26 @@ void CATracker::makeCells(int int1)
 
   for (int iLayer = 0; iLayer < ITSConstants::TrackletsPerRoad; ++iLayer) {
 
-    if (mEvent.getLayer(iLayer).getClusters().empty()) {
+    CALayer& currentLayer = mEvent.getLayer(iLayer);
+
+    if (currentLayer.getClusters().empty()) {
 
       continue;
     }
 
-    if((iLayer + 1) < ITSConstants::TrackletsPerRoad) {
+    CALayer& nextLayer = mEvent.getLayer(iLayer + 1);
 
-      trackletsLookUpTable[iLayer].resize(mEvent.getLayer(iLayer + 1).getClusters().size(), -1);
+    if((iLayer + 1) < ITSConstants::TrackletsPerRoad) { //TODO: capire perchè ultima volta no
+
+      trackletsLookUpTable[iLayer].resize(nextLayer.getClustersSize(), -1);
     }
 
     // FIXME: Non ne capisco il significato: in piu' potrebbe dare errore nel caso iL == 0
     //if (trackletsLookUpTable[iLayer - 1].size() == 0u) continue;
 
-    int currentLayerClustersNum = mEvent.getLayer(iLayer).getClusters().size();
+    for(int iCluster = 0; iCluster < currentLayer.getClustersSize(); ++iCluster) {
 
-    for(int iCluster = 0; iCluster < currentLayerClustersNum; ++iCluster) {
-
-      const CACluster& currentCluster = mEvent.getLayer(iLayer).getClusters()[iCluster];
+      const CACluster& currentCluster = currentLayer.getCluster(iCluster);
 
       if(mUsedClustersTable[currentCluster.clusterId]) {
 
@@ -70,8 +75,28 @@ void CATracker::makeCells(int int1)
   }
 }
 
-void CATracker::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
+void CATracker::selectClusters(const CALayer& layer, const float zRangeMin, const float zRangeMax, const float phiRangeMin,
   const float phiRangeMax)
 {
+  if(zRangeMax < layer.getMinZCoordinate() || zRangeMin > layer.getMaxZCoordinate() || zRangeMin > zRangeMax) {
 
+    return;
+  }
+
+  const float lookupTableZBinInverseSize = ITSConstants::LookupTableZBins / (layer.getMaxZCoordinate() - layer.getMinZCoordinate());
+  const float lookupTablePhiBinInverseSize = ITSConstants::LookupTablePhiBins / MathConstants::TwoPi;
+
+  const int minZBinIndex = std::min(0, LookupTableUtils::getZBinIndex(zRangeMin, layer.getMinZCoordinate(), lookupTableZBinInverseSize));
+  const int maxZBinIndex = std::max(ITSConstants::LookupTableZBins - 1, LookupTableUtils::getZBinIndex(zRangeMax, layer.getMinZCoordinate(), lookupTableZBinInverseSize));
+  const int zBinsNum = maxZBinIndex - minZBinIndex + 1;
+  const int minPhiBinIndex = LookupTableUtils::getPhiBinIndex(phiRangeMin, lookupTablePhiBinInverseSize);
+  const int maxPhiBinIndex = LookupTableUtils::getPhiBinIndex(phiRangeMax, lookupTablePhiBinInverseSize);
+
+  for(int iPhiBin = minPhiBinIndex; iPhiBin <= maxPhiBinIndex; ++iPhiBin % ITSConstants::LookupTablePhiBins) {
+
+    if(zBinsNum == 1) {
+
+
+    }
+  }
 }

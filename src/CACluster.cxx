@@ -24,7 +24,7 @@
 CACluster::CACluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
     const int monteCarlo)
     : clusterId { clusterId }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
-        MathUtils::calculatePhiCoordinate(xCoordinate, yCoordinate) }, rCoordinate { MathUtils::calculateRCoordinate(
+        MathUtils::getNormalizedPhiCoordinate(MathUtils::calculatePhiCoordinate(xCoordinate, yCoordinate)) }, rCoordinate { MathUtils::calculateRCoordinate(
         xCoordinate, yCoordinate) }, monteCarlo { monteCarlo }
 {
 }

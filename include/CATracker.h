@@ -33,8 +33,11 @@ class CATracker final
     int clustersToTracks(CAEvent&);
 
   protected:
+    const int getZBinIndex(const float, const float, const float) const;
+    const int getPhiBinIndex(const float, const float) const;
+
     void makeCells(int);
-    void selectClusters(const float, const float, const float, const float);
+    void selectClusters(const CALayer&, const float, const float, const float, const float);
 
   private:
     CAEvent mEvent;

@@ -31,3 +31,4 @@ float MathUtils::calculateRCoordinate(const float xCoordinate, const float yCoor
 {
   return std::sqrt(std::pow(xCoordinate, 2) + std::pow(yCoordinate, 2));
 }
+

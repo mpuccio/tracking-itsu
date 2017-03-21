@@ -20,8 +20,38 @@
 #define TRACKINGITSU_INCLUDE_CAUTILS_H_
 
 namespace MathUtils {
-float calculatePhiCoordinate(const float xCoordinate, const float yCoordinate);
-float calculateRCoordinate(const float xCoordinate, const float yCoordinate);
+float calculatePhiCoordinate(const float, const float);
+float calculateRCoordinate(const float, const float);
+float getNormalizedPhiCoordinate(const float);
+}
+
+namespace LookupTableUtils {
+int getZBinIndex(const float, const float, const float);
+int getPhiBinIndex(const float, const float);
+int getBinIndex(const int, const int, const int);
+}
+
+constexpr float MathUtils::getNormalizedPhiCoordinate(const float phiCoordinate) {
+
+  return (phiCoordinate < 0) ? phiCoordinate + MathConstants::TwoPi :
+      (phiCoordinate > MathConstants::TwoPi) ? phiCoordinate - MathConstants::TwoPi : phiCoordinate;
+}
+
+constexpr int LookupTableUtils::getZBinIndex(const float currentZ, const float minZCoordinate, const float inverseZBinSize)
+{
+
+  return (currentZ - minZCoordinate) * inverseZBinSize;
+}
+
+constexpr int LookupTableUtils::getPhiBinIndex(const float currentPhi, const float inversePhiBinSize)
+{
+
+  return (MathUtils::getNormalizedPhiCoordinate(currentPhi) * inversePhiBinSize);
+}
+
+constexpr int LookupTableUtils::getBinIndex(const int currentPhiIndex, const int phiBinsNumber, const int currentZIndex) {
+
+  return currentPhiIndex * phiBinsNumber + currentZIndex;
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CAUTILS_H_ */
