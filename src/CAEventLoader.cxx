@@ -34,7 +34,7 @@ std::vector<CAEvent> CAEventLoader::loadEventData(const std::string& fileName)
   std::string line, unusedVariable;
   int layerId, monteCarlo;
   int clusterId;
-  float xCoordinate, yCoordinate, zCoordinate;
+  float xCoordinate, yCoordinate, zCoordinate, alphaAngle;
 
   inputStream.open(fileName);
 
@@ -53,9 +53,9 @@ std::vector<CAEvent> CAEventLoader::loadEventData(const std::string& fileName)
 
       } else {
 
-        if (inputStringStream >> unusedVariable >> unusedVariable >> unusedVariable >> unusedVariable >> monteCarlo) {
+        if (inputStringStream >> unusedVariable >> unusedVariable >> unusedVariable >> alphaAngle >> monteCarlo) {
 
-          events.back().pushClusterToLayer(layerId, clusterId, xCoordinate, yCoordinate, zCoordinate, monteCarlo);
+          events.back().pushClusterToLayer(layerId, clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
           ++clusterId;
         }
       }

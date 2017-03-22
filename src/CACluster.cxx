@@ -22,9 +22,9 @@
 #include "CAUtils.h"
 
 CACluster::CACluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
-    const int monteCarlo)
+    const float alphaAngle, const int monteCarlo)
     : clusterId { clusterId }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
         MathUtils::getNormalizedPhiCoordinate(MathUtils::calculatePhiCoordinate(xCoordinate, yCoordinate)) }, rCoordinate { MathUtils::calculateRCoordinate(
-        xCoordinate, yCoordinate) }, monteCarlo { monteCarlo }
+        xCoordinate, yCoordinate) }, alphaAngle{ alphaAngle }, monteCarlo { monteCarlo }
 {
 }

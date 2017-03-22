@@ -26,9 +26,9 @@ CALayer::CALayer()
 }
 
 void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
-    const int monteCarlo)
+    const float alphaAngle, const int monteCarlo)
 {
-  mClusters.emplace_back(clusterId, xCoordinate, yCoordinate, zCoordinate, monteCarlo);
+  mClusters.emplace_back(clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
 
   if(mMinZCoordinate > zCoordinate) {
 

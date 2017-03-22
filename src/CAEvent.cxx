@@ -39,10 +39,10 @@ void CAEvent::printPrimaryVertex() const
 }
 
 void CAEvent::pushClusterToLayer(const int layerIndex, const int clusterId, const float xCoordinate, const float yCoordinate,
-    const float zCoordinate, const int monteCarlo)
+    const float zCoordinate, const float aplhaAngle, const int monteCarlo)
 {
   mLayers[layerIndex].addCluster(clusterId, xCoordinate - getPrimaryVertexXCoordinate(),
-    yCoordinate - getPrimaryVertexYCoordinate(), zCoordinate, monteCarlo);
+    yCoordinate - getPrimaryVertexYCoordinate(), zCoordinate, aplhaAngle, monteCarlo);
 }
 
 const int CAEvent::getTotalClusters() const

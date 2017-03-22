@@ -21,7 +21,7 @@
 
 struct CACluster final
 {
-  CACluster(const int, const float, const float, const float, const int);
+  CACluster(const int, const float, const float, const float, const float, const int);
 
   int clusterId;
   float xCoordinate;
@@ -29,6 +29,7 @@ struct CACluster final
   float zCoordinate;
   float phiCoordinate;
   float rCoordinate;
+  float alphaAngle;
   int monteCarlo;
 };
 

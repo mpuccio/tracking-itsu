@@ -37,11 +37,11 @@ class CATracker final
     const int getPhiBinIndex(const float, const float) const;
 
     void makeCells(int);
-    void selectClusters(const CALayer&, const float, const float, const float, const float);
 
   private:
-    CAEvent mEvent;
+    CAEvent& mEvent;
     std::vector<bool> mUsedClustersTable;
+    std::array<CALookupTable, ITSConstants::LayersNumber> mLookupTables;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */

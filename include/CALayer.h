@@ -15,8 +15,8 @@
 ///   You should have received a copy of the GNU General Public License
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
-#ifndef INCLUDE_CALAYER_H_
-#define INCLUDE_CALAYER_H_
+#ifndef TRACKINGITSU_INCLUDE_CALAYER_H_
+#define TRACKINGITSU_INCLUDE_CALAYER_H_
 
 #include <vector>
 
@@ -33,7 +33,7 @@ class CALayer final
     const float getMinZCoordinate() const;
     const float getMaxZCoordinate() const;
 
-    void addCluster(const int, const float, const float, const float, const int);
+    void addCluster(const int, const float, const float, const float, const float, const int);
 
   private:
     std::vector<CACluster> mClusters;
@@ -66,4 +66,4 @@ inline const float CALayer::getMaxZCoordinate() const
   return mMaxZCoordinate;
 }
 
-#endif /* INCLUDE_CALAYER_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CALAYER_H_ */
