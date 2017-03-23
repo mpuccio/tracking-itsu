@@ -19,17 +19,30 @@
 #ifndef TRACKINGITSU_INCLUDE_CACONSTANTS_H_
 #define TRACKINGITSU_INCLUDE_CACONSTANTS_H_
 
-namespace MathConstants {
-constexpr float Pi = 3.14159265359;
-constexpr float TwoPi = 2.0 * Pi;
+#include <array>
+
+namespace CAConstants {
+
+namespace Math {
+constexpr float Pi { 3.14159265359 };
+constexpr float TwoPi { 2.0 * Pi };
 }
 
-namespace ITSConstants {
-constexpr int LayersNumber = 7;
-constexpr int TrackletsPerRoad = 6;
-constexpr int CellsPerRoad = LayersNumber - 2;
-constexpr int LookupTableZBins = 20;
-constexpr int LookupTablePhiBins = 20;
+namespace ITS {
+constexpr int LayersNumber { 7 };
+constexpr int TrackletsPerRoad { 6 };
+constexpr int CellsPerRoad { LayersNumber - 2 };
+constexpr std::array<float, LayersNumber> LayersRCoordinate { { 2.33959, 3.14076, 3.91924, 19.6213, 24.5597, 34.388,
+    39.3329 } };
+}
+
+namespace LookupTable {
+constexpr int ZBins { 20 };
+constexpr int PhiBins { 20 };
+constexpr float ZCoordinateCut { 0.5f };
+constexpr float phiCoordinateCut { 1.0f };
+}
+
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CACONSTANTS_H_ */

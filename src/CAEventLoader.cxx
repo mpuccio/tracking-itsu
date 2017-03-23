@@ -55,7 +55,8 @@ std::vector<CAEvent> CAEventLoader::loadEventData(const std::string& fileName)
 
         if (inputStringStream >> unusedVariable >> unusedVariable >> unusedVariable >> alphaAngle >> monteCarlo) {
 
-          events.back().pushClusterToLayer(layerId, clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
+          events.back().pushClusterToLayer(layerId, clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle,
+              monteCarlo);
           ++clusterId;
         }
       }

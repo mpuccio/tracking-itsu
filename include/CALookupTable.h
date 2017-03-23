@@ -21,38 +21,45 @@
 
 #include <array>
 
+#include "CAConstants.h"
+#include "CALayer.h"
+#include "CAMathUtils.h"
+
 class CALookupTable final
 {
   public:
+    CALookupTable();
     explicit CALookupTable(const CALayer&);
 
-    int getZBinIndex(const float);
-    int getPhiBinIndex(const float);
-    int getBinIndex(const int, const int);
+    int getZBinIndex(const float) const;
+    int getPhiBinIndex(const float) const;
+    int getBinIndex(const int, const int) const;
     std::vector<int> selectClusters(const float, const float, const float, const float);
 
   private:
-    CALayer& mLayer;
+    float mLayerMinZCoordinate;
+    float mLayerMaxZCoordinate;
     float mInverseZBinSize;
     float mInversePhiBinSize;
-    std::array<std::vector<int>, ITSConstants::LookupTablePhiBins * ITSConstants::LookupTableZBins> mTableBins;
+    std::array<std::vector<int>, CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins> mTableBins;
 };
 
-inline int CALookupTable::getZBinIndex(const float zCoordinate)
+inline int CALookupTable::getZBinIndex(const float zCoordinate) const
 {
 
-  return (zCoordinate - mLayer.getMinZCoordinate()) * mInverseZBinSize;
+  return (zCoordinate - mLayerMinZCoordinate) * mInverseZBinSize;
 }
 
-inline int CALookupTable::getPhiBinIndex(const float currentPhi)
+inline int CALookupTable::getPhiBinIndex(const float currentPhi) const
 {
 
-  return (MathUtils::getNormalizedPhiCoordinate(currentPhi) * mInversePhiBinSize);
+  return (CAMathUtils::getNormalizedPhiCoordinate(currentPhi) * mInversePhiBinSize);
 }
 
-inline int CALookupTable::getBinIndex(const int phiIndex, const int zIndex) {
+inline int CALookupTable::getBinIndex(const int phiIndex, const int zIndex) const
+{
 
-  return phiIndex * ITSConstants::LookupTablePhiBins + zIndex;
+  return phiIndex * CAConstants::LookupTable::PhiBins + zIndex;
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_ */

@@ -21,9 +21,9 @@
 #include <cmath>
 
 CATracker::CATracker(const CAEvent& event)
-    : mEvent { event }, mUsedClustersTable(event.getTotalClusters(), false)
+    : mEvent { event }, mUsedClustersTable(event.getTotalClusters(), false), mLookupTables { }
 {
-  for(int iLayer = 0; iLayer < ITSConstants::LayersNumber; ++iLayer) {
+  for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
     mLookupTables[iLayer] = CALookupTable(event.getLayer(iLayer));
   }
@@ -37,20 +37,20 @@ int CATracker::clustersToTracks(CAEvent& event)
 
 void CATracker::makeCells(int int1)
 {
-  std::vector<int> trackletsLookUpTable[ITSConstants::CellsPerRoad];
+  std::vector<int> trackletsLookUpTable[CAConstants::ITS::CellsPerRoad];
 
-  for (int iLayer = 0; iLayer < ITSConstants::TrackletsPerRoad; ++iLayer) {
+  for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
-    CALayer& currentLayer = mEvent.getLayer(iLayer);
+    const CALayer& currentLayer = mEvent.getLayer(iLayer);
 
     if (currentLayer.getClusters().empty()) {
 
       continue;
     }
 
-    CALayer& nextLayer = mEvent.getLayer(iLayer + 1);
+    const CALayer& nextLayer = mEvent.getLayer(iLayer + 1);
 
-    if((iLayer + 1) < ITSConstants::TrackletsPerRoad) { //TODO: capire perchè ultima volta no
+    if ((iLayer + 1) < CAConstants::ITS::TrackletsPerRoad) { //TODO: capire perchè ultima volta no
 
       trackletsLookUpTable[iLayer].resize(nextLayer.getClustersSize(), -1);
     }
@@ -58,22 +58,36 @@ void CATracker::makeCells(int int1)
     // FIXME: Non ne capisco il significato: in piu' potrebbe dare errore nel caso iL == 0
     //if (trackletsLookUpTable[iLayer - 1].size() == 0u) continue;
 
-    for(int iCluster = 0; iCluster < currentLayer.getClustersSize(); ++iCluster) {
+    for (int iCluster = 0; iCluster < currentLayer.getClustersSize(); ++iCluster) {
 
       const CACluster& currentCluster = currentLayer.getCluster(iCluster);
 
-      if(mUsedClustersTable[currentCluster.clusterId]) {
+      if (mUsedClustersTable[currentCluster.clusterId]) {
 
         continue;
       }
 
-      // TODO: variables
-      //const float lambdaTan = (currentCluster.zCoordinate - mEvent.getPrimaryVertexZCoordinate()) / currentCluster.rCoordinate;
-      //const float extZ = lambdaTan * ();
-      //const int
+      const float tanLambda = (currentCluster.zCoordinate - mEvent.getPrimaryVertexZCoordinate())
+          / currentCluster.rCoordinate;
+      const float extz = tanLambda * (CAConstants::ITS::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate)
+          + currentCluster.zCoordinate;
 
+      const std::vector<int> nextLayerClusters = mLookupTables[iLayer + 1].selectClusters(
+          extz - 2 * CAConstants::LookupTable::ZCoordinateCut, extz + 2 * CAConstants::LookupTable::ZCoordinateCut,
+          currentCluster.phiCoordinate - CAConstants::LookupTable::phiCoordinateCut,
+          currentCluster.phiCoordinate + CAConstants::LookupTable::phiCoordinateCut);
 
-      //for(int iNextLevelClusters = 0; iNextCluster <)
+      const int nextLayerClustersNum = nextLayerClusters.size();
+
+      for (int iNextLayerCluster = 0; iNextLayerCluster <= nextLayerClustersNum; ++iNextLayerCluster) {
+
+        const CACluster& nextCluster = nextLayer.getCluster(nextLayerClusters[iNextLayerCluster]);
+
+        if (mUsedClustersTable[nextCluster.clusterId]) {
+
+          continue;
+        }
+      }
     }
   }
 }

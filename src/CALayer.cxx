@@ -30,11 +30,11 @@ void CALayer::addCluster(const int clusterId, const float xCoordinate, const flo
 {
   mClusters.emplace_back(clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
 
-  if(mMinZCoordinate > zCoordinate) {
+  if (mMinZCoordinate > zCoordinate) {
 
     mMinZCoordinate = zCoordinate;
 
-  } else if(mMaxZCoordinate < zCoordinate) {
+  } else if (mMaxZCoordinate < zCoordinate) {
 
     mMaxZCoordinate = zCoordinate;
   }

@@ -6,9 +6,10 @@ set(SRCS
   CAEvent.cxx
   CAEventLoader.cxx
   CALayer.cxx
+  CALookupTable.cxx
   CARoad.cxx
   CATracker.cxx
-  CAUtils.cxx
+  CAMathUtils.cxx
 )
 
 include_directories(${TRACKING-ITSU_SOURCE_DIR}/include)

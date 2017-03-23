@@ -38,18 +38,18 @@ void CAEvent::printPrimaryVertex() const
   return;
 }
 
-void CAEvent::pushClusterToLayer(const int layerIndex, const int clusterId, const float xCoordinate, const float yCoordinate,
-    const float zCoordinate, const float aplhaAngle, const int monteCarlo)
+void CAEvent::pushClusterToLayer(const int layerIndex, const int clusterId, const float xCoordinate,
+    const float yCoordinate, const float zCoordinate, const float aplhaAngle, const int monteCarlo)
 {
   mLayers[layerIndex].addCluster(clusterId, xCoordinate - getPrimaryVertexXCoordinate(),
-    yCoordinate - getPrimaryVertexYCoordinate(), zCoordinate, aplhaAngle, monteCarlo);
+      yCoordinate - getPrimaryVertexYCoordinate(), zCoordinate, aplhaAngle, monteCarlo);
 }
 
 const int CAEvent::getTotalClusters() const
 {
   int totalClusters = 0;
 
-  for(int iLayer = 0; iLayer < ITSConstants::LayersNumber; ++iLayer) {
+  for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
     mLayers[iLayer].getClusters()[iLayer];
   }

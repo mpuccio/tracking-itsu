@@ -30,11 +30,11 @@ class CAEvent final
   public:
     explicit CAEvent(const int);
 
-    const int getEventId() const;
+    int getEventId() const;
     const std::array<float, 3>& getPrimaryVertex() const;
-    const float getPrimaryVertexXCoordinate() const;
-    const float getPrimaryVertexYCoordinate() const;
-    const float getPrimaryVertexZCoordinate() const;
+    float getPrimaryVertexXCoordinate() const;
+    float getPrimaryVertexYCoordinate() const;
+    float getPrimaryVertexZCoordinate() const;
     const CALayer& getLayer(const int) const;
 
     void setPrimaryVertex(float, float, float);
@@ -45,10 +45,10 @@ class CAEvent final
   private:
     int mEventId;
     std::array<float, 3> mPrimaryVertex;
-    std::array<CALayer, ITSConstants::LayersNumber> mLayers;
+    std::array<CALayer, CAConstants::ITS::LayersNumber> mLayers;
 };
 
-inline const int CAEvent::getEventId() const
+inline int CAEvent::getEventId() const
 {
   return mEventId;
 }
@@ -58,24 +58,24 @@ inline const std::array<float, 3>& CAEvent::getPrimaryVertex() const
   return mPrimaryVertex;
 }
 
-inline const CALayer& CAEvent::getLayer(const int layerIndex) const
-{
-  return mLayers[layerIndex];
-}
-
-inline const float CAEvent::getPrimaryVertexXCoordinate() const
+inline float CAEvent::getPrimaryVertexXCoordinate() const
 {
   return mPrimaryVertex[0];
 }
 
-inline const float CAEvent::getPrimaryVertexYCoordinate() const
+inline float CAEvent::getPrimaryVertexYCoordinate() const
 {
   return mPrimaryVertex[1];
 }
 
-inline const float CAEvent::getPrimaryVertexZCoordinate() const
+inline float CAEvent::getPrimaryVertexZCoordinate() const
 {
   return mPrimaryVertex[2];
+}
+
+inline const CALayer& CAEvent::getLayer(const int layerIndex) const
+{
+  return mLayers[layerIndex];
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CAEVENT_H_ */

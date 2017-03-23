@@ -35,7 +35,7 @@ class CARoad final
     void setCell(int, int);
 
   private:
-    std::array<int, ITSConstants::CellsPerRoad> mCellIds;
+    std::array<int, CAConstants::ITS::CellsPerRoad> mCellIds;
     int mRoadSize;
 };
 

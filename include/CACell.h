@@ -27,12 +27,12 @@ class CACell final
   public:
     CACell(const std::array<int, 3>&, const std::array<int, 2>&, const std::array<float, 3>&, const float);
 
-    const int getXCoordinate() const;
-    const int getYCoordinate() const;
-    const int getZCoordinate() const;
-    const int getLevel() const;
-    const float getCurvature() const;
-    const int getNumberOfNeighbours() const;
+    int getXCoordinate() const;
+    int getYCoordinate() const;
+    int getZCoordinate() const;
+    int getLevel() const;
+    float getCurvature() const;
+    int getNumberOfNeighbours() const;
     const std::array<float, 3>& getNormalVectorCoordinates() const;
 
     void setLevel(const int level);
@@ -48,32 +48,32 @@ class CACell final
     std::vector<int> mNeighbours;
 };
 
-inline const int CACell::getXCoordinate() const
+inline int CACell::getXCoordinate() const
 {
   return mTrackletCoordinates[0];
 }
 
-inline const int CACell::getYCoordinate() const
+inline int CACell::getYCoordinate() const
 {
   return mTrackletCoordinates[1];
 }
 
-inline const int CACell::getZCoordinate() const
+inline int CACell::getZCoordinate() const
 {
   return mTrackletCoordinates[2];
 }
 
-inline const int CACell::getLevel() const
+inline int CACell::getLevel() const
 {
   return mLevel;
 }
 
-inline const float CACell::getCurvature() const
+inline float CACell::getCurvature() const
 {
   return mCurvature;
 }
 
-inline const int CACell::getNumberOfNeighbours() const
+inline int CACell::getNumberOfNeighbours() const
 {
   return mNeighbours.size();
 }

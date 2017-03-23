@@ -19,12 +19,14 @@
 #include <cmath>
 
 #include "CACluster.h"
-#include "CAUtils.h"
+
+#include "CAMathUtils.h"
 
 CACluster::CACluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
     const float alphaAngle, const int monteCarlo)
     : clusterId { clusterId }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
-        MathUtils::getNormalizedPhiCoordinate(MathUtils::calculatePhiCoordinate(xCoordinate, yCoordinate)) }, rCoordinate { MathUtils::calculateRCoordinate(
-        xCoordinate, yCoordinate) }, alphaAngle{ alphaAngle }, monteCarlo { monteCarlo }
+        CAMathUtils::getNormalizedPhiCoordinate(CAMathUtils::calculatePhiCoordinate(xCoordinate, yCoordinate)) }, rCoordinate {
+        CAMathUtils::calculateRCoordinate(xCoordinate, yCoordinate) }, alphaAngle { alphaAngle }, monteCarlo {
+        monteCarlo }
 {
 }

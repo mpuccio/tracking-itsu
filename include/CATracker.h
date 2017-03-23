@@ -21,6 +21,7 @@
 
 #include "CAConstants.h"
 #include "CAEvent.h"
+#include "CALookupTable.h"
 
 class CATracker final
 {
@@ -33,15 +34,12 @@ class CATracker final
     int clustersToTracks(CAEvent&);
 
   protected:
-    const int getZBinIndex(const float, const float, const float) const;
-    const int getPhiBinIndex(const float, const float) const;
-
     void makeCells(int);
 
   private:
-    CAEvent& mEvent;
+    const CAEvent& mEvent;
     std::vector<bool> mUsedClustersTable;
-    std::array<CALookupTable, ITSConstants::LayersNumber> mLookupTables;
+    std::array<CALookupTable, CAConstants::ITS::LayersNumber> mLookupTables;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */
