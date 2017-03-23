@@ -31,7 +31,7 @@ class CATracker final
     CATracker(const CATracker&) = delete;
     CATracker &operator=(const CATracker&) = delete;
 
-    int clustersToTracks(CAEvent&);
+    int clustersToTracks();
 
   protected:
     void makeCells(int);

@@ -33,7 +33,7 @@ std::vector<CAEvent> CAEventLoader::loadEventData(const std::string& fileName)
   std::ifstream inputStream;
   std::string line, unusedVariable;
   int layerId, monteCarlo;
-  int clusterId;
+  int clusterId = 0;
   float xCoordinate, yCoordinate, zCoordinate, alphaAngle;
 
   inputStream.open(fileName);

@@ -29,13 +29,20 @@ CATracker::CATracker(const CAEvent& event)
   }
 }
 
-int CATracker::clustersToTracks(CAEvent& event)
+int CATracker::clustersToTracks()
 {
-  //TODO: Implement
+
+  for(int iIteration = 0; iIteration < CAConstants::ITS::TracksReconstructionIterations; ++iIteration) {
+
+    makeCells(iIteration);
+
+    //TODO: Implement
+  }
+
   return 0;
 }
 
-void CATracker::makeCells(int int1)
+void CATracker::makeCells(int iIteration)
 {
   std::vector<int> trackletsLookUpTable[CAConstants::ITS::CellsPerRoad];
 
@@ -74,12 +81,12 @@ void CATracker::makeCells(int int1)
 
       const std::vector<int> nextLayerClusters = mLookupTables[iLayer + 1].selectClusters(
           extz - 2 * CAConstants::LookupTable::ZCoordinateCut, extz + 2 * CAConstants::LookupTable::ZCoordinateCut,
-          currentCluster.phiCoordinate - CAConstants::LookupTable::phiCoordinateCut,
-          currentCluster.phiCoordinate + CAConstants::LookupTable::phiCoordinateCut);
+          currentCluster.phiCoordinate - CAConstants::LookupTable::phiCoordinateCut[iIteration],
+          currentCluster.phiCoordinate + CAConstants::LookupTable::phiCoordinateCut[iIteration]);
 
       const int nextLayerClustersNum = nextLayerClusters.size();
 
-      for (int iNextLayerCluster = 0; iNextLayerCluster <= nextLayerClustersNum; ++iNextLayerCluster) {
+      for (int iNextLayerCluster = 0; iNextLayerCluster < nextLayerClustersNum; ++iNextLayerCluster) {
 
         const CACluster& nextCluster = nextLayer.getCluster(nextLayerClusters[iNextLayerCluster]);
 

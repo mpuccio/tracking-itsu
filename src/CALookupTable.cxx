@@ -19,7 +19,7 @@
 #include "CALookupTable.h"
 
 CALookupTable::CALookupTable()
-    : mLayerMinZCoordinate { }, mLayerMaxZCoordinate { }, mInverseZBinSize { }, mInversePhiBinSize { }
+    : mLayerMinZCoordinate { }, mLayerMaxZCoordinate { }, mInverseZBinSize { }, mInversePhiBinSize { }, mTableBins { }
 {
   //Dummy constructor
 }
@@ -51,8 +51,8 @@ std::vector<int> CALookupTable::selectClusters(const float zRangeMin, const floa
     return filteredClusters;
   }
 
-  const int minZBinIndex = std::min(0, getZBinIndex(zRangeMin));
-  const int maxZBinIndex = std::max(CAConstants::LookupTable::ZBins - 1, getZBinIndex(zRangeMax));
+  const int minZBinIndex = std::max(0, getZBinIndex(zRangeMin));
+  const int maxZBinIndex = std::min(CAConstants::LookupTable::ZBins, getZBinIndex(zRangeMax));
   const int zBinsNum = maxZBinIndex - minZBinIndex + 1;
   const int minPhiBinIndex = getPhiBinIndex(phiRangeMin);
   const int maxPhiBinIndex = getPhiBinIndex(phiRangeMax);

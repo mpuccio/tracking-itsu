@@ -41,7 +41,7 @@ class CALookupTable final
     float mLayerMaxZCoordinate;
     float mInverseZBinSize;
     float mInversePhiBinSize;
-    std::array<std::vector<int>, CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins> mTableBins;
+    std::array<std::vector<int>, CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins + 1> mTableBins;
 };
 
 inline int CALookupTable::getZBinIndex(const float zCoordinate) const
@@ -56,7 +56,7 @@ inline int CALookupTable::getPhiBinIndex(const float currentPhi) const
   return (CAMathUtils::getNormalizedPhiCoordinate(currentPhi) * mInversePhiBinSize);
 }
 
-inline int CALookupTable::getBinIndex(const int phiIndex, const int zIndex) const
+inline int CALookupTable::getBinIndex(const int zIndex, const int phiIndex) const
 {
 
   return phiIndex * CAConstants::LookupTable::PhiBins + zIndex;

@@ -32,6 +32,7 @@ namespace ITS {
 constexpr int LayersNumber { 7 };
 constexpr int TrackletsPerRoad { 6 };
 constexpr int CellsPerRoad { LayersNumber - 2 };
+constexpr int TracksReconstructionIterations{ 2 };
 constexpr std::array<float, LayersNumber> LayersRCoordinate { { 2.33959, 3.14076, 3.91924, 19.6213, 24.5597, 34.388,
     39.3329 } };
 }
@@ -40,7 +41,7 @@ namespace LookupTable {
 constexpr int ZBins { 20 };
 constexpr int PhiBins { 20 };
 constexpr float ZCoordinateCut { 0.5f };
-constexpr float phiCoordinateCut { 1.0f };
+constexpr std::array<float, ITS::TracksReconstructionIterations> phiCoordinateCut { 1.0f, 3.0f };
 }
 
 }
