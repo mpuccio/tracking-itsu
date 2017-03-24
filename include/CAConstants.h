@@ -33,15 +33,17 @@ constexpr int LayersNumber { 7 };
 constexpr int TrackletsPerRoad { 6 };
 constexpr int CellsPerRoad { LayersNumber - 2 };
 constexpr int TracksReconstructionIterations{ 2 };
-constexpr std::array<float, LayersNumber> LayersRCoordinate { { 2.33959, 3.14076, 3.91924, 19.6213, 24.5597, 34.388,
-    39.3329 } };
+constexpr std::array<float, LayersNumber> LayersRCoordinate { { 2.33959f, 3.14076f, 3.91924f, 19.6213f, 24.5597f, 34.388f,
+    39.3329f } };
+constexpr std::array<float, TrackletsPerRoad>TrackletMaxDeltaZThreshold{ {0.1f,0.1f,0.3f,0.3f,0.3f,0.3f} };
+
 }
 
 namespace LookupTable {
 constexpr int ZBins { 20 };
 constexpr int PhiBins { 20 };
 constexpr float ZCoordinateCut { 0.5f };
-constexpr std::array<float, ITS::TracksReconstructionIterations> phiCoordinateCut { 1.0f, 3.0f };
+constexpr std::array<float, ITS::TracksReconstructionIterations> PhiCoordinateCut { 1.0f, 3.0f };
 }
 
 }

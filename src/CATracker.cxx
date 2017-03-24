@@ -20,8 +20,10 @@
 
 #include <cmath>
 
+#include "CATracklet.h"
+
 CATracker::CATracker(const CAEvent& event)
-    : mEvent { event }, mUsedClustersTable(event.getTotalClusters(), false), mLookupTables { }
+    : mEvent (event), mUsedClustersTable(event.getTotalClusters(), false), mLookupTables { }
 {
   for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
@@ -44,7 +46,8 @@ int CATracker::clustersToTracks()
 
 void CATracker::makeCells(int iIteration)
 {
-  std::vector<int> trackletsLookUpTable[CAConstants::ITS::CellsPerRoad];
+  std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
+  std::array<int, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
 
   for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
@@ -56,14 +59,6 @@ void CATracker::makeCells(int iIteration)
     }
 
     const CALayer& nextLayer = mEvent.getLayer(iLayer + 1);
-
-    if ((iLayer + 1) < CAConstants::ITS::TrackletsPerRoad) { //TODO: capire perchè ultima volta no
-
-      trackletsLookUpTable[iLayer].resize(nextLayer.getClustersSize(), -1);
-    }
-
-    // FIXME: Non ne capisco il significato: in piu' potrebbe dare errore nel caso iL == 0
-    //if (trackletsLookUpTable[iLayer - 1].size() == 0u) continue;
 
     for (int iCluster = 0; iCluster < currentLayer.getClustersSize(); ++iCluster) {
 
@@ -81,8 +76,8 @@ void CATracker::makeCells(int iIteration)
 
       const std::vector<int> nextLayerClusters = mLookupTables[iLayer + 1].selectClusters(
           extz - 2 * CAConstants::LookupTable::ZCoordinateCut, extz + 2 * CAConstants::LookupTable::ZCoordinateCut,
-          currentCluster.phiCoordinate - CAConstants::LookupTable::phiCoordinateCut[iIteration],
-          currentCluster.phiCoordinate + CAConstants::LookupTable::phiCoordinateCut[iIteration]);
+          currentCluster.phiCoordinate - CAConstants::LookupTable::PhiCoordinateCut[iIteration],
+          currentCluster.phiCoordinate + CAConstants::LookupTable::PhiCoordinateCut[iIteration]);
 
       const int nextLayerClustersNum = nextLayerClusters.size();
 
@@ -94,7 +89,40 @@ void CATracker::makeCells(int iIteration)
 
           continue;
         }
+
+        const float deltaZ = std::abs(tanLambda * (nextCluster.rCoordinate - currentCluster.rCoordinate) +
+            currentCluster.zCoordinate - nextCluster.zCoordinate);
+        const float deltaPhi = std::abs(currentCluster.phiCoordinate - nextCluster.phiCoordinate);
+
+
+        if (deltaZ < CAConstants::ITS::TrackletMaxDeltaZThreshold[iLayer] && (
+          deltaPhi < CAConstants::LookupTable::PhiCoordinateCut[iIteration] ||
+          std::abs(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::LookupTable::PhiCoordinateCut[iIteration])) {
+
+          const float doubletTanLambda = (currentCluster.zCoordinate - nextCluster.zCoordinate) /
+              (currentCluster.rCoordinate - nextCluster.rCoordinate);
+          const float doubletPhi = std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
+              currentCluster.xCoordinate - nextCluster.xCoordinate);
+
+          tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, doubletTanLambda, doubletPhi);
+        }
       }
+    }
+  }
+
+  for (int iCell = 0; iCell < CAConstants::ITS::CellsPerRoad; ++iCell) {
+
+    if (tracklets[iCell + 1].empty() || tracklets[iCell + 1].empty()) {
+
+      continue;
+    }
+
+    const int currentLayerTrackletsNum = tracklets[iCell].size();
+
+    for(int iTracklet = 0; iTracklet < currentLayerTrackletsNum; ++iTracklet) {
+
+      const int nextLayerClusterIndex = tracklets[iCell][iTracklet].secondClusterIndex;
+
     }
   }
 }

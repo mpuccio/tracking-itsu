@@ -1,4 +1,4 @@
-/// \file CAMathUtils.cxx
+/// \file CATracklet.cxx
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,16 +16,10 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CAMathUtils.h"
+#include "CATracklet.h"
 
-#include <cmath>
-
-float CAMathUtils::calculatePhiCoordinate(const float xCoordinate, const float yCoordinate)
+CATracklet::CATracklet(const int firstClusterIndex, const int secondClusterIndex, const float tanLambda, const float phiCoordinate) :
+  firstClusterIndex{ firstClusterIndex }, secondClusterIndex{ secondClusterIndex }, tanLambda{ tanLambda }, phiCoordinate{ phiCoordinate }
 {
-  return std::atan2(-yCoordinate, -xCoordinate) + CAConstants::Math::Pi;
-}
-
-float CAMathUtils::calculateRCoordinate(const float xCoordinate, const float yCoordinate)
-{
-  return std::sqrt(std::pow(xCoordinate, 2) + std::pow(yCoordinate, 2));
+  // Nothing to do
 }

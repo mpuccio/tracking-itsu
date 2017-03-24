@@ -1,4 +1,4 @@
-/// \file CAHit.h
+/// \file CACluster.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,21 +16,21 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TRACKINGITSU_INCLUDE_CAHIT_H_
-#define TRACKINGITSU_INCLUDE_CAHIT_H_
+#ifndef TRACKINGITSU_INCLUDE_CACLUSTER_H_
+#define TRACKINGITSU_INCLUDE_CACLUSTER_H_
 
 struct CACluster final
 {
-    CACluster(const int, const float, const float, const float, const float, const int);
+  CACluster(const int, const float, const float, const float, const float, const int);
 
-    int clusterId;
-    float xCoordinate;
-    float yCoordinate;
-    float zCoordinate;
-    float phiCoordinate;
-    float rCoordinate;
-    float alphaAngle;
-    int monteCarlo;
+  const int clusterId;
+  const float xCoordinate;
+  const float yCoordinate;
+  const float zCoordinate;
+  const float phiCoordinate;
+  const float rCoordinate;
+  const float alphaAngle;
+  const int monteCarlo;
 };
 
-#endif /* TRACKINGITSU_INCLUDE_CAHIT_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CACLUSTER_H_ */

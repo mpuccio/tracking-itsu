@@ -1,4 +1,4 @@
-/// \file CAHit.cxx
+/// \file CACluster.cxx
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,9 +16,9 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <cmath>
-
 #include "CACluster.h"
+
+#include <cmath>
 
 #include "CAMathUtils.h"
 

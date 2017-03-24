@@ -19,6 +19,8 @@
 #ifndef TRACKINGITSU_INCLUDE_CATRACKER_H_
 #define TRACKINGITSU_INCLUDE_CATRACKER_H_
 
+#include <vector>
+
 #include "CAConstants.h"
 #include "CAEvent.h"
 #include "CALookupTable.h"

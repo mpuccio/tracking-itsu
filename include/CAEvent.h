@@ -43,7 +43,7 @@ class CAEvent final
     const int getTotalClusters() const;
 
   private:
-    int mEventId;
+    const int mEventId;
     std::array<float, 3> mPrimaryVertex;
     std::array<CALayer, CAConstants::ITS::LayersNumber> mLayers;
 };
