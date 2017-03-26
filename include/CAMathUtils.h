@@ -1,4 +1,4 @@
-/// \file CARoad.cxx
+/// \file CAMathUtils.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,37 +16,22 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CARoad.h"
+#ifndef TRACKINGITSU_INCLUDE_CAUTILS_H_
+#define TRACKINGITSU_INCLUDE_CAUTILS_H_
 
-namespace {
+#include "CAConstants.h"
 
-constexpr int EmptyLayerId = -1;
+namespace CAMathUtils {
+float calculatePhiCoordinate(const float, const float);
+float calculateRCoordinate(const float, const float);
+constexpr float getNormalizedPhiCoordinate(const float);
 }
 
-CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+constexpr float CAMathUtils::getNormalizedPhiCoordinate(const float phiCoordinate)
 {
-  resetRoad();
+
+  return (phiCoordinate < 0) ? phiCoordinate + CAConstants::Math::TwoPi :
+         (phiCoordinate > CAConstants::Math::TwoPi) ? phiCoordinate - CAConstants::Math::TwoPi : phiCoordinate;
 }
 
-CARoad::CARoad(int cellLayer, int cellId)
-    : CARoad()
-{
-  setCell(cellLayer, cellId);
-}
-
-void CARoad::resetRoad()
-{
-  mCellIds.fill(EmptyLayerId);
-  mRoadSize = 0;
-}
-
-void CARoad::setCell(int cellLayer, int cellId)
-{
-  if (mCellIds[cellLayer] == EmptyLayerId) {
-
-    ++mRoadSize;
-  }
-
-  mCellIds[cellLayer] = cellId;
-}
+#endif /* TRACKINGITSU_INCLUDE_CAUTILS_H_ */

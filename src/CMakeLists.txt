@@ -2,12 +2,15 @@ set(MODULE src)
 
 set(SRCS
   CACell.cxx
+  CACluster.cxx
   CAEvent.cxx
   CAEventLoader.cxx
-  CAHit.cxx
+  CALayer.cxx
+  CALookupTable.cxx
   CARoad.cxx
   CATracker.cxx
-  CAUtils.cxx
+  CATracklet.cxx
+  CAMathUtils.cxx
 )
 
 include_directories(${TRACKING-ITSU_SOURCE_DIR}/include)

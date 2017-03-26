@@ -1,4 +1,4 @@
-/// \file CARoad.cxx
+/// \file CACluster.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,37 +16,21 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CARoad.h"
+#ifndef TRACKINGITSU_INCLUDE_CACLUSTER_H_
+#define TRACKINGITSU_INCLUDE_CACLUSTER_H_
 
-namespace {
-
-constexpr int EmptyLayerId = -1;
-}
-
-CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+struct CACluster final
 {
-  resetRoad();
-}
+  CACluster(const int, const float, const float, const float, const float, const int);
 
-CARoad::CARoad(int cellLayer, int cellId)
-    : CARoad()
-{
-  setCell(cellLayer, cellId);
-}
+  const int clusterId;
+  const float xCoordinate;
+  const float yCoordinate;
+  const float zCoordinate;
+  const float phiCoordinate;
+  const float rCoordinate;
+  const float alphaAngle;
+  const int monteCarlo;
+};
 
-void CARoad::resetRoad()
-{
-  mCellIds.fill(EmptyLayerId);
-  mRoadSize = 0;
-}
-
-void CARoad::setCell(int cellLayer, int cellId)
-{
-  if (mCellIds[cellLayer] == EmptyLayerId) {
-
-    ++mRoadSize;
-  }
-
-  mCellIds[cellLayer] = cellId;
-}
+#endif /* TRACKINGITSU_INCLUDE_CACLUSTER_H_ */

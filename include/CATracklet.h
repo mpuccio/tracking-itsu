@@ -1,4 +1,4 @@
-/// \file CARoad.cxx
+/// \file CATracklet.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,37 +16,17 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CARoad.h"
+#ifndef TRACKINGITSU_CADOUBLET_H_
+#define TRACKINGITSU_CADOUBLET_H_
 
-namespace {
-
-constexpr int EmptyLayerId = -1;
-}
-
-CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+struct CATracklet final
 {
-  resetRoad();
-}
+  CATracklet(const int, const int, const float, const float);
 
-CARoad::CARoad(int cellLayer, int cellId)
-    : CARoad()
-{
-  setCell(cellLayer, cellId);
-}
+  const int firstClusterIndex;
+  const int secondClusterIndex;
+  const float tanLambda;
+  const float phiCoordinate;
+};
 
-void CARoad::resetRoad()
-{
-  mCellIds.fill(EmptyLayerId);
-  mRoadSize = 0;
-}
-
-void CARoad::setCell(int cellLayer, int cellId)
-{
-  if (mCellIds[cellLayer] == EmptyLayerId) {
-
-    ++mRoadSize;
-  }
-
-  mCellIds[cellLayer] = cellId;
-}
+#endif /* TRACKINGITSU_CADOUBLET_H_ */

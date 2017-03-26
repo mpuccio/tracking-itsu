@@ -1,4 +1,4 @@
-/// \file CARoad.cxx
+/// \file CALayer.cxx
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,37 +16,26 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CARoad.h"
+#include "CALayer.h"
 
-namespace {
+#include <limits>
 
-constexpr int EmptyLayerId = -1;
+CALayer::CALayer()
+    : mMinZCoordinate { std::numeric_limits<float>::max() }, mMaxZCoordinate { -std::numeric_limits<float>::max() }
+{
 }
 
-CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
+    const float alphaAngle, const int monteCarlo)
 {
-  resetRoad();
-}
+  mClusters.emplace_back(clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
 
-CARoad::CARoad(int cellLayer, int cellId)
-    : CARoad()
-{
-  setCell(cellLayer, cellId);
-}
+  if (mMinZCoordinate > zCoordinate) {
 
-void CARoad::resetRoad()
-{
-  mCellIds.fill(EmptyLayerId);
-  mRoadSize = 0;
-}
+    mMinZCoordinate = zCoordinate;
 
-void CARoad::setCell(int cellLayer, int cellId)
-{
-  if (mCellIds[cellLayer] == EmptyLayerId) {
+  } else if (mMaxZCoordinate < zCoordinate) {
 
-    ++mRoadSize;
+    mMaxZCoordinate = zCoordinate;
   }
-
-  mCellIds[cellLayer] = cellId;
 }
