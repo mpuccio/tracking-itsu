@@ -269,6 +269,8 @@ void CATracker::computeCells(int iIteration)
       }
     }
   }
+
+  findCellsNeighbours(iIteration, cells, cellsLookupTable);
 }
 
 void CATracker::findCellsNeighbours(const int iIteration,
