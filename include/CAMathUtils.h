@@ -19,6 +19,7 @@
 #ifndef TRACKINGITSU_INCLUDE_CAUTILS_H_
 #define TRACKINGITSU_INCLUDE_CAUTILS_H_
 
+#include "CACluster.h"
 #include "CAConstants.h"
 
 namespace CAMathUtils {
@@ -29,7 +30,6 @@ constexpr float getNormalizedPhiCoordinate(const float);
 
 constexpr float CAMathUtils::getNormalizedPhiCoordinate(const float phiCoordinate)
 {
-
   return (phiCoordinate < 0) ? phiCoordinate + CAConstants::Math::TwoPi :
          (phiCoordinate > CAConstants::Math::TwoPi) ? phiCoordinate - CAConstants::Math::TwoPi : phiCoordinate;
 }

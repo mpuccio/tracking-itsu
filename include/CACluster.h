@@ -21,16 +21,16 @@
 
 struct CACluster final
 {
-  CACluster(const int, const float, const float, const float, const float, const int);
+    CACluster(const int, const float, const float, const float, const float, const int);
 
-  const int clusterId;
-  const float xCoordinate;
-  const float yCoordinate;
-  const float zCoordinate;
-  const float phiCoordinate;
-  const float rCoordinate;
-  const float alphaAngle;
-  const int monteCarlo;
+    const int clusterId;
+    const float xCoordinate;
+    const float yCoordinate;
+    const float zCoordinate;
+    const float phiCoordinate;
+    const float rCoordinate;
+    const float alphaAngle;
+    const int monteCarlo;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CACLUSTER_H_ */

@@ -18,9 +18,11 @@
 
 #include "CACell.h"
 
-CACell::CACell(const std::array<int, 3>& trackletCoordinates, const std::array<int, 2>& trackletsIds,
-    const std::array<float, 3>& normalVectorCoordinates, const float curvature)
-    : mTrackletCoordinates(trackletCoordinates), mTrackletIds(trackletsIds), mNormalVectorCoordinates(
+CACell::CACell(const int firstClusterIndex, const int secondClusterIndex, const int thirdClusterIndex,
+    const int firstTrackletIndex, const int secondTrackletIndex, const std::array<float, 3>& normalVectorCoordinates,
+    const float curvature)
+    : mFirstClusterIndex { firstClusterIndex }, mSecondClusterIndex { secondClusterIndex }, mThirdClusterIndex {
+        thirdClusterIndex }, mFirstTrackletIndex(firstTrackletIndex), mSecondTrackletIndex(secondTrackletIndex), mNormalVectorCoordinates(
         normalVectorCoordinates), mCurvature { curvature }, mLevel { 1 }
 {
   // Nothing to do
@@ -33,7 +35,8 @@ void CACell::setLevel(const int level)
 
 bool CACell::combineCells(const CACell& otherCell, int otherCellId)
 {
-  if (this->getYCoordinate() == otherCell.getZCoordinate() && this->getXCoordinate() == otherCell.getYCoordinate()) {
+  if (this->getSecondClusterIndex() == otherCell.getThirdClusterIndex()
+      && this->getFirstClusterIndex() == otherCell.getSecondClusterIndex()) {
 
     mNeighbours.push_back(otherCellId);
 

@@ -25,11 +25,13 @@
 class CACell final
 {
   public:
-    CACell(const std::array<int, 3>&, const std::array<int, 2>&, const std::array<float, 3>&, const float);
+    CACell(const int, const int, const int, const int, const int, const std::array<float, 3>&, const float);
 
-    int getXCoordinate() const;
-    int getYCoordinate() const;
-    int getZCoordinate() const;
+    int getFirstClusterIndex() const;
+    int getSecondClusterIndex() const;
+    int getThirdClusterIndex() const;
+    int getFirstTrackletIndex() const;
+    int getSecondTrackletIndex() const;
     int getLevel() const;
     float getCurvature() const;
     int getNumberOfNeighbours() const;
@@ -40,27 +42,40 @@ class CACell final
     bool combineCells(const CACell&, int);
 
   private:
-    const std::array<int, 3> mTrackletCoordinates;
-    const std::array<int, 2> mTrackletIds;
+    const int mFirstClusterIndex;
+    const int mSecondClusterIndex;
+    const int mThirdClusterIndex;
+    const int mFirstTrackletIndex;
+    const int mSecondTrackletIndex;
     const std::array<float, 3> mNormalVectorCoordinates;
     const float mCurvature;
     int mLevel;
     std::vector<int> mNeighbours;
 };
 
-inline int CACell::getXCoordinate() const
+inline int CACell::getFirstClusterIndex() const
 {
-  return mTrackletCoordinates[0];
+  return mFirstClusterIndex;
 }
 
-inline int CACell::getYCoordinate() const
+inline int CACell::getSecondClusterIndex() const
 {
-  return mTrackletCoordinates[1];
+  return mSecondClusterIndex;
 }
 
-inline int CACell::getZCoordinate() const
+inline int CACell::getThirdClusterIndex() const
 {
-  return mTrackletCoordinates[2];
+  return mThirdClusterIndex;
+}
+
+inline int CACell::getFirstTrackletIndex() const
+{
+  return mFirstTrackletIndex;
+}
+
+inline int CACell::getSecondTrackletIndex() const
+{
+  return mSecondTrackletIndex;
 }
 
 inline int CACell::getLevel() const

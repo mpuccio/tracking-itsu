@@ -6,7 +6,7 @@ set(SRCS
   CAEvent.cxx
   CAEventLoader.cxx
   CALayer.cxx
-  CALookupTable.cxx
+  CAIndexTable.cxx
   CARoad.cxx
   CATracker.cxx
   CATracklet.cxx

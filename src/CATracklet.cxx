@@ -18,8 +18,10 @@
 
 #include "CATracklet.h"
 
-CATracklet::CATracklet(const int firstClusterIndex, const int secondClusterIndex, const float tanLambda, const float phiCoordinate) :
-  firstClusterIndex{ firstClusterIndex }, secondClusterIndex{ secondClusterIndex }, tanLambda{ tanLambda }, phiCoordinate{ phiCoordinate }
+CATracklet::CATracklet(const int firstClusterIndex, const int secondClusterIndex, const float tanLambda,
+    const float phiCoordinate)
+    : firstClusterIndex { firstClusterIndex }, secondClusterIndex { secondClusterIndex }, tanLambda { tanLambda }, phiCoordinate {
+        phiCoordinate }
 {
   // Nothing to do
 }

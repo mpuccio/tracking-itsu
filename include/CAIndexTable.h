@@ -1,4 +1,4 @@
-/// \file CALookupTable.h
+/// \file CAIndexTable.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -25,11 +25,11 @@
 #include "CALayer.h"
 #include "CAMathUtils.h"
 
-class CALookupTable final
+class CAIndexTable final
 {
   public:
-    CALookupTable();
-    explicit CALookupTable(const CALayer&);
+    CAIndexTable();
+    explicit CAIndexTable(const CALayer&);
 
     int getZBinIndex(const float) const;
     int getPhiBinIndex(const float) const;
@@ -44,19 +44,19 @@ class CALookupTable final
     std::array<std::vector<int>, CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins + 1> mTableBins;
 };
 
-inline int CALookupTable::getZBinIndex(const float zCoordinate) const
+inline int CAIndexTable::getZBinIndex(const float zCoordinate) const
 {
 
   return (zCoordinate - mLayerMinZCoordinate) * mInverseZBinSize;
 }
 
-inline int CALookupTable::getPhiBinIndex(const float currentPhi) const
+inline int CAIndexTable::getPhiBinIndex(const float currentPhi) const
 {
 
   return (CAMathUtils::getNormalizedPhiCoordinate(currentPhi) * mInversePhiBinSize);
 }
 
-inline int CALookupTable::getBinIndex(const int zIndex, const int phiIndex) const
+inline int CAIndexTable::getBinIndex(const int zIndex, const int phiIndex) const
 {
 
   return phiIndex * CAConstants::LookupTable::PhiBins + zIndex;

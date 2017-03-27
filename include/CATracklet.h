@@ -21,12 +21,12 @@
 
 struct CATracklet final
 {
-  CATracklet(const int, const int, const float, const float);
+    CATracklet(const int, const int, const float, const float);
 
-  const int firstClusterIndex;
-  const int secondClusterIndex;
-  const float tanLambda;
-  const float phiCoordinate;
+    const int firstClusterIndex;
+    const int secondClusterIndex;
+    const float tanLambda;
+    const float phiCoordinate;
 };
 
 #endif /* TRACKINGITSU_CADOUBLET_H_ */

@@ -1,4 +1,4 @@
-/// \file CALookupTable.cxx
+/// \file CAIndexTable.cxx
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,15 +16,15 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CALookupTable.h"
+#include "CAIndexTable.h"
 
-CALookupTable::CALookupTable()
+CAIndexTable::CAIndexTable()
     : mLayerMinZCoordinate { }, mLayerMaxZCoordinate { }, mInverseZBinSize { }, mInversePhiBinSize { }, mTableBins { }
 {
   //Dummy constructor
 }
 
-CALookupTable::CALookupTable(const CALayer& layer)
+CAIndexTable::CAIndexTable(const CALayer& layer)
     : mLayerMinZCoordinate { layer.getMinZCoordinate() }, mLayerMaxZCoordinate { layer.getMaxZCoordinate() }, mInverseZBinSize {
         CAConstants::LookupTable::ZBins / (layer.getMaxZCoordinate() - layer.getMinZCoordinate()) }, mInversePhiBinSize {
         CAConstants::LookupTable::PhiBins / CAConstants::Math::TwoPi }
@@ -41,7 +41,7 @@ CALookupTable::CALookupTable(const CALayer& layer)
   }
 }
 
-std::vector<int> CALookupTable::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
+std::vector<int> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
     const float phiRangeMax)
 {
   std::vector<int> filteredClusters;
