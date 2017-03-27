@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 #include "CAEventLoader.h"
@@ -7,33 +8,46 @@
 
 int main(int argc, char** argv)
 {
-  clock_t t1, t2;
+  if (argv[1] == NULL) {
 
-  for(int iIterations = 0; iIterations < 10; ++iIterations) {
+    std::cerr << "Please, provide a data file." << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  std::string fileName(argv[1]);
+  std::vector<CAEvent> events = CAEventLoader::loadEventData(fileName);
+  const int eventsNum = events.size();
+
+  clock_t t1, t2;
+  const int iterations = 20;
+  float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
+
+  for (int iIteration = 0; iIteration < iterations; ++iIteration) {
 
     t1 = clock();
 
-    if (argv[1] == NULL) {
-
-      std::cerr << "Please, provide a data file." << std::endl;
-      exit(EXIT_FAILURE);
-    }
-
-    std::string fileName(argv[1]);
-    std::vector<CAEvent> events = CAEventLoader::loadEventData(fileName);
-
-    int eventsNum = events.size();
-
-    for(int iEvent = 0; iEvent < eventsNum; ++iEvent) {
+    for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
 
       CATracker(events[iEvent]).clustersToTracks();
     }
 
     t2 = clock();
 
-    float diff ((float)t2-(float)t1);
-    std::cout << "Task completed in: " << diff/(CLOCKS_PER_SEC/1000) << "ms" << std::endl;
+    const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
+    totalTime += diff;
+
+    if (minTime > diff)
+      minTime = diff;
+    if (maxTime < diff)
+      maxTime = diff;
+
+    std::cout << std::setw(2) << iIteration + 1 << " - Task completed in: " << diff << "ms" << std::endl;
   }
+
+  std::cout << std::endl;
+  std::cout << "Avg time: " << totalTime / iterations << "ms" << std::endl;
+  std::cout << "Min time: " << minTime << "ms" << std::endl;
+  std::cout << "Max time: " << maxTime << "ms" << std::endl;
 
   return 0;
 }
