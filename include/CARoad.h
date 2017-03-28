@@ -29,15 +29,21 @@ class CARoad final
     CARoad();
     CARoad(int, int);
 
+    int getRoadSize();
     int &operator[](const int&);
 
     void resetRoad();
-    void setCell(int, int);
+    void addCell(int, int);
 
   private:
     std::array<int, CAConstants::ITS::CellsPerRoad> mCellIds;
     int mRoadSize;
 };
+
+inline int CARoad::getRoadSize() {
+
+  return mRoadSize;
+}
 
 inline int& CARoad::operator [](const int& i)
 {

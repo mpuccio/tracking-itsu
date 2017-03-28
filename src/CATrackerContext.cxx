@@ -1,4 +1,4 @@
-/// \file CARoad.cxx
+/// \file CATrackerContext.cxx
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,37 +16,9 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CARoad.h"
+#include "CATrackerContext.h"
 
-namespace {
-
-constexpr int EmptyLayerId = -1;
-}
-
-CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+CATrackerContext::CATrackerContext(const int iteration)
+    : iteration { iteration }
 {
-  resetRoad();
-}
-
-CARoad::CARoad(int cellLayer, int cellId)
-    : CARoad()
-{
-  addCell(cellLayer, cellId);
-}
-
-void CARoad::resetRoad()
-{
-  mCellIds.fill(EmptyLayerId);
-  mRoadSize = 0;
-}
-
-void CARoad::addCell(int cellLayer, int cellId)
-{
-  if (mCellIds[cellLayer] == EmptyLayerId) {
-
-    ++mRoadSize;
-  }
-
-  mCellIds[cellLayer] = cellId;
 }

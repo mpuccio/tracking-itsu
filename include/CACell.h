@@ -35,6 +35,7 @@ class CACell final
     int getLevel() const;
     float getCurvature() const;
     int getNumberOfNeighbours() const;
+    int getNeighbourCellId(const int) const;
     const std::array<float, 3>& getNormalVectorCoordinates() const;
 
     void setLevel(const int level);
@@ -91,6 +92,11 @@ inline float CACell::getCurvature() const
 inline int CACell::getNumberOfNeighbours() const
 {
   return mNeighbours.size();
+}
+
+inline int CACell::getNeighbourCellId(const int neighbourIndex) const
+{
+  return mNeighbours[neighbourIndex];
 }
 
 inline const std::array<float, 3>& CACell::getNormalVectorCoordinates() const

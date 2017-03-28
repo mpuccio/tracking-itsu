@@ -9,6 +9,7 @@ set(SRCS
   CAIndexTable.cxx
   CARoad.cxx
   CATracker.cxx
+  CATrackerContext.cxx
   CATracklet.cxx
   CAMathUtils.cxx
 )

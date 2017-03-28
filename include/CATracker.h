@@ -21,11 +21,10 @@
 
 #include <vector>
 
-#include "CACell.h"
 #include "CAConstants.h"
 #include "CAEvent.h"
 #include "CAIndexTable.h"
-#include "CATracklet.h"
+#include "CATrackerContext.h"
 
 class CATracker final
 {
@@ -38,11 +37,11 @@ class CATracker final
     int clustersToTracks();
 
   protected:
-    void computeTracklets(const int, std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad>&,
-        std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad>&);
-    void computeCells(const int);
-    void findCellsNeighbours(const int, std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad>&,
-        const std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1>&);
+    void computeTracklets(CATrackerContext&);
+    void computeCells(CATrackerContext&);
+    void findCellsNeighbours(CATrackerContext&);
+    void findTracks(CATrackerContext&);
+    void traverseCellsTree(CATrackerContext&, const int, const int);
 
   private:
     const CAEvent& mEvent;

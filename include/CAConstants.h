@@ -53,6 +53,7 @@ constexpr std::array<std::array<float, ITS::CellsPerRoad - 1>, ITS::TracksRecons
     { { 0.002f, 0.009f, 0.002f, 0.005f }, { 0.005f, 0.0035f, 0.009f, 0.03f } } };
 constexpr std::array<std::array<float, ITS::CellsPerRoad - 1>, ITS::TracksReconstructionIterations> NeighbourCellMaxCurvaturesDelta {
     { { 0.008f, 0.0025f, 0.003f, 0.0035f }, { 0.02f, 0.005f, 0.006f, 0.007f } } };
+constexpr std::array<int, ITS::TracksReconstructionIterations> TracksMinLength { 4, 2 };
 }
 
 namespace LookupTable {

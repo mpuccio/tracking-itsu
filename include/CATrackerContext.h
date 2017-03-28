@@ -1,4 +1,4 @@
-/// \file CARoad.cxx
+/// \file CATrackerContext.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -15,38 +15,26 @@
 ///   You should have received a copy of the GNU General Public License
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
+#ifndef TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
+#define TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
 
+#include "CATracklet.h"
+#include "CACell.h"
 #include "CARoad.h"
 
-namespace {
-
-constexpr int EmptyLayerId = -1;
-}
-
-CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+struct CATrackerContext final
 {
-  resetRoad();
-}
+    explicit CATrackerContext(const int);
 
-CARoad::CARoad(int cellLayer, int cellId)
-    : CARoad()
-{
-  addCell(cellLayer, cellId);
-}
+    const int iteration;
 
-void CARoad::resetRoad()
-{
-  mCellIds.fill(EmptyLayerId);
-  mRoadSize = 0;
-}
+    std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
+    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
 
-void CARoad::addCell(int cellLayer, int cellId)
-{
-  if (mCellIds[cellLayer] == EmptyLayerId) {
+    std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> cells;
+    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> cellsLookupTable;
 
-    ++mRoadSize;
-  }
+    std::vector<CARoad> roads;
+};
 
-  mCellIds[cellLayer] = cellId;
-}
+#endif /* TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_ */

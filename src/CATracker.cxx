@@ -19,6 +19,7 @@
 #include "CATracker.h"
 
 #include <cmath>
+#include <iostream>
 
 #include "CAMathUtils.h"
 
@@ -41,17 +42,18 @@ int CATracker::clustersToTracks()
 
   for (int iIteration = 0; iIteration < CAConstants::ITS::TracksReconstructionIterations; ++iIteration) {
 
-    computeCells(iIteration);
+    CATrackerContext trackerContext{iIteration};
 
-    //TODO: Implement
+    computeTracklets(trackerContext);
+    computeCells(trackerContext);
+    findCellsNeighbours(trackerContext);
+    findTracks(trackerContext);
   }
 
   return 0;
 }
 
-void CATracker::computeTracklets(const int iIteration,
-    std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad>& tracklets,
-    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad>& trackletsLookupTable)
+void CATracker::computeTracklets(CATrackerContext& trackerContext)
 {
 
   for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
@@ -69,7 +71,7 @@ void CATracker::computeTracklets(const int iIteration,
 
     if (iLayer > 0) {
 
-      trackletsLookupTable[iLayer - 1].resize(nextLayer.getClustersSize(), UnusedIndex);
+      trackerContext.trackletsLookupTable[iLayer - 1].resize(nextLayer.getClustersSize(), UnusedIndex);
     }
 
     for (int iCluster = 0; iCluster < currentLayerClustersNum; ++iCluster) {
@@ -90,8 +92,8 @@ void CATracker::computeTracklets(const int iIteration,
       const std::vector<int> nextLayerClustersSubset = mIndexTables[iLayer + 1].selectClusters(
           directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut,
           directionZIntersection + 2 * CAConstants::Thresholds::ZCoordinateCut,
-          currentCluster.phiCoordinate - CAConstants::Thresholds::PhiCoordinateCut[iIteration],
-          currentCluster.phiCoordinate + CAConstants::Thresholds::PhiCoordinateCut[iIteration]);
+          currentCluster.phiCoordinate - CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration],
+          currentCluster.phiCoordinate + CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration]);
 
       bool isFirstTrackletFromCurrentCluster = true;
 
@@ -116,13 +118,13 @@ void CATracker::computeTracklets(const int iIteration,
                 - nextCluster.zCoordinate);
         const float deltaPhi = std::abs(currentCluster.phiCoordinate - nextCluster.phiCoordinate);
 
-        if (deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold[iIteration][iLayer]
-            && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut[iIteration]
-                || std::abs(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut[iIteration])) {
+        if (deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold[trackerContext.iteration][iLayer]
+            && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration]
+                || std::abs(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration])) {
 
           if (iLayer > 0 && isFirstTrackletFromCurrentCluster) {
 
-            trackletsLookupTable[iLayer - 1][iCluster] = tracklets[iLayer].size();
+            trackerContext.trackletsLookupTable[iLayer - 1][iCluster] = trackerContext.tracklets[iLayer].size();
             isFirstTrackletFromCurrentCluster = false;
           }
 
@@ -131,65 +133,58 @@ void CATracker::computeTracklets(const int iIteration,
           const float doubletPhi = std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
               currentCluster.xCoordinate - nextCluster.xCoordinate);
 
-          tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, doubletTanLambda, doubletPhi);
+          trackerContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, doubletTanLambda, doubletPhi);
         }
       }
     }
   }
 }
 
-void CATracker::computeCells(int iIteration)
+void CATracker::computeCells(CATrackerContext& trackerContext)
 {
-  std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
-  std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
-
-  computeTracklets(iIteration, tracklets, trackletsLookupTable);
-
-  std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> cells;
-  std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> cellsLookupTable;
 
   for (int iLayer = 0; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
-    if (tracklets[iLayer + 1].empty() || tracklets[iLayer + 1].empty()) {
+    if (trackerContext.tracklets[iLayer + 1].empty() || trackerContext.tracklets[iLayer + 1].empty()) {
 
       continue;
     }
 
     if (iLayer < CAConstants::ITS::CellsPerRoad) {
 
-      cellsLookupTable[iLayer].resize(tracklets[iLayer + 1].size(), UnusedIndex);
+      trackerContext.cellsLookupTable[iLayer].resize(trackerContext.tracklets[iLayer + 1].size(), UnusedIndex);
     }
 
-    const int currentLayerTrackletsNum = tracklets[iLayer].size();
+    const int currentLayerTrackletsNum = trackerContext.tracklets[iLayer].size();
 
     for (int iTracklet = 0; iTracklet < currentLayerTrackletsNum; ++iTracklet) {
 
       bool isFirstTrackletCell = true;
 
-      const CATracklet& currentTracklet = tracklets[iLayer][iTracklet];
+      const CATracklet& currentTracklet = trackerContext.tracklets[iLayer][iTracklet];
       const int nextLayerClusterIndex = currentTracklet.secondClusterIndex;
-      const int nextLayerFirstTrackletIndex = trackletsLookupTable[iLayer][nextLayerClusterIndex];
+      const int nextLayerFirstTrackletIndex = trackerContext.trackletsLookupTable[iLayer][nextLayerClusterIndex];
 
       if (nextLayerClusterIndex == UnusedIndex) {
 
         continue;
       }
 
-      const int nextLayerTrackletsNum = tracklets[iLayer + 1].size();
+      const int nextLayerTrackletsNum = trackerContext.tracklets[iLayer + 1].size();
 
       for (int iNextLayerTracklet = nextLayerFirstTrackletIndex;
           iNextLayerTracklet < nextLayerTrackletsNum
-              && tracklets[iLayer + 1][iNextLayerTracklet].firstClusterIndex != nextLayerClusterIndex;
+              && trackerContext.tracklets[iLayer + 1][iNextLayerTracklet].firstClusterIndex != nextLayerClusterIndex;
           ++iNextLayerTracklet) {
 
-        const CATracklet& nextTracklet = tracklets[iLayer + 1][iNextLayerTracklet];
+        const CATracklet& nextTracklet = trackerContext.tracklets[iLayer + 1][iNextLayerTracklet];
         const float deltaTanLambda = std::abs(currentTracklet.tanLambda - nextTracklet.tanLambda);
         const float deltaPhi = std::abs(currentTracklet.phiCoordinate - nextTracklet.phiCoordinate);
 
-        if (deltaTanLambda < CAConstants::Thresholds::CellMaxDeltaTanLambdaThreshold[iIteration]
-            && (deltaPhi < CAConstants::Thresholds::CellMaxDeltaPhiThreshold[iIteration]
+        if (deltaTanLambda < CAConstants::Thresholds::CellMaxDeltaTanLambdaThreshold[trackerContext.iteration]
+            && (deltaPhi < CAConstants::Thresholds::CellMaxDeltaPhiThreshold[trackerContext.iteration]
                 || std::abs(deltaPhi - CAConstants::Math::TwoPi)
-                    < CAConstants::Thresholds::CellMaxDeltaPhiThreshold[iIteration])) {
+                    < CAConstants::Thresholds::CellMaxDeltaPhiThreshold[trackerContext.iteration])) {
 
           const float averageTanLambda = 0.5f * (currentTracklet.tanLambda + nextTracklet.tanLambda);
           const CACluster& firstCellCluster = mEvent.getLayer(iLayer).getCluster(currentTracklet.firstClusterIndex);
@@ -197,7 +192,7 @@ void CATracker::computeCells(int iIteration)
               + firstCellCluster.zCoordinate;
           const float deltaZ = std::abs(directionZIntersection - mEvent.getPrimaryVertexZCoordinate());
 
-          if (deltaZ < CAConstants::Thresholds::CellMaxDeltaZThreshold[iIteration][iLayer]) {
+          if (deltaZ < CAConstants::Thresholds::CellMaxDeltaZThreshold[trackerContext.iteration][iLayer]) {
 
             const CACluster& secondCellCluster = mEvent.getLayer(iLayer + 1).getCluster(nextTracklet.firstClusterIndex);
             const CACluster& thirdCellCluster = mEvent.getLayer(iLayer + 2).getCluster(nextTracklet.secondClusterIndex);
@@ -248,7 +243,7 @@ void CATracker::computeCells(int iIteration)
                     - std::sqrt(circleCenter[0] * circleCenter[0] + circleCenter[1] * circleCenter[1]));
 
             if (distanceOfClosestApproach
-                > CAConstants::Thresholds::CellMaxDistanceOfClosestApproachThreshold[iIteration][iLayer]) {
+                > CAConstants::Thresholds::CellMaxDistanceOfClosestApproachThreshold[trackerContext.iteration][iLayer]) {
 
               continue;
             }
@@ -257,11 +252,11 @@ void CATracker::computeCells(int iIteration)
 
             if (isFirstTrackletCell && iLayer > 0) {
 
-              cellsLookupTable[iLayer - 1][iTracklet] = cells[iLayer].size();
+              trackerContext.cellsLookupTable[iLayer - 1][iTracklet] = trackerContext.cells[iLayer].size();
               isFirstTrackletCell = false;
             }
 
-            cells[iLayer].emplace_back(currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex,
+            trackerContext.cells[iLayer].emplace_back(currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex,
                 nextTracklet.secondClusterIndex, iTracklet, iNextLayerTracklet, normalizedPlaneVector,
                 cellTrajectoryCurvature);
           }
@@ -269,43 +264,39 @@ void CATracker::computeCells(int iIteration)
       }
     }
   }
-
-  findCellsNeighbours(iIteration, cells, cellsLookupTable);
 }
 
-void CATracker::findCellsNeighbours(const int iIteration,
-    std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad>& cells,
-    const std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1>& cellsLookupTable)
+void CATracker::findCellsNeighbours(CATrackerContext& trackerContext)
 {
   for (int iLayer = 0; iLayer < CAConstants::ITS::CellsPerRoad - 1; ++iLayer) {
 
-    if (cells[iLayer + 1].empty() || cellsLookupTable[iLayer].empty()) {
+    if (trackerContext.cells[iLayer + 1].empty() || trackerContext.cellsLookupTable[iLayer].empty()) {
 
       continue;
     }
 
-    int layerCellsNum = cells[iLayer].size();
+    int layerCellsNum = trackerContext.cells[iLayer].size();
 
     for (int iCell = 0; iCell < layerCellsNum; ++iCell) {
 
-      const CACell& currentCell = cells[iLayer][iCell];
+      const CACell& currentCell = trackerContext.cells[iLayer][iCell];
 
       const int nextLayerTrackletIndex = currentCell.getSecondTrackletIndex();
-      const int nextLayerFirstCellIndex = cellsLookupTable[iLayer][nextLayerTrackletIndex];
+      const int nextLayerFirstCellIndex = trackerContext.cellsLookupTable[iLayer][nextLayerTrackletIndex];
 
       if (nextLayerFirstCellIndex == UnusedIndex) {
 
         continue;
       }
 
-      const int nextLayerCellsNum = cells[iLayer + 1].size();
+      const int nextLayerCellsNum = trackerContext.cells[iLayer + 1].size();
 
       for (int iNextLayerCell = nextLayerFirstCellIndex;
           iNextLayerCell < nextLayerCellsNum
-              && cells[iLayer + 1][iNextLayerCell].getFirstTrackletIndex() != nextLayerTrackletIndex;
+              && trackerContext.cells[iLayer + 1][iNextLayerCell].getFirstTrackletIndex() != nextLayerTrackletIndex;
           ++iNextLayerCell) {
 
-        CACell& nextCell = cells[iLayer + 1][iNextLayerCell];
+        CACell& nextCell = trackerContext.cells[iLayer + 1][iNextLayerCell];
         const std::array<float, 3> currentCellNormalVector = currentCell.getNormalVectorCoordinates();
         const std::array<float, 3> nextCellNormalVector = nextCell.getNormalVectorCoordinates();
 
@@ -318,12 +309,79 @@ void CATracker::findCellsNeighbours(const int iIteration,
 
         const float deltaCurvature = std::abs(currentCell.getCurvature() - nextCell.getCurvature());
 
-        if (deltaNormalVectors < CAConstants::Thresholds::NeighbourCellMaxNormalVectorsDelta[iIteration][iLayer]
-            && deltaCurvature < CAConstants::Thresholds::NeighbourCellMaxCurvaturesDelta[iIteration][iCell]) {
+        if (deltaNormalVectors < CAConstants::Thresholds::NeighbourCellMaxNormalVectorsDelta[trackerContext.iteration][iLayer]
+            && deltaCurvature < CAConstants::Thresholds::NeighbourCellMaxCurvaturesDelta[trackerContext.iteration][iCell]) {
 
           nextCell.combineCells(currentCell, iCell);
         }
       }
     }
   }
+}
+
+void CATracker::findTracks(CATrackerContext& trackerContext)
+{
+  const int levelLimit = CAConstants::Thresholds::TracksMinLength[trackerContext.iteration];
+
+  for(int iLayer = CAConstants::ITS::CellsPerRoad; iLayer > levelLimit; --iLayer) {
+
+    for(int iPreviousLayer = CAConstants::ITS::CellsPerRoad - 1; iPreviousLayer > iLayer; --iPreviousLayer) {
+
+      const int levelCellsNum = trackerContext.cells[iPreviousLayer].size();
+
+      for(int iCell = 0; iCell < levelCellsNum; ++iCell) {
+
+        CACell& currentCell = trackerContext.cells[iPreviousLayer][iCell];
+
+        if(currentCell.getLevel() != iLayer) {
+
+          continue;
+        }
+
+        trackerContext.roads.emplace_back(iPreviousLayer, iCell);
+
+        const int cellNeighboursNum = currentCell.getNumberOfNeighbours();
+
+        for(int iNeighbourCell = 0; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
+
+          if(iNeighbourCell > 0) {
+
+            trackerContext.roads.emplace_back(iPreviousLayer, iCell);
+          }
+
+          traverseCellsTree(trackerContext, iPreviousLayer - 1, currentCell.getNeighbourCellId(iNeighbourCell));
+        }
+
+        currentCell.setLevel(0);
+      }
+    }
+  }
+}
+
+void CATracker::traverseCellsTree(CATrackerContext& trackerContext, const int currentCellId, const int currentLayerId)
+{
+  if(currentLayerId < 0) {
+
+    return;
+  }
+
+  CACell& currentCell = trackerContext.cells[currentLayerId][currentCellId];
+  CARoad& currentRoad = trackerContext.roads.back();
+
+  currentRoad.addCell(currentLayerId, currentCellId);
+
+  const int cellNeighboursNum = currentCell.getNumberOfNeighbours();
+
+  for(int iNeighbourCell = 0; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
+
+    if(iNeighbourCell > 0) {
+
+      trackerContext.roads.push_back(currentRoad);
+
+    }
+
+    traverseCellsTree(trackerContext, currentLayerId - 1, currentCell.getNeighbourCellId(iNeighbourCell));
+  }
+
+  currentCell.setLevel(0);
 }
