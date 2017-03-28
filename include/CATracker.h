@@ -45,8 +45,8 @@ class CATracker final
 
   private:
     const CAEvent& mEvent;
-    std::vector<bool> mUsedClustersTable;
-    std::array<CAIndexTable, CAConstants::ITS::LayersNumber> mIndexTables;
+    std::vector<int> mUsedClustersTable;
+    std::array<CAIndexTable, CAConstants::ITS::TrackletsPerRoad> mIndexTables;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */

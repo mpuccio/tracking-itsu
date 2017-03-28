@@ -29,11 +29,11 @@ constexpr int UnusedIndex = -1;
 }
 
 CATracker::CATracker(const CAEvent& event)
-    : mEvent(event), mUsedClustersTable(event.getTotalClusters(), false), mIndexTables { }
+    : mEvent(event), mIndexTables { }
 {
-  for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
-    mIndexTables[iLayer] = CAIndexTable(event.getLayer(iLayer));
+    mIndexTables[iLayer] = CAIndexTable(event.getLayer(iLayer + 1));
   }
 }
 
@@ -59,29 +59,28 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
   for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
     const CALayer& currentLayer = mEvent.getLayer(iLayer);
+    const CALayer& nextLayer = mEvent.getLayer(iLayer + 1);
 
-    if (currentLayer.getClusters().empty()) {
+    if (currentLayer.getClusters().empty() || nextLayer.getClusters().empty()) {
 
       continue;
     }
 
-    const CALayer& nextLayer = mEvent.getLayer(iLayer + 1);
-
     const int currentLayerClustersNum = currentLayer.getClustersSize();
 
-    if (iLayer > 0) {
+    if (iLayer < CAConstants::ITS::CellsPerRoad) {
 
-      trackerContext.trackletsLookupTable[iLayer - 1].resize(nextLayer.getClustersSize(), UnusedIndex);
+      trackerContext.trackletsLookupTable[iLayer].resize(nextLayer.getClustersSize(), UnusedIndex);
     }
 
     for (int iCluster = 0; iCluster < currentLayerClustersNum; ++iCluster) {
 
       const CACluster& currentCluster = currentLayer.getCluster(iCluster);
 
-      if (mUsedClustersTable[currentCluster.clusterId]) {
-
-        continue;
-      }
+//      if (mUsedClustersTable[currentCluster.clusterId] != UnusedIndex) {
+//
+//        continue;
+//      }
 
       const float tanLambda = (currentCluster.zCoordinate - mEvent.getPrimaryVertexZCoordinate())
           / currentCluster.rCoordinate;
@@ -89,29 +88,30 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
           * (CAConstants::Thresholds::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate)
           + currentCluster.zCoordinate;
 
-      const std::vector<int> nextLayerClustersSubset = mIndexTables[iLayer + 1].selectClusters(
+      const std::vector<int> nextLayerClustersSubset = mIndexTables[iLayer].selectClusters(
           directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut,
           directionZIntersection + 2 * CAConstants::Thresholds::ZCoordinateCut,
           currentCluster.phiCoordinate - CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration],
           currentCluster.phiCoordinate + CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration]);
-
-      bool isFirstTrackletFromCurrentCluster = true;
 
       if (nextLayerClustersSubset.empty()) {
 
         continue;
       }
 
+      bool isFirstTrackletFromCurrentCluster = true;
+
       const int nextLayerClusterSubsetNum = nextLayerClustersSubset.size();
 
-      for (int iNextLayerCluster = 0; iNextLayerCluster < nextLayerClusterSubsetNum; ++iNextLayerCluster) {
+      for (int iNextLayerSubsetCluster = 0; iNextLayerSubsetCluster < nextLayerClusterSubsetNum; ++iNextLayerSubsetCluster) {
 
-        const CACluster& nextCluster = nextLayer.getCluster(nextLayerClustersSubset[iNextLayerCluster]);
+        const int nextLayerClusterIndex = nextLayerClustersSubset[iNextLayerSubsetCluster];
+        const CACluster& nextCluster = nextLayer.getCluster(nextLayerClusterIndex);
 
-        if (mUsedClustersTable[nextCluster.clusterId]) {
-
-          continue;
-        }
+//        if (mUsedClustersTable[nextCluster.clusterId] != UnusedIndex) {
+//
+//          continue;
+//        }
 
         const float deltaZ = std::abs(
             tanLambda * (nextCluster.rCoordinate - currentCluster.rCoordinate) + currentCluster.zCoordinate
@@ -133,7 +133,7 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
           const float doubletPhi = std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
               currentCluster.xCoordinate - nextCluster.xCoordinate);
 
-          trackerContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, doubletTanLambda, doubletPhi);
+          trackerContext.tracklets[iLayer].emplace_back(iCluster, nextLayerClusterIndex, doubletTanLambda, doubletPhi);
         }
       }
     }
@@ -145,12 +145,12 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
 
   for (int iLayer = 0; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
-    if (trackerContext.tracklets[iLayer + 1].empty() || trackerContext.tracklets[iLayer + 1].empty()) {
+    if (trackerContext.tracklets[iLayer + 1].empty() || trackerContext.tracklets[iLayer].empty()) {
 
       continue;
     }
 
-    if (iLayer < CAConstants::ITS::CellsPerRoad) {
+    if (iLayer < CAConstants::ITS::CellsPerRoad - 1) {
 
       trackerContext.cellsLookupTable[iLayer].resize(trackerContext.tracklets[iLayer + 1].size(), UnusedIndex);
     }
@@ -159,22 +159,21 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
 
     for (int iTracklet = 0; iTracklet < currentLayerTrackletsNum; ++iTracklet) {
 
-      bool isFirstTrackletCell = true;
-
       const CATracklet& currentTracklet = trackerContext.tracklets[iLayer][iTracklet];
       const int nextLayerClusterIndex = currentTracklet.secondClusterIndex;
       const int nextLayerFirstTrackletIndex = trackerContext.trackletsLookupTable[iLayer][nextLayerClusterIndex];
 
-      if (nextLayerClusterIndex == UnusedIndex) {
+      if (nextLayerFirstTrackletIndex == UnusedIndex) {
 
         continue;
       }
 
+      bool isFirstCellForCurrentTracklet = true;
       const int nextLayerTrackletsNum = trackerContext.tracklets[iLayer + 1].size();
 
       for (int iNextLayerTracklet = nextLayerFirstTrackletIndex;
           iNextLayerTracklet < nextLayerTrackletsNum
-              && trackerContext.tracklets[iLayer + 1][iNextLayerTracklet].firstClusterIndex != nextLayerClusterIndex;
+              && trackerContext.tracklets[iLayer + 1][iNextLayerTracklet].firstClusterIndex == nextLayerClusterIndex;
           ++iNextLayerTracklet) {
 
         const CATracklet& nextTracklet = trackerContext.tracklets[iLayer + 1][iNextLayerTracklet];
@@ -230,10 +229,10 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
                 - normalizedPlaneVector[1] * secondCellCluster.yCoordinate
                 - normalizedPlaneVector[2] * secondCellCluster.zCoordinate;
 
-            const float cellTrajectoryRadius = std::sqrt(
+            const float cellTrajectoryRadius = std::sqrt(std::abs(
                 (1.0f - normalizedPlaneVector[2] * normalizedPlaneVector[2]
                     - 4.0f * planeDistance * normalizedPlaneVector[2])
-                    / (4.0f * normalizedPlaneVector[2] * normalizedPlaneVector[2]));
+                    / (4.0f * normalizedPlaneVector[2] * normalizedPlaneVector[2])));
 
             const std::array<float, 2> circleCenter { -0.5f * normalizedPlaneVector[0] / normalizedPlaneVector[2], -0.5f
                 * normalizedPlaneVector[1] / normalizedPlaneVector[2] };
@@ -250,15 +249,16 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
 
             const float cellTrajectoryCurvature = 1.0f / cellTrajectoryRadius;
 
-            if (isFirstTrackletCell && iLayer > 0) {
+            if (isFirstCellForCurrentTracklet && iLayer > 0) {
 
               trackerContext.cellsLookupTable[iLayer - 1][iTracklet] = trackerContext.cells[iLayer].size();
-              isFirstTrackletCell = false;
+              isFirstCellForCurrentTracklet = false;
             }
 
             trackerContext.cells[iLayer].emplace_back(currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex,
                 nextTracklet.secondClusterIndex, iTracklet, iNextLayerTracklet, normalizedPlaneVector,
                 cellTrajectoryCurvature);
+            std::cout << "Layer " << iLayer << ": " << firstCellCluster.monteCarlo << " - " << secondCellCluster.monteCarlo << " - " << thirdCellCluster.monteCarlo << std::endl;
           }
         }
       }
@@ -293,7 +293,7 @@ void CATracker::findCellsNeighbours(CATrackerContext& trackerContext)
 
       for (int iNextLayerCell = nextLayerFirstCellIndex;
           iNextLayerCell < nextLayerCellsNum
-              && trackerContext.cells[iLayer + 1][iNextLayerCell].getFirstTrackletIndex() != nextLayerTrackletIndex;
+              && trackerContext.cells[iLayer + 1][iNextLayerCell].getFirstTrackletIndex() == nextLayerTrackletIndex;
           ++iNextLayerCell) {
 
         CACell& nextCell = trackerContext.cells[iLayer + 1][iNextLayerCell];

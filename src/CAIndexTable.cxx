@@ -55,10 +55,10 @@ std::vector<int> CAIndexTable::selectClusters(const float zRangeMin, const float
   const int maxZBinIndex = std::min(CAConstants::LookupTable::ZBins, getZBinIndex(zRangeMax));
   const int zBinsNum = maxZBinIndex - minZBinIndex + 1;
   const int minPhiBinIndex = getPhiBinIndex(phiRangeMin);
-  const int maxPhiBinIndex = getPhiBinIndex(phiRangeMax);
+  const int maxPhiBinIndex = (getPhiBinIndex(phiRangeMax) + 1) % CAConstants::LookupTable::PhiBins;
 
-  for (int iPhiBin = minPhiBinIndex; iPhiBin <= maxPhiBinIndex;
-      iPhiBin = iPhiBin + 1 % CAConstants::LookupTable::PhiBins) {
+  for (int iPhiBin = minPhiBinIndex; iPhiBin != maxPhiBinIndex;
+      iPhiBin = (iPhiBin + 1) % CAConstants::LookupTable::PhiBins) {
 
     for (int iBinIndex = getBinIndex(minZBinIndex, iPhiBin); iBinIndex <= zBinsNum; ++iBinIndex) {
 

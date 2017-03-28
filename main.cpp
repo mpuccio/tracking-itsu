@@ -19,7 +19,7 @@ int main(int argc, char** argv)
   const int eventsNum = events.size();
 
   clock_t t1, t2;
-  const int iterations = 20;
+  const int iterations = 1;
   float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
 
   for (int iIteration = 0; iIteration < iterations; ++iIteration) {
