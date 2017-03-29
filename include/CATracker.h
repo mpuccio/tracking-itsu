@@ -43,6 +43,7 @@ class CATracker final
     void findCellsNeighbours(CATrackerContext&);
     void findTracks(CATrackerContext&);
     void traverseCellsTree(CATrackerContext&, const int, const int);
+    void computeMontecarloLabels(CATrackerContext&);
 
   private:
     const CAEvent& mEvent;

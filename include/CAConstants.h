@@ -56,7 +56,7 @@ constexpr std::array<std::array<float, ITS::CellsPerRoad - 1>, ITS::TracksRecons
 constexpr std::array<int, ITS::TracksReconstructionIterations> TracksMinLength { 4, 2 };
 }
 
-namespace LookupTable {
+namespace IndexTable {
 constexpr int ZBins { 20 };
 constexpr int PhiBins { 20 };
 }

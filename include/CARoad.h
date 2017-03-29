@@ -30,6 +30,7 @@ class CARoad final
     CARoad(int, int);
 
     int getRoadSize();
+    int getLabel();
     int &operator[](const int&);
 
     void resetRoad();
@@ -38,6 +39,7 @@ class CARoad final
   private:
     std::array<int, CAConstants::ITS::CellsPerRoad> mCellIds;
     int mRoadSize;
+    int mLabel;
 };
 
 inline int CARoad::getRoadSize() {

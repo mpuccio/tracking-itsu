@@ -26,8 +26,8 @@ CAIndexTable::CAIndexTable()
 
 CAIndexTable::CAIndexTable(const CALayer& layer)
     : mLayerMinZCoordinate { layer.getMinZCoordinate() }, mLayerMaxZCoordinate { layer.getMaxZCoordinate() }, mInverseZBinSize {
-        CAConstants::LookupTable::ZBins / (layer.getMaxZCoordinate() - layer.getMinZCoordinate()) }, mInversePhiBinSize {
-        CAConstants::LookupTable::PhiBins / CAConstants::Math::TwoPi }
+        CAConstants::IndexTable::ZBins / (layer.getMaxZCoordinate() - layer.getMinZCoordinate()) }, mInversePhiBinSize {
+        CAConstants::IndexTable::PhiBins / CAConstants::Math::TwoPi }
 {
   int layerClustersNum = layer.getClustersSize();
 
@@ -40,10 +40,10 @@ CAIndexTable::CAIndexTable(const CALayer& layer)
     mTableBins[currentBinIndex].push_back(iCluster);
   }
 
-  mTableBins[CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins - 1].insert(
-      mTableBins[CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins - 1].end(),
-      mTableBins[CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins].begin(),
-      mTableBins[CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins].end());
+  mTableBins[CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins - 1].insert(
+      mTableBins[CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins - 1].end(),
+      mTableBins[CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins].begin(),
+      mTableBins[CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins].end());
 }
 
 std::vector<int> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
@@ -57,13 +57,20 @@ std::vector<int> CAIndexTable::selectClusters(const float zRangeMin, const float
   }
 
   const int minZBinIndex = std::max(0, getZBinIndex(zRangeMin));
-  const int maxZBinIndex = std::min(CAConstants::LookupTable::ZBins, getZBinIndex(zRangeMax));
+  const int maxZBinIndex = std::min(CAConstants::IndexTable::ZBins - 1, getZBinIndex(zRangeMax));
   const int zBinsNum = maxZBinIndex - minZBinIndex;
-  const int minPhiBinIndex = getPhiBinIndex(phiRangeMin);
-  const int maxPhiBinIndex = (getPhiBinIndex(phiRangeMax) + 1) % CAConstants::LookupTable::PhiBins;
+  const int minPhiBinIndex = getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin));
+  const int maxPhiBinIndex = getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMax));
 
-  for (int iPhiBin = minPhiBinIndex; iPhiBin != maxPhiBinIndex;
-      iPhiBin = ++iPhiBin == CAConstants::LookupTable::PhiBins? 0 : iPhiBin) {
+  int phiBinsNum =  maxPhiBinIndex - minPhiBinIndex + 1;
+
+  if(phiBinsNum < 0) {
+
+    phiBinsNum += CAConstants::IndexTable::PhiBins;
+  }
+
+  for (int iPhiBin = minPhiBinIndex, iPhiCount = 0; iPhiCount < phiBinsNum;
+      iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins? 0 : iPhiBin, iPhiCount++) {
 
     const int firstBinIndex = getBinIndex(minZBinIndex, iPhiBin);
     const int maxBinIndex = firstBinIndex + zBinsNum;

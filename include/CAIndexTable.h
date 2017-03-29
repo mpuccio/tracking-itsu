@@ -41,7 +41,7 @@ class CAIndexTable final
     float mLayerMaxZCoordinate;
     float mInverseZBinSize;
     float mInversePhiBinSize;
-    std::array<std::vector<int>, CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins + 1> mTableBins;
+    std::array<std::vector<int>, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
 };
 
 inline int CAIndexTable::getZBinIndex(const float zCoordinate) const
@@ -53,13 +53,13 @@ inline int CAIndexTable::getZBinIndex(const float zCoordinate) const
 inline int CAIndexTable::getPhiBinIndex(const float currentPhi) const
 {
 
-  return (CAMathUtils::getNormalizedPhiCoordinate(currentPhi) * mInversePhiBinSize);
+  return (currentPhi * mInversePhiBinSize);
 }
 
 inline int CAIndexTable::getBinIndex(const int zIndex, const int phiIndex) const
 {
 
-  return phiIndex * CAConstants::LookupTable::PhiBins + zIndex;
+  return phiIndex * CAConstants::IndexTable::PhiBins + zIndex;
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_ */
