@@ -19,21 +19,18 @@ int main(int argc, char** argv)
   const int eventsNum = events.size();
 
   clock_t t1, t2;
-  const int iterations = 1;
   float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
 
-  for (int iIteration = 0; iIteration < iterations; ++iIteration) {
+  for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
 
+    std::cout << " Processing event " << iEvent + 1 << std::endl << std::endl;
     t1 = clock();
 
-    for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
-
-      CATracker(events[iEvent]).clustersToTracks();
-    }
+    CATracker(events[iEvent]).clustersToTracksVerbose();
 
     t2 = clock();
-
     const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
+
     totalTime += diff;
 
     if (minTime > diff)
@@ -41,11 +38,11 @@ int main(int argc, char** argv)
     if (maxTime < diff)
       maxTime = diff;
 
-    std::cout << std::setw(2) << iIteration + 1 << " - Task completed in: " << diff << "ms" << std::endl;
+    std::cout << std::endl << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
   }
 
   std::cout << std::endl;
-  std::cout << "Avg time: " << totalTime / iterations << "ms" << std::endl;
+  std::cout << "Avg time: " << totalTime / eventsNum << "ms" << std::endl;
   std::cout << "Min time: " << minTime << "ms" << std::endl;
   std::cout << "Max time: " << maxTime << "ms" << std::endl;
 

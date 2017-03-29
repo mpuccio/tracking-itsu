@@ -39,6 +39,11 @@ CAIndexTable::CAIndexTable(const CALayer& layer)
         getPhiBinIndex(currentCluster.phiCoordinate));
     mTableBins[currentBinIndex].push_back(iCluster);
   }
+
+  mTableBins[CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins - 1].insert(
+      mTableBins[CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins - 1].end(),
+      mTableBins[CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins].begin(),
+      mTableBins[CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins].end());
 }
 
 std::vector<int> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
@@ -53,14 +58,17 @@ std::vector<int> CAIndexTable::selectClusters(const float zRangeMin, const float
 
   const int minZBinIndex = std::max(0, getZBinIndex(zRangeMin));
   const int maxZBinIndex = std::min(CAConstants::LookupTable::ZBins, getZBinIndex(zRangeMax));
-  const int zBinsNum = maxZBinIndex - minZBinIndex + 1;
+  const int zBinsNum = maxZBinIndex - minZBinIndex;
   const int minPhiBinIndex = getPhiBinIndex(phiRangeMin);
   const int maxPhiBinIndex = (getPhiBinIndex(phiRangeMax) + 1) % CAConstants::LookupTable::PhiBins;
 
   for (int iPhiBin = minPhiBinIndex; iPhiBin != maxPhiBinIndex;
-      iPhiBin = (iPhiBin + 1) % CAConstants::LookupTable::PhiBins) {
+      iPhiBin = ++iPhiBin == CAConstants::LookupTable::PhiBins? 0 : iPhiBin) {
 
-    for (int iBinIndex = getBinIndex(minZBinIndex, iPhiBin); iBinIndex <= zBinsNum; ++iBinIndex) {
+    const int firstBinIndex = getBinIndex(minZBinIndex, iPhiBin);
+    const int maxBinIndex = firstBinIndex + zBinsNum;
+
+    for (int iBinIndex = firstBinIndex; iBinIndex <= maxBinIndex; ++iBinIndex) {
 
       if (!mTableBins[iBinIndex].empty()) {
 

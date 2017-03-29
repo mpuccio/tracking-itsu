@@ -18,18 +18,37 @@
 
 #include "CATracker.h"
 
-#include <cmath>
 #include <iostream>
+#include <iomanip>
+#include <functional>
+
+#include <cmath>
 
 #include "CAMathUtils.h"
 
 namespace {
 
 constexpr int UnusedIndex = -1;
+
+void evaluateTask(void (CATracker::*task)(CATrackerContext&), CATracker* tracker, const char *taskName,
+    CATrackerContext& trackerContext)
+{
+
+  clock_t t1, t2;
+  float diff;
+
+  t1 = clock();
+
+  (tracker->*task)(trackerContext);
+
+  t2 = clock();
+  diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
+  std::cout << std::setw(2) << " - " << taskName << " completed in: " << diff << "ms" << std::endl;
+}
 }
 
 CATracker::CATracker(const CAEvent& event)
-    : mEvent(event), mIndexTables { }
+    : mEvent(event), mUsedClustersTable(event.getTotalClusters(), UnusedIndex), mIndexTables { }
 {
   for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
@@ -37,20 +56,32 @@ CATracker::CATracker(const CAEvent& event)
   }
 }
 
-int CATracker::clustersToTracks()
+void CATracker::clustersToTracks()
 {
 
   for (int iIteration = 0; iIteration < CAConstants::ITS::TracksReconstructionIterations; ++iIteration) {
 
-    CATrackerContext trackerContext{iIteration};
+    CATrackerContext trackerContext { iIteration };
 
     computeTracklets(trackerContext);
     computeCells(trackerContext);
     findCellsNeighbours(trackerContext);
     findTracks(trackerContext);
   }
+}
 
-  return 0;
+void CATracker::clustersToTracksVerbose()
+{
+
+  for (int iIteration = 0; iIteration < CAConstants::ITS::TracksReconstructionIterations; ++iIteration) {
+
+    CATrackerContext trackerContext { iIteration };
+
+    evaluateTask(&CATracker::computeTracklets, this, "Tracklets Finding", trackerContext);
+    evaluateTask(&CATracker::computeCells, this, "Cells Finding", trackerContext);
+    evaluateTask(&CATracker::findCellsNeighbours, this, "Neighbours Finding", trackerContext);
+    evaluateTask(&CATracker::findTracks, this, "Tracks Finding", trackerContext);
+  }
 }
 
 void CATracker::computeTracklets(CATrackerContext& trackerContext)
@@ -77,10 +108,10 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
 
       const CACluster& currentCluster = currentLayer.getCluster(iCluster);
 
-//      if (mUsedClustersTable[currentCluster.clusterId] != UnusedIndex) {
-//
-//        continue;
-//      }
+      if (mUsedClustersTable[currentCluster.clusterId] != UnusedIndex) {
+
+        continue;
+      }
 
       const float tanLambda = (currentCluster.zCoordinate - mEvent.getPrimaryVertexZCoordinate())
           / currentCluster.rCoordinate;
@@ -103,15 +134,16 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
 
       const int nextLayerClusterSubsetNum = nextLayerClustersSubset.size();
 
-      for (int iNextLayerSubsetCluster = 0; iNextLayerSubsetCluster < nextLayerClusterSubsetNum; ++iNextLayerSubsetCluster) {
+      for (int iNextLayerSubsetCluster = 0; iNextLayerSubsetCluster < nextLayerClusterSubsetNum;
+          ++iNextLayerSubsetCluster) {
 
         const int nextLayerClusterIndex = nextLayerClustersSubset[iNextLayerSubsetCluster];
         const CACluster& nextCluster = nextLayer.getCluster(nextLayerClusterIndex);
 
-//        if (mUsedClustersTable[nextCluster.clusterId] != UnusedIndex) {
-//
-//          continue;
-//        }
+        if (mUsedClustersTable[nextCluster.clusterId] != UnusedIndex) {
+
+          continue;
+        }
 
         const float deltaZ = std::abs(
             tanLambda * (nextCluster.rCoordinate - currentCluster.rCoordinate) + currentCluster.zCoordinate
@@ -120,7 +152,8 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
 
         if (deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold[trackerContext.iteration][iLayer]
             && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration]
-                || std::abs(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration])) {
+                || std::abs(deltaPhi - CAConstants::Math::TwoPi)
+                    < CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration])) {
 
           if (iLayer > 0 && isFirstTrackletFromCurrentCluster) {
 
@@ -229,10 +262,12 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
                 - normalizedPlaneVector[1] * secondCellCluster.yCoordinate
                 - normalizedPlaneVector[2] * secondCellCluster.zCoordinate;
 
-            const float cellTrajectoryRadius = std::sqrt(std::abs(
-                (1.0f - normalizedPlaneVector[2] * normalizedPlaneVector[2]
-                    - 4.0f * planeDistance * normalizedPlaneVector[2])
-                    / (4.0f * normalizedPlaneVector[2] * normalizedPlaneVector[2])));
+            const float normalizedPlaneVectorQuadraticZCoordinate = normalizedPlaneVector[2] * normalizedPlaneVector[2];
+
+            const float cellTrajectoryRadius = std::sqrt(
+                std::abs(
+                    (1.0f - normalizedPlaneVectorQuadraticZCoordinate - 4.0f * planeDistance * normalizedPlaneVector[2])
+                        / (4.0f * normalizedPlaneVectorQuadraticZCoordinate)));
 
             const std::array<float, 2> circleCenter { -0.5f * normalizedPlaneVector[0] / normalizedPlaneVector[2], -0.5f
                 * normalizedPlaneVector[1] / normalizedPlaneVector[2] };
@@ -258,7 +293,6 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
             trackerContext.cells[iLayer].emplace_back(currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex,
                 nextTracklet.secondClusterIndex, iTracklet, iNextLayerTracklet, normalizedPlaneVector,
                 cellTrajectoryCurvature);
-            std::cout << "Layer " << iLayer << ": " << firstCellCluster.monteCarlo << " - " << secondCellCluster.monteCarlo << " - " << thirdCellCluster.monteCarlo << std::endl;
           }
         }
       }
@@ -300,17 +334,23 @@ void CATracker::findCellsNeighbours(CATrackerContext& trackerContext)
         const std::array<float, 3> currentCellNormalVector = currentCell.getNormalVectorCoordinates();
         const std::array<float, 3> nextCellNormalVector = nextCell.getNormalVectorCoordinates();
 
-        const float deltaNormalVectors = (currentCellNormalVector[0] - nextCellNormalVector[0])
-            * (currentCellNormalVector[0] - nextCellNormalVector[0])
-            + (currentCellNormalVector[1] - nextCellNormalVector[1])
-                * (currentCellNormalVector[1] - nextCellNormalVector[1])
-            + (currentCellNormalVector[2] - nextCellNormalVector[2])
-                * (currentCellNormalVector[2] - nextCellNormalVector[2]);
+        const std::array<float, 3> normalVectorsDeltaVector = {
+            currentCellNormalVector[0] - nextCellNormalVector[0],
+            currentCellNormalVector[1] - nextCellNormalVector[1],
+            currentCellNormalVector[2] - nextCellNormalVector[2]
+        };
+
+        const float deltaNormalVectorsModulus =
+            (normalVectorsDeltaVector[0] * normalVectorsDeltaVector[0]) +
+            (normalVectorsDeltaVector[1] * normalVectorsDeltaVector[1]) +
+            (normalVectorsDeltaVector[2] * normalVectorsDeltaVector[2]);
 
         const float deltaCurvature = std::abs(currentCell.getCurvature() - nextCell.getCurvature());
 
-        if (deltaNormalVectors < CAConstants::Thresholds::NeighbourCellMaxNormalVectorsDelta[trackerContext.iteration][iLayer]
-            && deltaCurvature < CAConstants::Thresholds::NeighbourCellMaxCurvaturesDelta[trackerContext.iteration][iCell]) {
+        if (deltaNormalVectorsModulus
+            < CAConstants::Thresholds::NeighbourCellMaxNormalVectorsDelta[trackerContext.iteration][iLayer]
+            && deltaCurvature
+                < CAConstants::Thresholds::NeighbourCellMaxCurvaturesDelta[trackerContext.iteration][iLayer]) {
 
           nextCell.combineCells(currentCell, iCell);
         }
@@ -321,19 +361,20 @@ void CATracker::findCellsNeighbours(CATrackerContext& trackerContext)
 
 void CATracker::findTracks(CATrackerContext& trackerContext)
 {
-  const int levelLimit = CAConstants::Thresholds::TracksMinLength[trackerContext.iteration];
+  for (int iLevel = CAConstants::ITS::CellsPerRoad;
+      iLevel > CAConstants::Thresholds::TracksMinLength[trackerContext.iteration]; --iLevel) {
 
-  for(int iLayer = CAConstants::ITS::CellsPerRoad; iLayer > levelLimit; --iLayer) {
+    const int minimumLevel = iLevel - 1;
 
-    for(int iPreviousLayer = CAConstants::ITS::CellsPerRoad - 1; iPreviousLayer > iLayer; --iPreviousLayer) {
+    for (int iPreviousLayer = CAConstants::ITS::CellsPerRoad - 1; iPreviousLayer >= minimumLevel; --iPreviousLayer) {
 
       const int levelCellsNum = trackerContext.cells[iPreviousLayer].size();
 
-      for(int iCell = 0; iCell < levelCellsNum; ++iCell) {
+      for (int iCell = 0; iCell < levelCellsNum; ++iCell) {
 
         CACell& currentCell = trackerContext.cells[iPreviousLayer][iCell];
 
-        if(currentCell.getLevel() != iLayer) {
+        if (currentCell.getLevel() != iLevel) {
 
           continue;
         }
@@ -342,9 +383,9 @@ void CATracker::findTracks(CATrackerContext& trackerContext)
 
         const int cellNeighboursNum = currentCell.getNumberOfNeighbours();
 
-        for(int iNeighbourCell = 0; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
+        for (int iNeighbourCell = 0; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
 
-          if(iNeighbourCell > 0) {
+          if (iNeighbourCell > 0) {
 
             trackerContext.roads.emplace_back(iPreviousLayer, iCell);
           }
@@ -360,7 +401,7 @@ void CATracker::findTracks(CATrackerContext& trackerContext)
 
 void CATracker::traverseCellsTree(CATrackerContext& trackerContext, const int currentCellId, const int currentLayerId)
 {
-  if(currentLayerId < 0) {
+  if (currentLayerId < 0) {
 
     return;
   }
@@ -372,9 +413,9 @@ void CATracker::traverseCellsTree(CATrackerContext& trackerContext, const int cu
 
   const int cellNeighboursNum = currentCell.getNumberOfNeighbours();
 
-  for(int iNeighbourCell = 0; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
+  for (int iNeighbourCell = 0; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
 
-    if(iNeighbourCell > 0) {
+    if (iNeighbourCell > 0) {
 
       trackerContext.roads.push_back(currentRoad);
 

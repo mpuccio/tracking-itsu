@@ -51,7 +51,7 @@ const int CAEvent::getTotalClusters() const
 
   for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
-    mLayers[iLayer].getClusters()[iLayer];
+    totalClusters += mLayers[iLayer].getClustersSize();
   }
 
   return totalClusters;

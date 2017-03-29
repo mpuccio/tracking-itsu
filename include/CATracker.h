@@ -34,7 +34,8 @@ class CATracker final
     CATracker(const CATracker&) = delete;
     CATracker &operator=(const CATracker&) = delete;
 
-    int clustersToTracks();
+    void clustersToTracks();
+    void clustersToTracksVerbose();
 
   protected:
     void computeTracklets(CATrackerContext&);
