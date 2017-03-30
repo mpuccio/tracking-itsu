@@ -67,6 +67,7 @@ void CATracker::clustersToTracks()
     computeCells(trackerContext);
     findCellsNeighbours(trackerContext);
     findTracks(trackerContext);
+    computeMontecarloLabels(trackerContext);
   }
 }
 
@@ -81,6 +82,7 @@ void CATracker::clustersToTracksVerbose()
     evaluateTask(&CATracker::computeCells, this, "Cells Finding", trackerContext);
     evaluateTask(&CATracker::findCellsNeighbours, this, "Neighbours Finding", trackerContext);
     evaluateTask(&CATracker::findTracks, this, "Tracks Finding", trackerContext);
+    evaluateTask(&CATracker::computeMontecarloLabels, this, "Computing Montecarlo Labels", trackerContext);
   }
 }
 
@@ -432,13 +434,79 @@ void CATracker::traverseCellsTree(CATrackerContext& trackerContext, const int cu
 
 void CATracker::computeMontecarloLabels(CATrackerContext& trackerContext)
 {
+  /// Moore’s Voting Algorithm
+
   int roadsNum = trackerContext.roads.size();
 
   for(int iRoad = 0; iRoad < roadsNum; ++iRoad) {
 
     CARoad& currentRoad = trackerContext.roads[iRoad];
-    CACell& firstCell = trackerContext.cells[0][currentRoad[0]];
 
-    //TODO
+    int maxOccurrencesValue;
+    int count;
+
+    bool isFakeRoad = false;
+    bool isFirstRoadCell = true;
+
+    for(int iCell = 0; iCell < CAConstants::ITS::CellsPerRoad; ++iCell) {
+
+      const int currentCellIndex = currentRoad[iCell];
+
+      if(currentCellIndex == UnusedIndex) {
+
+        if(isFirstRoadCell) {
+
+          continue;
+
+        } else {
+
+          break;
+        }
+      }
+
+      const CACell& currentCell = trackerContext.cells[iCell][currentCellIndex];
+
+      if(isFirstRoadCell) {
+
+        maxOccurrencesValue = mEvent.getLayer(iCell).getCluster(currentCell.getFirstClusterIndex()).monteCarlo;
+        count = 1;
+
+        const int secondMonteCarlo = mEvent.getLayer(iCell + 1).getCluster(currentCell.getSecondClusterIndex()).monteCarlo;
+
+        if(secondMonteCarlo == maxOccurrencesValue) {
+
+          ++count;
+
+        } else {
+
+          maxOccurrencesValue = secondMonteCarlo;
+          count = 1;
+          isFakeRoad = true;
+        }
+
+        isFirstRoadCell = false;
+      }
+
+      const int currentMonteCarlo = mEvent.getLayer(iCell + 2).getCluster(currentCell.getThirdClusterIndex()).monteCarlo;
+
+      if(currentMonteCarlo == maxOccurrencesValue) {
+
+        ++count;
+
+      } else {
+
+        --count;
+        isFakeRoad = true;
+      }
+
+      if(count == 0) {
+
+        maxOccurrencesValue = currentMonteCarlo;
+        count = 1;
+      }
+    }
+
+    currentRoad.setLabel(maxOccurrencesValue);
+    currentRoad.setFakeRoad(isFakeRoad);
   }
 }

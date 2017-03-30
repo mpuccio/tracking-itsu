@@ -29,8 +29,11 @@ class CARoad final
     CARoad();
     CARoad(int, int);
 
-    int getRoadSize();
-    int getLabel();
+    int getRoadSize() const;
+    int getLabel() const;
+    void setLabel(const int);
+    bool isFakeRoad() const;
+    void setFakeRoad(const bool);
     int &operator[](const int&);
 
     void resetRoad();
@@ -40,16 +43,37 @@ class CARoad final
     std::array<int, CAConstants::ITS::CellsPerRoad> mCellIds;
     int mRoadSize;
     int mLabel;
+    bool mIsFakeRoad;
 };
 
-inline int CARoad::getRoadSize() {
+inline int CARoad::getRoadSize() const {
 
   return mRoadSize;
+}
+
+inline int CARoad::getLabel() const {
+
+  return mLabel;
+}
+
+inline void CARoad::setLabel(const int label) {
+
+  mLabel = label;
 }
 
 inline int& CARoad::operator [](const int& i)
 {
   return mCellIds[i];
+}
+
+inline bool CARoad::isFakeRoad() const
+{
+  return mIsFakeRoad;
+}
+
+inline void CARoad::setFakeRoad(const bool isFakeRoad)
+{
+  mIsFakeRoad = isFakeRoad;
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */

@@ -24,7 +24,7 @@ constexpr int EmptyLayerId = -1;
 }
 
 CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+    : mCellIds { }, mRoadSize { }, mIsFakeRoad { }
 {
   resetRoad();
 }
