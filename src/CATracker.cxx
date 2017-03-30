@@ -83,6 +83,8 @@ void CATracker::clustersToTracksVerbose()
     evaluateTask(&CATracker::findCellsNeighbours, this, "Neighbours Finding", trackerContext);
     evaluateTask(&CATracker::findTracks, this, "Tracks Finding", trackerContext);
     evaluateTask(&CATracker::computeMontecarloLabels, this, "Computing Montecarlo Labels", trackerContext);
+
+    std::cout << "Found " << trackerContext.roads.size() << " roads" << std::endl;
   }
 }
 
@@ -122,7 +124,7 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
           * (CAConstants::Thresholds::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate)
           + currentCluster.zCoordinate;
 
-      const std::vector<std::reference_wrapper<std::vector<int>>> nextLayerBinsSubset = mIndexTables[iLayer].selectClusters(
+      const std::vector<std::reference_wrapper<const std::vector<int>>> nextLayerBinsSubset = mIndexTables[iLayer].selectClusters(
           directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut,
           directionZIntersection + 2 * CAConstants::Thresholds::ZCoordinateCut,
           currentCluster.phiCoordinate - CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration],

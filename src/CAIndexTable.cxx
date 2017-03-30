@@ -48,10 +48,10 @@ CAIndexTable::CAIndexTable(const CALayer& layer)
       mTableBins[CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins].end());
 }
 
-const std::vector<std::reference_wrapper<std::vector<int>>> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
+const std::vector<std::reference_wrapper<const std::vector<int>>> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
     const float phiRangeMax)
 {
-  std::vector<std::reference_wrapper<std::vector<int>>> filteredClusters;
+  std::vector<std::reference_wrapper<const std::vector<int>>> filteredClusters;
 
   if (zRangeMax < mLayerMinZCoordinate || zRangeMin > mLayerMaxZCoordinate || zRangeMin > zRangeMax) {
 
@@ -82,12 +82,6 @@ const std::vector<std::reference_wrapper<std::vector<int>>> CAIndexTable::select
     for (int iBinIndex = firstBinIndex; iBinIndex < maxBinIndex; ++iBinIndex) {
 
       filteredClusters.emplace_back(mTableBins[iBinIndex]);
-
-      /*if (!mTableBins[iBinIndex].empty()) {
-
-        filteredClusters.insert(std::end(filteredClusters), std::begin(mTableBins[iBinIndex]),
-            std::end(mTableBins[iBinIndex]));
-      }*/
     }
   }
 
