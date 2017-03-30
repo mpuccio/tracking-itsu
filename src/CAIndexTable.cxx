@@ -18,6 +18,8 @@
 
 #include "CAIndexTable.h"
 
+#include <functional>
+
 CAIndexTable::CAIndexTable()
     : mLayerMinZCoordinate { }, mLayerMaxZCoordinate { }, mInverseZBinSize { }, mInversePhiBinSize { }, mTableBins { }
 {
@@ -46,10 +48,10 @@ CAIndexTable::CAIndexTable(const CALayer& layer)
       mTableBins[CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins].end());
 }
 
-std::vector<int> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
+const std::vector<std::reference_wrapper<std::vector<int>>> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
     const float phiRangeMax)
 {
-  std::vector<int> filteredClusters;
+  std::vector<std::reference_wrapper<std::vector<int>>> filteredClusters;
 
   if (zRangeMax < mLayerMinZCoordinate || zRangeMin > mLayerMaxZCoordinate || zRangeMin > zRangeMax) {
 
@@ -58,7 +60,7 @@ std::vector<int> CAIndexTable::selectClusters(const float zRangeMin, const float
 
   const int minZBinIndex = std::max(0, getZBinIndex(zRangeMin));
   const int maxZBinIndex = std::min(CAConstants::IndexTable::ZBins - 1, getZBinIndex(zRangeMax));
-  const int zBinsNum = maxZBinIndex - minZBinIndex;
+  const int zBinsNum = maxZBinIndex - minZBinIndex + 1;
   const int minPhiBinIndex = getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin));
   const int maxPhiBinIndex = getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMax));
 
@@ -69,19 +71,23 @@ std::vector<int> CAIndexTable::selectClusters(const float zRangeMin, const float
     phiBinsNum += CAConstants::IndexTable::PhiBins;
   }
 
+  filteredClusters.reserve(phiBinsNum * zBinsNum);
+
   for (int iPhiBin = minPhiBinIndex, iPhiCount = 0; iPhiCount < phiBinsNum;
       iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins? 0 : iPhiBin, iPhiCount++) {
 
     const int firstBinIndex = getBinIndex(minZBinIndex, iPhiBin);
     const int maxBinIndex = firstBinIndex + zBinsNum;
 
-    for (int iBinIndex = firstBinIndex; iBinIndex <= maxBinIndex; ++iBinIndex) {
+    for (int iBinIndex = firstBinIndex; iBinIndex < maxBinIndex; ++iBinIndex) {
 
-      if (!mTableBins[iBinIndex].empty()) {
+      filteredClusters.emplace_back(mTableBins[iBinIndex]);
+
+      /*if (!mTableBins[iBinIndex].empty()) {
 
         filteredClusters.insert(std::end(filteredClusters), std::begin(mTableBins[iBinIndex]),
             std::end(mTableBins[iBinIndex]));
-      }
+      }*/
     }
   }
 

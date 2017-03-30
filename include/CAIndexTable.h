@@ -34,7 +34,7 @@ class CAIndexTable final
     int getZBinIndex(const float) const;
     int getPhiBinIndex(const float) const;
     int getBinIndex(const int, const int) const;
-    std::vector<int> selectClusters(const float, const float, const float, const float);
+    const std::vector<std::reference_wrapper<std::vector<int>>> selectClusters(const float, const float, const float, const float);
 
   private:
     float mLayerMinZCoordinate;

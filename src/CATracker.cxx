@@ -122,55 +122,62 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
           * (CAConstants::Thresholds::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate)
           + currentCluster.zCoordinate;
 
-      const std::vector<int> nextLayerClustersSubset = mIndexTables[iLayer].selectClusters(
+      const std::vector<std::reference_wrapper<std::vector<int>>> nextLayerBinsSubset = mIndexTables[iLayer].selectClusters(
           directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut,
           directionZIntersection + 2 * CAConstants::Thresholds::ZCoordinateCut,
           currentCluster.phiCoordinate - CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration],
           currentCluster.phiCoordinate + CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration]);
 
-      if (nextLayerClustersSubset.empty()) {
+      if (nextLayerBinsSubset.empty()) {
 
         continue;
       }
 
       bool isFirstTrackletFromCurrentCluster = true;
 
-      const int nextLayerClusterSubsetNum = nextLayerClustersSubset.size();
+      const int nextLayerBinsSubsetNum = nextLayerBinsSubset.size();
 
-      for (int iNextLayerSubsetCluster = 0; iNextLayerSubsetCluster < nextLayerClusterSubsetNum;
-          ++iNextLayerSubsetCluster) {
+      for(int iClusterBin = 0; iClusterBin < nextLayerBinsSubsetNum; ++iClusterBin) {
 
-        const int nextLayerClusterIndex = nextLayerClustersSubset[iNextLayerSubsetCluster];
-        const CACluster& nextCluster = nextLayer.getCluster(nextLayerClusterIndex);
+        const std::vector<int>& currentBin = nextLayerBinsSubset[iClusterBin].get();
 
-        if (mUsedClustersTable[nextCluster.clusterId] != UnusedIndex) {
+        const int currentBinClustersNum = currentBin.size();
 
-          continue;
-        }
+        for (int iNextLayerSubsetCluster = 0; iNextLayerSubsetCluster < currentBinClustersNum;
+            ++iNextLayerSubsetCluster) {
 
-        const float deltaZ = std::abs(
-            tanLambda * (nextCluster.rCoordinate - currentCluster.rCoordinate) + currentCluster.zCoordinate
-                - nextCluster.zCoordinate);
-        const float deltaPhi = std::abs(currentCluster.phiCoordinate - nextCluster.phiCoordinate);
+          const int nextLayerClusterIndex = currentBin[iNextLayerSubsetCluster];
+          const CACluster& nextCluster = nextLayer.getCluster(nextLayerClusterIndex);
 
-        if (deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold[trackerContext.iteration][iLayer]
-            && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration]
-                || std::abs(deltaPhi - CAConstants::Math::TwoPi)
-                    < CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration])) {
+          if (mUsedClustersTable[nextCluster.clusterId] != UnusedIndex) {
 
-          if (iLayer > 0 && isFirstTrackletFromCurrentCluster) {
-
-            trackerContext.trackletsLookupTable[iLayer - 1][iCluster] = trackerContext.tracklets[iLayer].size();
-            isFirstTrackletFromCurrentCluster = false;
+            continue;
           }
 
-          const float trackletTanLambda = (currentCluster.zCoordinate - nextCluster.zCoordinate)
-              / (currentCluster.rCoordinate - nextCluster.rCoordinate);
-          const float trackletPhi = std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
-              currentCluster.xCoordinate - nextCluster.xCoordinate);
+          const float deltaZ = std::abs(
+              tanLambda * (nextCluster.rCoordinate - currentCluster.rCoordinate) + currentCluster.zCoordinate
+                  - nextCluster.zCoordinate);
+          const float deltaPhi = std::abs(currentCluster.phiCoordinate - nextCluster.phiCoordinate);
 
-          trackerContext.tracklets[iLayer].emplace_back(iCluster, nextLayerClusterIndex, trackletTanLambda,
-              trackletPhi);
+          if (deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold[trackerContext.iteration][iLayer]
+              && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration]
+                  || std::abs(deltaPhi - CAConstants::Math::TwoPi)
+                      < CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration])) {
+
+            if (iLayer > 0 && isFirstTrackletFromCurrentCluster) {
+
+              trackerContext.trackletsLookupTable[iLayer - 1][iCluster] = trackerContext.tracklets[iLayer].size();
+              isFirstTrackletFromCurrentCluster = false;
+            }
+
+            const float trackletTanLambda = (currentCluster.zCoordinate - nextCluster.zCoordinate)
+                / (currentCluster.rCoordinate - nextCluster.rCoordinate);
+            const float trackletPhi = std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
+                currentCluster.xCoordinate - nextCluster.xCoordinate);
+
+            trackerContext.tracklets[iLayer].emplace_back(iCluster, nextLayerClusterIndex, trackletTanLambda,
+                trackletPhi);
+          }
         }
       }
     }
