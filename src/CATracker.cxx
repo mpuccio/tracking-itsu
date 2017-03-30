@@ -412,9 +412,8 @@ void CATracker::traverseCellsTree(CATrackerContext& trackerContext, const int cu
   }
 
   CACell& currentCell = trackerContext.cells[currentLayerId][currentCellId];
-  CARoad& currentRoad = trackerContext.roads.back();
 
-  currentRoad.addCell(currentLayerId, currentCellId);
+  trackerContext.roads.back().addCell(currentLayerId, currentCellId);
 
   const int cellNeighboursNum = currentCell.getNumberOfNeighbours();
 
@@ -422,7 +421,7 @@ void CATracker::traverseCellsTree(CATrackerContext& trackerContext, const int cu
 
     if (iNeighbourCell > 0) {
 
-      trackerContext.roads.push_back(currentRoad);
+      trackerContext.roads.push_back(trackerContext.roads.back());
 
     }
 
@@ -442,7 +441,7 @@ void CATracker::computeMontecarloLabels(CATrackerContext& trackerContext)
 
     CARoad& currentRoad = trackerContext.roads[iRoad];
 
-    int maxOccurrencesValue;
+    int maxOccurrencesValue = UnusedIndex;
     int count;
 
     bool isFakeRoad = false;
