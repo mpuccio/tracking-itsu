@@ -27,8 +27,8 @@ CAIndexTable::CAIndexTable()
 {
 }
 
-CAIndexTable::CAIndexTable(const CALayer& layer, const int layerIndex)
-    : mLayerIndex { layerIndex }
+CAIndexTable::CAIndexTable(const CALayer& layer)
+    : mLayerIndex { layer.getLayerIndex() }
 {
   int layerClustersNum = layer.getClustersSize();
   mTableBins.fill(CAConstants::ITS::UnusedIndex);
