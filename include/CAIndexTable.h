@@ -34,14 +34,15 @@ class CAIndexTable final
     int getZBinIndex(const float) const;
     int getPhiBinIndex(const float) const;
     int getBinIndex(const int, const int) const;
-    const std::vector<std::reference_wrapper<const std::vector<int>>> selectClusters(const float, const float, const float, const float);
+    int getBin(const int) const;
+    const std::vector<int> selectBins(const float, const float, const float, const float);
 
   private:
     float mLayerMinZCoordinate;
     float mLayerMaxZCoordinate;
     float mInverseZBinSize;
     float mInversePhiBinSize;
-    std::array<std::vector<int>, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
+    std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
 };
 
 inline int CAIndexTable::getZBinIndex(const float zCoordinate) const
@@ -60,6 +61,11 @@ inline int CAIndexTable::getBinIndex(const int zIndex, const int phiIndex) const
 {
 
   return phiIndex * CAConstants::IndexTable::PhiBins + zIndex;
+}
+
+inline int CAIndexTable::getBin(const int binIndex) const {
+
+  return mTableBins[binIndex];
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_ */

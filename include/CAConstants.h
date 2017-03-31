@@ -34,6 +34,7 @@ constexpr int LayersNumber { 7 };
 constexpr int TrackletsPerRoad { 6 };
 constexpr int CellsPerRoad { LayersNumber - 2 };
 constexpr int TracksReconstructionIterations { 2 };
+constexpr int UnusedIndex { -1 };
 }
 
 namespace Thresholds {

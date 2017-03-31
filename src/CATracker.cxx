@@ -124,7 +124,7 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
           * (CAConstants::Thresholds::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate)
           + currentCluster.zCoordinate;
 
-      const std::vector<std::reference_wrapper<const std::vector<int>>> nextLayerBinsSubset = mIndexTables[iLayer].selectClusters(
+      const std::vector<int> nextLayerBinsSubset = mIndexTables[iLayer].selectBins(
           directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut,
           directionZIntersection + 2 * CAConstants::Thresholds::ZCoordinateCut,
           currentCluster.phiCoordinate - CAConstants::Thresholds::PhiCoordinateCut[trackerContext.iteration],
@@ -137,19 +137,17 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
 
       bool isFirstTrackletFromCurrentCluster = true;
 
-      const int nextLayerBinsSubsetNum = nextLayerBinsSubset.size();
+      const int lastClusterBin = nextLayerBinsSubset.size() - 1;
 
-      for(int iClusterBin = 0; iClusterBin < nextLayerBinsSubsetNum; ++iClusterBin) {
+      for(int iClusterBin = 0; iClusterBin < lastClusterBin; ++iClusterBin) {
 
-        const std::vector<int>& currentBin = nextLayerBinsSubset[iClusterBin].get();
+        const int currentBinFirstCluster = mIndexTables[iLayer].getBin(iClusterBin);
+        const int nextBinFirstClusterIndex = mIndexTables[iLayer].getBin(iClusterBin + 1);
 
-        const int currentBinClustersNum = currentBin.size();
+        for (int iNextLayerCluster = currentBinFirstCluster; iNextLayerCluster < nextBinFirstClusterIndex;
+            ++iNextLayerCluster) {
 
-        for (int iNextLayerSubsetCluster = 0; iNextLayerSubsetCluster < currentBinClustersNum;
-            ++iNextLayerSubsetCluster) {
-
-          const int nextLayerClusterIndex = currentBin[iNextLayerSubsetCluster];
-          const CACluster& nextCluster = nextLayer.getCluster(nextLayerClusterIndex);
+          const CACluster& nextCluster = nextLayer.getCluster(iNextLayerCluster);
 
           if (mUsedClustersTable[nextCluster.clusterId] != UnusedIndex) {
 
@@ -177,7 +175,7 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
             const float trackletPhi = std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
                 currentCluster.xCoordinate - nextCluster.xCoordinate);
 
-            trackerContext.tracklets[iLayer].emplace_back(iCluster, nextLayerClusterIndex, trackletTanLambda,
+            trackerContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, trackletTanLambda,
                 trackletPhi);
           }
         }
