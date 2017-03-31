@@ -29,15 +29,15 @@ class CAIndexTable final
 {
   public:
     CAIndexTable();
-    CAIndexTable(const CALayer&, const int);
+    CAIndexTable(const CALayer&);
 
     const int getBin(const int) const;
 
     const std::vector<int> selectBins(const float, const float, const float, const float);
 
   private:
-    std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
     int mLayerIndex;
+    std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
 };
 
 inline const int CAIndexTable::getBin(const int binIndex) const {

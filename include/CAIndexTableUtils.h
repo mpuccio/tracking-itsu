@@ -22,6 +22,8 @@
 #ifndef TRACKINGITSU_CAINDEXTABLEUTILS_H_
 #define TRACKINGITSU_CAINDEXTABLEUTILS_H_
 
+#include "CAConstants.h"
+
 namespace CAIndexTableUtils
 {
 constexpr float getInverseZBinSize(const int);

@@ -20,13 +20,15 @@
 
 #include <cmath>
 
+#include "CAIndexTableUtils.h"
 #include "CAMathUtils.h"
 
-CACluster::CACluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
+CACluster::CACluster(const int layerIndex, const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
     const float alphaAngle, const int monteCarlo)
     : clusterId { clusterId }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
         CAMathUtils::getNormalizedPhiCoordinate(CAMathUtils::calculatePhiCoordinate(xCoordinate, yCoordinate)) }, rCoordinate {
         CAMathUtils::calculateRCoordinate(xCoordinate, yCoordinate) }, alphaAngle { alphaAngle }, monteCarlo {
-        monteCarlo }
+        monteCarlo }, indexTableBinIndex { CAIndexTableUtils::getBinIndex(CAIndexTableUtils::getZBinIndex(layerIndex, zCoordinate),
+            CAIndexTableUtils::getPhiBinIndex(phiCoordinate)) }
 {
 }

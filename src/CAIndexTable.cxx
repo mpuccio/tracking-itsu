@@ -22,9 +22,9 @@
 
 #include "CAIndexTableUtils.h"
 
-CAIndexTable::CAIndexTable() : mLayerIndex{ CAConstants::ITS::UnusedIndex } { }
+CAIndexTable::CAIndexTable() : mLayerIndex { CAConstants::ITS::UnusedIndex } {}
 
-CAIndexTable::CAIndexTable(const CALayer& layer, const int layerIndex) : mLayerIndex{ layerIndex }
+CAIndexTable::CAIndexTable(const CALayer& layer) : mLayerIndex { layer.getLayerIndex() }
 {
   int layerClustersNum = layer.getClustersSize();
   mTableBins.fill(CAConstants::ITS::UnusedIndex);
@@ -36,9 +36,7 @@ CAIndexTable::CAIndexTable(const CALayer& layer, const int layerIndex) : mLayerI
   for (int iCluster = 1; iCluster < layerClustersNum; ++iCluster) {
 
     const CACluster& currentCluster = layer.getCluster(iCluster);
-
-    const int currentBinIndex = CAIndexTableUtils::getBinIndex(CAIndexTableUtils::getZBinIndex(mLayerIndex, currentCluster.zCoordinate),
-        CAIndexTableUtils::getPhiBinIndex(currentCluster.phiCoordinate));
+    const int currentBinIndex = currentCluster.indexTableBinIndex;
 
     if(currentBinIndex > previousBinIndex) {
 

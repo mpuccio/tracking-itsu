@@ -23,10 +23,13 @@ int main(int argc, char** argv)
 
   for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
 
+    CAEvent& currentEvent = events[iEvent];
+    currentEvent.sortClusters();
+
     std::cout << " Processing event " << iEvent + 1 << std::endl << std::endl;
     t1 = clock();
 
-    CATracker(events[iEvent]).clustersToTracksVerbose();
+    CATracker(currentEvent).clustersToTracksVerbose();
 
     t2 = clock();
     const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);

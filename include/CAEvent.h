@@ -41,6 +41,7 @@ class CAEvent final
     void printPrimaryVertex() const;
     void pushClusterToLayer(const int, const int, const float, const float, const float, const float, const int);
     const int getTotalClusters() const;
+    void sortClusters();
 
   private:
     const int mEventId;

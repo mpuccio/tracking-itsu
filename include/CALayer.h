@@ -25,17 +25,26 @@
 class CALayer final
 {
   public:
-    CALayer() = default;
+    CALayer();
+    CALayer(const int);
 
+    int getLayerIndex() const;
     const std::vector<CACluster>& getClusters() const;
     const CACluster& getCluster(int) const;
     int getClustersSize() const;
 
     void addCluster(const int, const float, const float, const float, const float, const int);
+    void sortClusters();
 
   private:
+    int mLayerIndex;
     std::vector<CACluster> mClusters;
 };
+
+inline int CALayer::getLayerIndex() const
+{
+  return mLayerIndex;
+}
 
 inline const std::vector<CACluster>& CALayer::getClusters() const
 {

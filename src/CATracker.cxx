@@ -50,7 +50,7 @@ CATracker::CATracker(const CAEvent& event)
 {
   for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
-    mIndexTables[iLayer] = CAIndexTable(event.getLayer(iLayer + 1), iLayer + 1);
+    mIndexTables[iLayer] = CAIndexTable(event.getLayer(iLayer + 1));
   }
 }
 
@@ -137,10 +137,11 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
 
       const int lastClusterBin = nextLayerBinsSubset.size() - 1;
 
-      for(int iClusterBin = 0; iClusterBin < lastClusterBin; ++iClusterBin) {
+      for(int iClusterBin = 0; iClusterBin <= lastClusterBin; ++iClusterBin) {
 
-        const int currentBinFirstCluster = mIndexTables[iLayer].getBin(iClusterBin);
-        const int nextBinFirstClusterIndex = mIndexTables[iLayer].getBin(iClusterBin + 1);
+        const int currentBinIndex = nextLayerBinsSubset[iClusterBin];
+        const int currentBinFirstCluster = mIndexTables[iLayer].getBin(currentBinIndex);
+        const int nextBinFirstClusterIndex = mIndexTables[iLayer].getBin(currentBinIndex + 1);
 
         for (int iNextLayerCluster = currentBinFirstCluster; iNextLayerCluster < nextBinFirstClusterIndex;
             ++iNextLayerCluster) {
