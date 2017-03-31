@@ -24,9 +24,7 @@
 
 struct CATrackerContext final
 {
-    explicit CATrackerContext(const int);
-
-    const int iteration;
+    explicit CATrackerContext() = default;
 
     std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;

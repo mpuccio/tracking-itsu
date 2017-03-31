@@ -22,9 +22,13 @@
 
 #include "CAIndexTableUtils.h"
 
-CAIndexTable::CAIndexTable() : mLayerIndex { CAConstants::ITS::UnusedIndex } {}
+CAIndexTable::CAIndexTable()
+    : mLayerIndex { CAConstants::ITS::UnusedIndex }
+{
+}
 
-CAIndexTable::CAIndexTable(const CALayer& layer) : mLayerIndex { layer.getLayerIndex() }
+CAIndexTable::CAIndexTable(const CALayer& layer, const int layerIndex)
+    : mLayerIndex { layerIndex }
 {
   int layerClustersNum = layer.getClustersSize();
   mTableBins.fill(CAConstants::ITS::UnusedIndex);
@@ -51,26 +55,28 @@ const std::vector<int> CAIndexTable::selectBins(const float zRangeMin, const flo
 {
   std::vector<int> filteredBins;
 
-  if (zRangeMax < -CAConstants::ITS::LayersZCoordinate[mLayerIndex] || zRangeMin > CAConstants::ITS::LayersZCoordinate[mLayerIndex] || zRangeMin > zRangeMax) {
+  if (zRangeMax < -CAConstants::ITS::LayersZCoordinate[mLayerIndex]
+      || zRangeMin > CAConstants::ITS::LayersZCoordinate[mLayerIndex] || zRangeMin > zRangeMax) {
 
     return filteredBins;
   }
 
   const int minZBinIndex = std::max(0, CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMin));
-  const int maxZBinIndex = std::min(CAConstants::IndexTable::ZBins - 1, CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMax));
+  const int maxZBinIndex = std::min(CAConstants::IndexTable::ZBins - 1,
+      CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMax));
   const int zBinsNum = maxZBinIndex - minZBinIndex + 1;
   const int minPhiBinIndex = CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin));
   const int maxPhiBinIndex = CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMax));
 
-  int phiBinsNum =  maxPhiBinIndex - minPhiBinIndex + 1;
+  int phiBinsNum = maxPhiBinIndex - minPhiBinIndex + 1;
 
-  if(phiBinsNum < 0) {
+  if (phiBinsNum < 0) {
 
     phiBinsNum += CAConstants::IndexTable::PhiBins;
   }
 
   for (int iPhiBin = minPhiBinIndex, iPhiCount = 0; iPhiCount < phiBinsNum;
-      iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins? 0 : iPhiBin, iPhiCount++) {
+      iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins ? 0 : iPhiBin, iPhiCount++) {
 
     const int firstBinIndex = CAIndexTableUtils::getBinIndex(minZBinIndex, iPhiBin);
     const int maxBinIndex = firstBinIndex + zBinsNum;
