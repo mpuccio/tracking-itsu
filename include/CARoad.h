@@ -46,17 +46,20 @@ class CARoad final
     bool mIsFakeRoad;
 };
 
-inline int CARoad::getRoadSize() const {
+inline int CARoad::getRoadSize() const
+{
 
   return mRoadSize;
 }
 
-inline int CARoad::getLabel() const {
+inline int CARoad::getLabel() const
+{
 
   return mLabel;
 }
 
-inline void CARoad::setLabel(const int label) {
+inline void CARoad::setLabel(const int label)
+{
 
   mLabel = label;
 }

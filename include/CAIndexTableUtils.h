@@ -22,15 +22,16 @@
 #ifndef TRACKINGITSU_CAINDEXTABLEUTILS_H_
 #define TRACKINGITSU_CAINDEXTABLEUTILS_H_
 
-namespace CAIndexTableUtils
-{
+namespace CAIndexTableUtils {
 constexpr float getInverseZBinSize(const int);
 constexpr int getZBinIndex(const float, const float);
 constexpr int getPhiBinIndex(const float);
 constexpr int getBinIndex(const int, const int);
-};
+}
+;
 
-constexpr float getInverseZCoordinate(const int layerIndex) {
+constexpr float getInverseZCoordinate(const int layerIndex)
+{
 
   return 0.5 * CAConstants::IndexTable::ZBins / CAConstants::ITS::LayersZCoordinate[layerIndex];
 }
@@ -38,7 +39,8 @@ constexpr float getInverseZCoordinate(const int layerIndex) {
 constexpr int CAIndexTableUtils::getZBinIndex(const float layerIndex, const float zCoordinate)
 {
 
-  return (zCoordinate + CAConstants::ITS::LayersZCoordinate[layerIndex]) * CAConstants::IndexTable::InverseZBinSize[layerIndex];
+  return (zCoordinate + CAConstants::ITS::LayersZCoordinate[layerIndex])
+      * CAConstants::IndexTable::InverseZBinSize[layerIndex];
 }
 
 constexpr int CAIndexTableUtils::getPhiBinIndex(const float currentPhi)
