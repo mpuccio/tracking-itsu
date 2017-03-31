@@ -29,41 +29,18 @@ class CAIndexTable final
 {
   public:
     CAIndexTable();
-    explicit CAIndexTable(const CALayer&);
+    CAIndexTable(const CALayer&, const int);
 
-    int getZBinIndex(const float) const;
-    int getPhiBinIndex(const float) const;
-    int getBinIndex(const int, const int) const;
-    int getBin(const int) const;
+    const int getBin(const int) const;
+
     const std::vector<int> selectBins(const float, const float, const float, const float);
 
   private:
-    float mLayerMinZCoordinate;
-    float mLayerMaxZCoordinate;
-    float mInverseZBinSize;
-    float mInversePhiBinSize;
     std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
+    int mLayerIndex;
 };
 
-inline int CAIndexTable::getZBinIndex(const float zCoordinate) const
-{
-
-  return (zCoordinate - mLayerMinZCoordinate) * mInverseZBinSize;
-}
-
-inline int CAIndexTable::getPhiBinIndex(const float currentPhi) const
-{
-
-  return (currentPhi * mInversePhiBinSize);
-}
-
-inline int CAIndexTable::getBinIndex(const int zIndex, const int phiIndex) const
-{
-
-  return phiIndex * CAConstants::IndexTable::PhiBins + zIndex;
-}
-
-inline int CAIndexTable::getBin(const int binIndex) const {
+inline const int CAIndexTable::getBin(const int binIndex) const {
 
   return mTableBins[binIndex];
 }

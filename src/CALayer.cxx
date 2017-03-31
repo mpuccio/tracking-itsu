@@ -18,24 +18,8 @@
 
 #include "CALayer.h"
 
-#include <limits>
-
-CALayer::CALayer()
-    : mMinZCoordinate { std::numeric_limits<float>::max() }, mMaxZCoordinate { -std::numeric_limits<float>::max() }
-{
-}
-
 void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
     const float alphaAngle, const int monteCarlo)
 {
   mClusters.emplace_back(clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
-
-  if (mMinZCoordinate > zCoordinate) {
-
-    mMinZCoordinate = zCoordinate;
-
-  } else if (mMaxZCoordinate < zCoordinate) {
-
-    mMaxZCoordinate = zCoordinate;
-  }
 }

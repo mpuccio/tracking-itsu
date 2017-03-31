@@ -25,20 +25,16 @@
 class CALayer final
 {
   public:
-    CALayer();
+    CALayer() = default;
 
     const std::vector<CACluster>& getClusters() const;
     const CACluster& getCluster(int) const;
     int getClustersSize() const;
-    float getMinZCoordinate() const;
-    float getMaxZCoordinate() const;
 
     void addCluster(const int, const float, const float, const float, const float, const int);
 
   private:
     std::vector<CACluster> mClusters;
-    float mMinZCoordinate;
-    float mMaxZCoordinate;
 };
 
 inline const std::vector<CACluster>& CALayer::getClusters() const
@@ -54,16 +50,6 @@ inline const CACluster& CALayer::getCluster(int clusterIndex) const
 inline int CALayer::getClustersSize() const
 {
   return mClusters.size();
-}
-
-inline float CALayer::getMinZCoordinate() const
-{
-  return mMinZCoordinate;
-}
-
-inline float CALayer::getMaxZCoordinate() const
-{
-  return mMaxZCoordinate;
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CALAYER_H_ */

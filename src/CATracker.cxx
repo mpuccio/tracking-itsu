@@ -28,8 +28,6 @@
 
 namespace {
 
-constexpr int UnusedIndex = -1;
-
 void evaluateTask(void (CATracker::*task)(CATrackerContext&), CATracker* tracker, const char *taskName,
     CATrackerContext& trackerContext)
 {
@@ -48,11 +46,11 @@ void evaluateTask(void (CATracker::*task)(CATrackerContext&), CATracker* tracker
 }
 
 CATracker::CATracker(const CAEvent& event)
-    : mEvent(event), mUsedClustersTable(event.getTotalClusters(), UnusedIndex), mIndexTables { }
+    : mEvent(event), mUsedClustersTable(event.getTotalClusters(), CAConstants::ITS::UnusedIndex), mIndexTables { }
 {
   for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
-    mIndexTables[iLayer] = CAIndexTable(event.getLayer(iLayer + 1));
+    mIndexTables[iLayer] = CAIndexTable(event.getLayer(iLayer + 1), iLayer + 1);
   }
 }
 
@@ -106,14 +104,14 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
 
     if (iLayer < CAConstants::ITS::CellsPerRoad) {
 
-      trackerContext.trackletsLookupTable[iLayer].resize(nextLayer.getClustersSize(), UnusedIndex);
+      trackerContext.trackletsLookupTable[iLayer].resize(nextLayer.getClustersSize(), CAConstants::ITS::UnusedIndex);
     }
 
     for (int iCluster = 0; iCluster < currentLayerClustersNum; ++iCluster) {
 
       const CACluster& currentCluster = currentLayer.getCluster(iCluster);
 
-      if (mUsedClustersTable[currentCluster.clusterId] != UnusedIndex) {
+      if (mUsedClustersTable[currentCluster.clusterId] != CAConstants::ITS::UnusedIndex) {
 
         continue;
       }
@@ -121,7 +119,7 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
       const float tanLambda = (currentCluster.zCoordinate - mEvent.getPrimaryVertexZCoordinate())
           / currentCluster.rCoordinate;
       const float directionZIntersection = tanLambda
-          * (CAConstants::Thresholds::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate)
+          * (CAConstants::ITS::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate)
           + currentCluster.zCoordinate;
 
       const std::vector<int> nextLayerBinsSubset = mIndexTables[iLayer].selectBins(
@@ -149,7 +147,7 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
 
           const CACluster& nextCluster = nextLayer.getCluster(iNextLayerCluster);
 
-          if (mUsedClustersTable[nextCluster.clusterId] != UnusedIndex) {
+          if (mUsedClustersTable[nextCluster.clusterId] != CAConstants::ITS::UnusedIndex) {
 
             continue;
           }
@@ -195,7 +193,7 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
 
     if (iLayer < CAConstants::ITS::CellsPerRoad - 1) {
 
-      trackerContext.cellsLookupTable[iLayer].resize(trackerContext.tracklets[iLayer + 1].size(), UnusedIndex);
+      trackerContext.cellsLookupTable[iLayer].resize(trackerContext.tracklets[iLayer + 1].size(), CAConstants::ITS::UnusedIndex);
     }
 
     const int currentLayerTrackletsNum = trackerContext.tracklets[iLayer].size();
@@ -206,7 +204,7 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
       const int nextLayerClusterIndex = currentTracklet.secondClusterIndex;
       const int nextLayerFirstTrackletIndex = trackerContext.trackletsLookupTable[iLayer][nextLayerClusterIndex];
 
-      if (nextLayerFirstTrackletIndex == UnusedIndex) {
+      if (nextLayerFirstTrackletIndex == CAConstants::ITS::UnusedIndex) {
 
         continue;
       }
@@ -334,7 +332,7 @@ void CATracker::findCellsNeighbours(CATrackerContext& trackerContext)
       const int nextLayerTrackletIndex = currentCell.getSecondTrackletIndex();
       const int nextLayerFirstCellIndex = trackerContext.cellsLookupTable[iLayer][nextLayerTrackletIndex];
 
-      if (nextLayerFirstCellIndex == UnusedIndex) {
+      if (nextLayerFirstCellIndex == CAConstants::ITS::UnusedIndex) {
 
         continue;
       }
@@ -448,7 +446,7 @@ void CATracker::computeMontecarloLabels(CATrackerContext& trackerContext)
 
     CARoad& currentRoad = trackerContext.roads[iRoad];
 
-    int maxOccurrencesValue = UnusedIndex;
+    int maxOccurrencesValue = CAConstants::ITS::UnusedIndex;
     int count;
 
     bool isFakeRoad = false;
@@ -458,7 +456,7 @@ void CATracker::computeMontecarloLabels(CATrackerContext& trackerContext)
 
       const int currentCellIndex = currentRoad[iCell];
 
-      if(currentCellIndex == UnusedIndex) {
+      if(currentCellIndex == CAConstants::ITS::UnusedIndex) {
 
         if(isFirstRoadCell) {
 
