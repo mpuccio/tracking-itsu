@@ -34,11 +34,14 @@ constexpr int LayersNumber { 7 };
 constexpr int TrackletsPerRoad { 6 };
 constexpr int CellsPerRoad { LayersNumber - 2 };
 constexpr int TracksReconstructionIterations { 2 };
+constexpr int UnusedIndex { -1 };
+
+constexpr std::array<float, LayersNumber> LayersZCoordinate { { 16.333f, 16.333f, 16.333f, 42.140f, 42.140f, 73.745f, 73.745f } };
+constexpr std::array<float, LayersNumber> LayersRCoordinate { { 2.33959f, 3.14076f, 3.91924f, 19.6213f, 24.5597f,
+    34.388f, 39.3329f } };
 }
 
 namespace Thresholds {
-constexpr std::array<float, ITS::LayersNumber> LayersRCoordinate { { 2.33959f, 3.14076f, 3.91924f, 19.6213f, 24.5597f,
-    34.388f, 39.3329f } };
 constexpr std::array<std::array<float, ITS::TrackletsPerRoad>, ITS::TracksReconstructionIterations> TrackletMaxDeltaZThreshold {
     { { 0.1f, 0.1f, 0.3f, 0.3f, 0.3f, 0.3f }, { 1.0f, 1.0f, 1.5f, 1.5f, 1.5f, 1.5f } } };
 constexpr std::array<float, ITS::TracksReconstructionIterations> CellMaxDeltaTanLambdaThreshold { { 0.025f, 0.05f } };
@@ -59,8 +62,10 @@ constexpr std::array<int, ITS::TracksReconstructionIterations> TracksMinLength {
 namespace IndexTable {
 constexpr int ZBins { 20 };
 constexpr int PhiBins { 20 };
+constexpr float InversePhiBinSize { CAConstants::IndexTable::PhiBins / CAConstants::Math::TwoPi };
+constexpr std::array<float, ITS::LayersNumber> InverseZBinSize { 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f,
+  0.5 * ZBins / 16.333f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 73.745f, 0.5 * ZBins / 73.745f };
 }
-
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CACONSTANTS_H_ */
