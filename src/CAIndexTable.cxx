@@ -31,11 +31,9 @@ CAIndexTable::CAIndexTable(const CALayer& layer)
     : mLayerIndex { layer.getLayerIndex() }
 {
   int layerClustersNum = layer.getClustersSize();
-  mTableBins.fill(CAConstants::ITS::UnusedIndex);
 
   int previousBinIndex = 0;
   mTableBins[0] = 0;
-  mTableBins.back() = layerClustersNum;
 
   for (int iCluster = 1; iCluster < layerClustersNum; ++iCluster) {
 
@@ -44,10 +42,20 @@ CAIndexTable::CAIndexTable(const CALayer& layer)
 
     if(currentBinIndex > previousBinIndex) {
 
+      for(int iBin = previousBinIndex + 1; iBin <= currentBinIndex; iBin++) {
+
+        mTableBins[iBin] = iCluster;
+      }
+
       previousBinIndex = currentBinIndex;
-      mTableBins[currentBinIndex] = iCluster;
     }
   }
+
+  for(int iBin = previousBinIndex + 1; iBin <= CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins; iBin++) {
+
+    mTableBins[iBin] = layerClustersNum;
+  }
+
 }
 
 const std::vector<int> CAIndexTable::selectBins(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
@@ -83,7 +91,7 @@ const std::vector<int> CAIndexTable::selectBins(const float zRangeMin, const flo
 
     for (int iBinIndex = firstBinIndex; iBinIndex < maxBinIndex; ++iBinIndex) {
 
-      if(mTableBins[iBinIndex] != CAConstants::ITS::UnusedIndex) {
+      if(mTableBins[iBinIndex] != mTableBins[iBinIndex + 1]) {
 
         filteredBins.push_back(iBinIndex);
       }
