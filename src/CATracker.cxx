@@ -56,7 +56,7 @@ CATracker::CATracker(const CAEvent& event)
 
 void CATracker::clustersToTracks()
 {
-  CATrackerContext trackerContext {  };
+  CATrackerContext trackerContext { };
 
   computeTracklets(trackerContext);
   computeCells(trackerContext);
@@ -127,7 +127,7 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
 
       const int lastClusterBin = nextLayerBinsSubset.size() - 1;
 
-      for(int iClusterBin = 0; iClusterBin <= lastClusterBin; ++iClusterBin) {
+      for (int iClusterBin = 0; iClusterBin <= lastClusterBin; ++iClusterBin) {
 
         const int currentBinIndex = nextLayerBinsSubset[iClusterBin];
         const int currentBinFirstCluster = mIndexTables[iLayer].getBin(currentBinIndex);
@@ -150,8 +150,7 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
 
           if (deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold[iLayer]
               && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut
-                  || std::abs(deltaPhi - CAConstants::Math::TwoPi)
-                      < CAConstants::Thresholds::PhiCoordinateCut)) {
+                  || std::abs(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut)) {
 
             if (iLayer > 0 && isFirstTrackletFromCurrentCluster) {
 
@@ -164,8 +163,7 @@ void CATracker::computeTracklets(CATrackerContext& trackerContext)
             const float trackletPhi = std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
                 currentCluster.xCoordinate - nextCluster.xCoordinate);
 
-            trackerContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, trackletTanLambda,
-                trackletPhi);
+            trackerContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, trackletTanLambda, trackletPhi);
           }
         }
       }
@@ -201,6 +199,16 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
         continue;
       }
 
+      const CACluster& firstCellCluster = mEvent.getLayer(iLayer).getCluster(currentTracklet.firstClusterIndex);
+      const CACluster& secondCellCluster = mEvent.getLayer(iLayer + 1).getCluster(currentTracklet.secondClusterIndex);
+
+      const float firstCellClusterQuadraticRCoordinate = firstCellCluster.rCoordinate * firstCellCluster.rCoordinate;
+      const float secondCellClusterQuadraticRCoordinate = secondCellCluster.rCoordinate * secondCellCluster.rCoordinate;
+
+      const std::array<float, 3> firstDeltaVector { secondCellCluster.xCoordinate - firstCellCluster.xCoordinate,
+          secondCellCluster.yCoordinate - firstCellCluster.yCoordinate, secondCellClusterQuadraticRCoordinate
+              - firstCellClusterQuadraticRCoordinate };
+
       bool isFirstCellForCurrentTracklet = true;
       const int nextLayerTrackletsNum = trackerContext.tracklets[iLayer + 1].size();
 
@@ -215,39 +223,25 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
 
         if (deltaTanLambda < CAConstants::Thresholds::CellMaxDeltaTanLambdaThreshold
             && (deltaPhi < CAConstants::Thresholds::CellMaxDeltaPhiThreshold
-                || std::abs(deltaPhi - CAConstants::Math::TwoPi)
-                    < CAConstants::Thresholds::CellMaxDeltaPhiThreshold)) {
+                || std::abs(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::CellMaxDeltaPhiThreshold)) {
 
           const float averageTanLambda = 0.5f * (currentTracklet.tanLambda + nextTracklet.tanLambda);
-          const CACluster& firstCellCluster = mEvent.getLayer(iLayer).getCluster(currentTracklet.firstClusterIndex);
           const float directionZIntersection = -averageTanLambda * firstCellCluster.rCoordinate
               + firstCellCluster.zCoordinate;
           const float deltaZ = std::abs(directionZIntersection - mEvent.getPrimaryVertexZCoordinate());
 
           if (deltaZ < CAConstants::Thresholds::CellMaxDeltaZThreshold[iLayer]) {
 
-            const CACluster& secondCellCluster = mEvent.getLayer(iLayer + 1).getCluster(nextTracklet.firstClusterIndex);
             const CACluster& thirdCellCluster = mEvent.getLayer(iLayer + 2).getCluster(nextTracklet.secondClusterIndex);
 
-            const std::array<float, 3> firstVector { firstCellCluster.xCoordinate, firstCellCluster.yCoordinate,
-                firstCellCluster.rCoordinate * firstCellCluster.rCoordinate };
+            const float thirdCellClusterQuadraticRCoordinate = thirdCellCluster.rCoordinate
+                * thirdCellCluster.rCoordinate;
 
-            const std::array<float, 3> secondVector { secondCellCluster.xCoordinate, secondCellCluster.yCoordinate,
-                secondCellCluster.rCoordinate * secondCellCluster.rCoordinate };
+            const std::array<float, 3> secondDeltaVector { thirdCellCluster.xCoordinate - firstCellCluster.xCoordinate,
+                thirdCellCluster.yCoordinate - firstCellCluster.yCoordinate, thirdCellClusterQuadraticRCoordinate
+                    - firstCellClusterQuadraticRCoordinate };
 
-            const std::array<float, 3> thirdVector { thirdCellCluster.xCoordinate, thirdCellCluster.yCoordinate,
-                thirdCellCluster.rCoordinate * thirdCellCluster.rCoordinate };
-
-            const std::array<float, 3> firstDeltaVector { secondVector[0] - firstVector[0], secondVector[1]
-                - firstVector[1], secondVector[2] - firstVector[2] };
-
-            const std::array<float, 3> secondDeltaVector { thirdVector[0] - firstVector[0], thirdVector[1]
-                - firstVector[1], thirdVector[2] - firstVector[2] };
-
-            std::array<float, 3> cellPlaneNormalVector { (firstDeltaVector[1] * secondDeltaVector[2])
-                - (firstDeltaVector[2] * secondDeltaVector[1]), (firstDeltaVector[2] * secondDeltaVector[0])
-                - (firstDeltaVector[0] * secondDeltaVector[2]), (firstDeltaVector[0] * secondDeltaVector[1])
-                - (firstDeltaVector[1] * secondDeltaVector[0]) };
+            std::array<float, 3> cellPlaneNormalVector { CAMathUtils::crossProduct(firstDeltaVector, secondDeltaVector) };
 
             const float vectorNorm = std::sqrt(
                 cellPlaneNormalVector[0] * cellPlaneNormalVector[0]
@@ -265,8 +259,9 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
             const std::array<float, 3> normalizedPlaneVector { cellPlaneNormalVector[0] * inverseVectorNorm,
                 cellPlaneNormalVector[1] * inverseVectorNorm, cellPlaneNormalVector[2] * inverseVectorNorm };
 
-            const float planeDistance = -normalizedPlaneVector[0] * secondVector[0]
-                - normalizedPlaneVector[1] * secondVector[1] - normalizedPlaneVector[2] * secondVector[2];
+            const float planeDistance = -normalizedPlaneVector[0] * secondCellCluster.xCoordinate
+                - normalizedPlaneVector[1] * secondCellCluster.yCoordinate
+                - normalizedPlaneVector[2] * secondCellClusterQuadraticRCoordinate;
 
             const float normalizedPlaneVectorQuadraticZCoordinate = normalizedPlaneVector[2] * normalizedPlaneVector[2];
 
@@ -348,10 +343,8 @@ void CATracker::findCellsNeighbours(CATrackerContext& trackerContext)
 
         const float deltaCurvature = std::abs(currentCell.getCurvature() - nextCell.getCurvature());
 
-        if (deltaNormalVectorsModulus
-            < CAConstants::Thresholds::NeighbourCellMaxNormalVectorsDelta[iLayer]
-            && deltaCurvature
-                < CAConstants::Thresholds::NeighbourCellMaxCurvaturesDelta[iLayer]) {
+        if (deltaNormalVectorsModulus < CAConstants::Thresholds::NeighbourCellMaxNormalVectorsDelta[iLayer]
+            && deltaCurvature < CAConstants::Thresholds::NeighbourCellMaxCurvaturesDelta[iLayer]) {
 
           nextCell.combineCells(currentCell, iCell);
         }
@@ -362,8 +355,7 @@ void CATracker::findCellsNeighbours(CATrackerContext& trackerContext)
 
 void CATracker::findTracks(CATrackerContext& trackerContext)
 {
-  for (int iLevel = CAConstants::ITS::CellsPerRoad;
-      iLevel > CAConstants::Thresholds::TracksMinLength; --iLevel) {
+  for (int iLevel = CAConstants::ITS::CellsPerRoad; iLevel > CAConstants::Thresholds::TracksMinLength; --iLevel) {
 
     const int minimumLevel = iLevel - 1;
 

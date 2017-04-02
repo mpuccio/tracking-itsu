@@ -93,7 +93,7 @@ const std::vector<int> CAIndexTable::selectBins(const float zRangeMin, const flo
 
       if(mTableBins[iBinIndex] != mTableBins[iBinIndex + 1]) {
 
-        filteredBins.push_back(iBinIndex);
+        filteredBins.emplace_back(iBinIndex);
       }
     }
   }
