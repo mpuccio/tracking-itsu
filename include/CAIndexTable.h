@@ -1,4 +1,4 @@
-/// \file CALookupTable.h
+/// \file CAIndexTable.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -25,41 +25,24 @@
 #include "CALayer.h"
 #include "CAMathUtils.h"
 
-class CALookupTable final
+class CAIndexTable final
 {
   public:
-    CALookupTable();
-    explicit CALookupTable(const CALayer&);
+    CAIndexTable();
+    CAIndexTable(const CALayer&);
 
-    int getZBinIndex(const float) const;
-    int getPhiBinIndex(const float) const;
-    int getBinIndex(const int, const int) const;
-    std::vector<int> selectClusters(const float, const float, const float, const float);
+    const int getBin(const int) const;
+
+    const std::vector<int> selectBins(const float, const float, const float, const float);
 
   private:
-    float mLayerMinZCoordinate;
-    float mLayerMaxZCoordinate;
-    float mInverseZBinSize;
-    float mInversePhiBinSize;
-    std::array<std::vector<int>, CAConstants::LookupTable::ZBins * CAConstants::LookupTable::PhiBins + 1> mTableBins;
+    int mLayerIndex;
+    std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
 };
 
-inline int CALookupTable::getZBinIndex(const float zCoordinate) const
-{
+inline const int CAIndexTable::getBin(const int binIndex) const {
 
-  return (zCoordinate - mLayerMinZCoordinate) * mInverseZBinSize;
-}
-
-inline int CALookupTable::getPhiBinIndex(const float currentPhi) const
-{
-
-  return (CAMathUtils::getNormalizedPhiCoordinate(currentPhi) * mInversePhiBinSize);
-}
-
-inline int CALookupTable::getBinIndex(const int zIndex, const int phiIndex) const
-{
-
-  return phiIndex * CAConstants::LookupTable::PhiBins + zIndex;
+  return mTableBins[binIndex];
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_ */

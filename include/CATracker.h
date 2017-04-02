@@ -23,7 +23,8 @@
 
 #include "CAConstants.h"
 #include "CAEvent.h"
-#include "CALookupTable.h"
+#include "CAIndexTable.h"
+#include "CATrackerContext.h"
 
 class CATracker final
 {
@@ -33,15 +34,21 @@ class CATracker final
     CATracker(const CATracker&) = delete;
     CATracker &operator=(const CATracker&) = delete;
 
-    int clustersToTracks();
+    void clustersToTracks();
+    void clustersToTracksVerbose();
 
   protected:
-    void makeCells(int);
+    void computeTracklets(CATrackerContext&);
+    void computeCells(CATrackerContext&);
+    void findCellsNeighbours(CATrackerContext&);
+    void findTracks(CATrackerContext&);
+    void traverseCellsTree(CATrackerContext&, const int, const int);
+    void computeMontecarloLabels(CATrackerContext&);
 
   private:
     const CAEvent& mEvent;
-    std::vector<bool> mUsedClustersTable;
-    std::array<CALookupTable, CAConstants::ITS::LayersNumber> mLookupTables;
+    std::vector<int> mUsedClustersTable;
+    std::array<CAIndexTable, CAConstants::ITS::TrackletsPerRoad> mIndexTables;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */

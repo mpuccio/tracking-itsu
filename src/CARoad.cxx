@@ -18,13 +18,8 @@
 
 #include "CARoad.h"
 
-namespace {
-
-constexpr int EmptyLayerId = -1;
-}
-
 CARoad::CARoad()
-    : mCellIds { }, mRoadSize { }
+    : mCellIds { }, mRoadSize { }, mIsFakeRoad { }
 {
   resetRoad();
 }
@@ -32,18 +27,18 @@ CARoad::CARoad()
 CARoad::CARoad(int cellLayer, int cellId)
     : CARoad()
 {
-  setCell(cellLayer, cellId);
+  addCell(cellLayer, cellId);
 }
 
 void CARoad::resetRoad()
 {
-  mCellIds.fill(EmptyLayerId);
+  mCellIds.fill(CAConstants::ITS::UnusedIndex);
   mRoadSize = 0;
 }
 
-void CARoad::setCell(int cellLayer, int cellId)
+void CARoad::addCell(int cellLayer, int cellId)
 {
-  if (mCellIds[cellLayer] == EmptyLayerId) {
+  if (mCellIds[cellLayer] == CAConstants::ITS::UnusedIndex) {
 
     ++mRoadSize;
   }

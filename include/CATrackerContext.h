@@ -1,4 +1,4 @@
-/// \file CACluster.cxx
+/// \file CATrackerContext.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -15,20 +15,24 @@
 ///   You should have received a copy of the GNU General Public License
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
+#ifndef TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
+#define TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
 
-#include "CACluster.h"
+#include "CATracklet.h"
+#include "CACell.h"
+#include "CARoad.h"
 
-#include <cmath>
-
-#include "CAIndexTableUtils.h"
-#include "CAMathUtils.h"
-
-CACluster::CACluster(const int layerIndex, const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
-    const float alphaAngle, const int monteCarlo)
-    : clusterId { clusterId }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
-        CAMathUtils::getNormalizedPhiCoordinate(CAMathUtils::calculatePhiCoordinate(xCoordinate, yCoordinate)) }, rCoordinate {
-        CAMathUtils::calculateRCoordinate(xCoordinate, yCoordinate) }, alphaAngle { alphaAngle }, monteCarlo {
-        monteCarlo }, indexTableBinIndex { CAIndexTableUtils::getBinIndex(CAIndexTableUtils::getZBinIndex(layerIndex, zCoordinate),
-            CAIndexTableUtils::getPhiBinIndex(phiCoordinate)) }
+struct CATrackerContext final
 {
-}
+    explicit CATrackerContext() = default;
+
+    std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
+    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
+
+    std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> cells;
+    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> cellsLookupTable;
+
+    std::vector<CARoad> roads;
+};
+
+#endif /* TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_ */

@@ -27,5 +27,5 @@ float CAMathUtils::calculatePhiCoordinate(const float xCoordinate, const float y
 
 float CAMathUtils::calculateRCoordinate(const float xCoordinate, const float yCoordinate)
 {
-  return std::sqrt(std::pow(xCoordinate, 2) + std::pow(yCoordinate, 2));
+  return std::sqrt(xCoordinate * xCoordinate + yCoordinate * yCoordinate);
 }
