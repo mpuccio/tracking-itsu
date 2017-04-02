@@ -24,9 +24,17 @@ int main(int argc, char** argv)
   for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
 
     CAEvent& currentEvent = events[iEvent];
+
+    std::cout << "Sorting clusters for event " << iEvent + 1 << std::endl;
+    t1 = clock();
+
     currentEvent.sortClusters();
 
-    std::cout << " Processing event " << iEvent + 1 << std::endl << std::endl;
+    t2 = clock();
+    const float sortingDiff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
+    std::cout << "Clusters sorted in " << sortingDiff << "ms" << std::endl;
+
+    std::cout << "Processing event " << iEvent + 1 << ":" << std::endl;
     t1 = clock();
 
     CATracker(currentEvent).clustersToTracksVerbose();
@@ -41,7 +49,7 @@ int main(int argc, char** argv)
     if (maxTime < diff)
       maxTime = diff;
 
-    std::cout << std::endl << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
+    std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
   }
 
   std::cout << std::endl;

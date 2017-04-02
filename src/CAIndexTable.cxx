@@ -83,6 +83,8 @@ const std::vector<int> CAIndexTable::selectBins(const float zRangeMin, const flo
     phiBinsNum += CAConstants::IndexTable::PhiBins;
   }
 
+  filteredBins.reserve(phiBinsNum * zBinsNum);
+
   for (int iPhiBin = minPhiBinIndex, iPhiCount = 0; iPhiCount < phiBinsNum;
       iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins ? 0 : iPhiBin, iPhiCount++) {
 

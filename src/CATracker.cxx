@@ -75,7 +75,7 @@ void CATracker::clustersToTracksVerbose()
   evaluateTask(&CATracker::findTracks, this, "Tracks Finding", trackerContext);
   evaluateTask(&CATracker::computeMontecarloLabels, this, "Computing Montecarlo Labels", trackerContext);
 
-  std::cout << "Found " << trackerContext.roads.size() << " roads" << std::endl;
+  std::cout << "Found " << trackerContext.roads.size() << " roads for event " << mEvent.getEventId() + 1 << std::endl;
 }
 
 void CATracker::computeTracklets(CATrackerContext& trackerContext)
