@@ -355,7 +355,7 @@ void CATracker::findCellsNeighbours(CATrackerContext& trackerContext)
 
 void CATracker::findTracks(CATrackerContext& trackerContext)
 {
-  for (int iLevel = CAConstants::ITS::CellsPerRoad; iLevel > CAConstants::Thresholds::TracksMinLength; --iLevel) {
+  for (int iLevel = CAConstants::ITS::CellsPerRoad; iLevel >= CAConstants::Thresholds::CellsMinLevel; --iLevel) {
 
     const int minimumLevel = iLevel - 1;
 

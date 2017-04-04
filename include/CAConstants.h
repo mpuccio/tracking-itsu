@@ -48,10 +48,10 @@ constexpr std::array<float, ITS::CellsPerRoad> CellMaxDeltaZThreshold { 0.2f, 0.
 constexpr std::array<float, ITS::CellsPerRoad> CellMaxDistanceOfClosestApproachThreshold { 0.05f, 0.04f, 0.05f, 0.2f, 0.4f };
 constexpr float CellMaxDeltaPhiThreshold { 0.14f };
 constexpr float ZCoordinateCut { 0.5f };
-constexpr float PhiCoordinateCut { 1.0f };
+constexpr float PhiCoordinateCut { 0.3f };
 constexpr std::array<float, ITS::CellsPerRoad - 1> NeighbourCellMaxNormalVectorsDelta { 0.002f, 0.009f, 0.002f, 0.005f };
 constexpr std::array<float, ITS::CellsPerRoad - 1> NeighbourCellMaxCurvaturesDelta { 0.008f, 0.0025f, 0.003f, 0.0035f };
-constexpr int TracksMinLength { 4 };
+constexpr int CellsMinLevel { 5 };
 }
 
 namespace IndexTable {
