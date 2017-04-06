@@ -54,7 +54,7 @@ CATracker::CATracker(const CAEvent& event)
   }
 }
 
-void CATracker::clustersToTracks()
+std::vector<CARoad> CATracker::clustersToTracks()
 {
   CATrackerContext trackerContext { };
 
@@ -63,9 +63,11 @@ void CATracker::clustersToTracks()
   findCellsNeighbours(trackerContext);
   findTracks(trackerContext);
   computeMontecarloLabels(trackerContext);
+
+  return trackerContext.roads;
 }
 
-void CATracker::clustersToTracksVerbose()
+std::vector<CARoad> CATracker::clustersToTracksVerbose()
 {
   CATrackerContext trackerContext { };
 
@@ -76,6 +78,8 @@ void CATracker::clustersToTracksVerbose()
   evaluateTask(&CATracker::computeMontecarloLabels, this, "Computing Montecarlo Labels", trackerContext);
 
   std::cout << "Found " << trackerContext.roads.size() << " roads for event " << mEvent.getEventId() + 1 << std::endl;
+
+  return trackerContext.roads;
 }
 
 void CATracker::computeTracklets(CATrackerContext& trackerContext)

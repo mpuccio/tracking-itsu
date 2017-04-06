@@ -61,6 +61,10 @@ constexpr float InversePhiBinSize { CAConstants::IndexTable::PhiBins / CAConstan
 constexpr std::array<float, ITS::LayersNumber> InverseZBinSize { 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f, 0.5
     * ZBins / 16.333f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 73.745f, 0.5 * ZBins / 73.745f };
 }
+namespace PDGCodes {
+constexpr int PionCode { 211 };
 }
+}
+
 
 #endif /* TRACKINGITSU_INCLUDE_CACONSTANTS_H_ */

@@ -40,3 +40,6 @@ doxygen/generated
 Debug
 Release
 Profile
+
+# Benchmark data folders
+benchmarks/benchmark_data

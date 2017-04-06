@@ -1,9 +1,10 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <fstream>
 #include <vector>
 
-#include "CAEventLoader.h"
+#include "CAIOUtils.h"
 #include "CATracker.h"
 
 int main(int argc, char** argv)
@@ -14,9 +15,25 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  std::string fileName(argv[1]);
-  std::vector<CAEvent> events = CAEventLoader::loadEventData(fileName);
+  std::string eventsFileName(argv[1]);
+  std::vector<CAEvent> events = CAIOUtils::loadEventData(eventsFileName);
   const int eventsNum = events.size();
+  std::vector<std::unordered_map<int, CALabel>> labelsMap;
+
+  bool createBenchmarkData = false;
+  std::ofstream correctRoadsOutputStream;
+  std::ofstream fakeRoadsOutputStream;
+
+  if (argv[2] != NULL) {
+
+    createBenchmarkData = true;
+
+    std::string labelsFileName(argv[2]);
+    labelsMap = CAIOUtils::loadLabels(eventsNum, labelsFileName);
+
+    correctRoadsOutputStream.open("../benchmarks/benchmark_data/CorrectRoads.txt");
+    fakeRoadsOutputStream.open("../benchmarks/benchmark_data/FakeRoads.txt");
+  }
 
   clock_t t1, t2;
   float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
@@ -37,7 +54,12 @@ int main(int argc, char** argv)
     std::cout << "Processing event " << iEvent + 1 << ":" << std::endl;
     t1 = clock();
 
-    CATracker(currentEvent).clustersToTracksVerbose();
+    std::vector<CARoad> roads = CATracker(currentEvent).clustersToTracksVerbose();
+
+    if(createBenchmarkData) {
+
+      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, fakeRoadsOutputStream, roads, labelsMap[iEvent]);
+    }
 
     t2 = clock();
     const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
