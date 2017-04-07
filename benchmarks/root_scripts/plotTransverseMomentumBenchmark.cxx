@@ -90,6 +90,9 @@ void plotTransverseMomentumBenchmark()
   plotRoads(generatedHistogram, binsEdges, "benchmarks/benchmark_data/CorrectRoads.txt",
       "benchmarks/transverse_momentum/CorrectRoadsBenchmark.pdf", "Correct Roads Histogram");
 
+  plotRoads(generatedHistogram, binsEdges, "benchmarks/benchmark_data/DuplicateRoads.txt",
+      "benchmarks/transverse_momentum/DuplicateRoadsBenchmark.pdf", "Duplicate Roads Histogram");
+
   plotRoads(generatedHistogram, binsEdges, "benchmarks/benchmark_data/FakeRoads.txt",
       "benchmarks/transverse_momentum/FakeRoadsBenchmark.pdf", "Fake Roads Histogram");
 }

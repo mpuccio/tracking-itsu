@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include <unordered_set>
 
 namespace {
 
@@ -113,10 +114,11 @@ std::vector<std::unordered_map<int, CALabel>> CAIOUtils::loadLabels(const int ev
   return labelsMap;
 }
 
-void CAIOUtils::writeRoadsReport(std::ofstream& correctRoadsOutputStream, std::ofstream& fakeRoadsOutputStream,
-    std::vector<CARoad>& roads, std::unordered_map<int, CALabel>& labelsMap)
+void CAIOUtils::writeRoadsReport(std::ofstream& correctRoadsOutputStream, std::ofstream& duplicateRoadsOutputStream,
+    std::ofstream& fakeRoadsOutputStream, std::vector<CARoad>& roads, std::unordered_map<int, CALabel>& labelsMap)
 {
   const int numRoads = roads.size();
+  std::unordered_set<int> foundMonteCarloIds;
 
   correctRoadsOutputStream << EventLabelsSeparator << std::endl;
   fakeRoadsOutputStream << EventLabelsSeparator << std::endl;
@@ -138,7 +140,15 @@ void CAIOUtils::writeRoadsReport(std::ofstream& correctRoadsOutputStream, std::o
 
     } else {
 
-      correctRoadsOutputStream << currentLabel << std::endl;
+      if(foundMonteCarloIds.count(currentLabel.monteCarloId)) {
+
+        duplicateRoadsOutputStream << currentLabel << std::endl;
+
+      } else {
+
+        correctRoadsOutputStream << currentLabel << std::endl;
+        foundMonteCarloIds.emplace(currentLabel.monteCarloId);
+      }
     }
   }
 }

@@ -22,6 +22,7 @@ int main(int argc, char** argv)
 
   bool createBenchmarkData = false;
   std::ofstream correctRoadsOutputStream;
+  std::ofstream duplicateRoadsOutputStream;
   std::ofstream fakeRoadsOutputStream;
 
   if (argv[2] != NULL) {
@@ -32,6 +33,7 @@ int main(int argc, char** argv)
     labelsMap = CAIOUtils::loadLabels(eventsNum, labelsFileName);
 
     correctRoadsOutputStream.open("benchmarks/benchmark_data/CorrectRoads.txt");
+    duplicateRoadsOutputStream.open("benchmarks/benchmark_data/DuplicateRoads.txt");
     fakeRoadsOutputStream.open("benchmarks/benchmark_data/FakeRoads.txt");
   }
 
@@ -56,9 +58,10 @@ int main(int argc, char** argv)
 
     std::vector<CARoad> roads = CATracker(currentEvent).clustersToTracksVerbose();
 
-    if(createBenchmarkData) {
+    if (createBenchmarkData) {
 
-      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, fakeRoadsOutputStream, roads, labelsMap[iEvent]);
+      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
+          labelsMap[iEvent]);
     }
 
     t2 = clock();
