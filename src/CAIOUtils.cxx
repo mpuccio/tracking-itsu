@@ -91,6 +91,7 @@ std::vector<std::unordered_map<int, CALabel>> CAIOUtils::loadLabels(const int ev
       if (monteCarloId == EventLabelsSeparator) {
 
         labelsMap.emplace_back(currentEventLabelsMap);
+        currentEventLabelsMap.clear();
 
       } else {
 

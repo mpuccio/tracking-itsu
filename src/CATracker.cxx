@@ -434,7 +434,7 @@ void CATracker::computeMontecarloLabels(CATrackerContext& trackerContext)
     CARoad& currentRoad = trackerContext.roads[iRoad];
 
     int maxOccurrencesValue = CAConstants::ITS::UnusedIndex;
-    int count;
+    int count = 0;
 
     bool isFakeRoad = false;
     bool isFirstRoadCell = true;
