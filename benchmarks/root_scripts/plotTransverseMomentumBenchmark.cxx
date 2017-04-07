@@ -1,43 +1,98 @@
+#include <array>
+#include <cmath>
+#include <fstream>
+#include <string>
+
 #include "TCanvas.h"
 #include "TGraph.h"
-#include "TMath.h"
 #include "TROOT.h"
 
-void plotRoads(const char* inputFileName, const char* outputFileName, const char* histogramTitle) {
+namespace {
+constexpr int BinNumber { 100 };
+constexpr double MaxTransverseMomentum{ 20 };
+constexpr double MinTransverseMomentum{ 0.01 };
+constexpr int EventLabelsSeparator { -1 };
+constexpr int PionCode { 211 };
+}
 
-  const int binNumber = 100;
-  const double ptcuth = 20;
-  const double ptcutl = 0.01;
+std::array<int, BinNumber> loadBinsFromFile(const char* fileName, TH1F& histogram) {
 
-  double binsEdges[binNumber + 1];
-  double a = TMath::Log(ptcuth/ptcutl) / binNumber;
+  std::array<int, BinNumber> tracksPerBin;
+  tracksPerBin.fill(0);
 
-  for (int iBin = 0; iBin <= binNumber; ++iBin) {
+  std::ifstream inputStream;
+  std::string line;
+  inputStream.open(fileName);
+  int monteCarloId, pdgCode, numberOfClusters;
+  float transverseMomentum, phiCoordinate, pseudorapidity;
 
-    binsEdges[iBin] = ptcutl * TMath::Exp(iBin * a);
+  while (std::getline(inputStream, line)) {
+
+    std::istringstream inputStringStream(line);
+
+    if (inputStringStream >> monteCarloId) {
+
+      if (monteCarloId == EventLabelsSeparator) {
+
+        continue;
+
+      } else {
+
+        if (inputStringStream >> transverseMomentum >> phiCoordinate >> pseudorapidity >> pdgCode >> numberOfClusters) {
+
+          if(std::abs(pdgCode) == PionCode && numberOfClusters == 7) {
+
+            histogram.Fill(transverseMomentum);
+          }
+        }
+      }
+    }
   }
+
+  return tracksPerBin;
+}
+
+void plotRoads(TH1F& generatedHistogram, std::array<double, BinNumber + 1>& binsEdges,
+   const char* inputFileName, const char* outputFileName, const char* histogramTitle) {
 
   TCanvas graphCanvas{};
   graphCanvas.SetGrid();
   graphCanvas.SetLogx();
 
-  TH1F histogram("plot-transverse-momentum-benchmark.histogram", histogramTitle, binNumber, binsEdges);
+  TH1F foundHistogram("plot-transverse-momentum-benchmark.found-histogram", histogramTitle, BinNumber, binsEdges.data());
+  std::array<int, BinNumber> foundTracksPerBin = loadBinsFromFile(inputFileName, foundHistogram);
+  foundHistogram.Divide(&generatedHistogram);
+  foundHistogram.Draw();
 
-  TGraphAsymmErrors graph(&histogram);
-  graph.Draw("AL*");
   graphCanvas.Print(outputFileName);
 }
 
 void plotTransverseMomentumBenchmark() {
 
+  double binSize = std::log(MaxTransverseMomentum / MinTransverseMomentum) / BinNumber;
+  std::array<double, BinNumber + 1> binsEdges;
+
+  for (int iBin = 0; iBin <= BinNumber; ++iBin) {
+
+    binsEdges[iBin] = MinTransverseMomentum * std::exp(iBin * binSize);
+  }
+
+  TH1F generatedHistogram("plot-transverse-momentum-benchmark.generated-histogram", "Generated Histogram", BinNumber, binsEdges.data());
+
+  std::array<int, BinNumber> generatedTracksPerBin = loadBinsFromFile("benchmarks/benchmark_data/Pions7Labels.txt", generatedHistogram);
+
   plotRoads(
-      "benchmarks/transverse_momentum/benchmark_data/CorrectRoads.txt",
+      generatedHistogram,
+      binsEdges,
+      "benchmarks/benchmark_data/CorrectRoads.txt",
       "benchmarks/transverse_momentum/CorrectRoadsBenchmark.pdf",
       "Correct Roads Histogram"
   );
 
   plotRoads(
-      "benchmarks/transverse_momentum/benchmark_data/FakeRoads.txt",
+      generatedHistogram,
+      binsEdges,
+      "benchmarks/benchmark_data/FakeRoads.txt",
       "benchmarks/transverse_momentum/FakeRoadsBenchmark.pdf",
       "Fake Roads Histogram"
   );

@@ -31,8 +31,8 @@ int main(int argc, char** argv)
     std::string labelsFileName(argv[2]);
     labelsMap = CAIOUtils::loadLabels(eventsNum, labelsFileName);
 
-    correctRoadsOutputStream.open("../benchmarks/benchmark_data/CorrectRoads.txt");
-    fakeRoadsOutputStream.open("../benchmarks/benchmark_data/FakeRoads.txt");
+    correctRoadsOutputStream.open("benchmarks/benchmark_data/CorrectRoads.txt");
+    fakeRoadsOutputStream.open("benchmarks/benchmark_data/FakeRoads.txt");
   }
 
   clock_t t1, t2;
