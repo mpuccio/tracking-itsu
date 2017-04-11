@@ -82,22 +82,30 @@ void plotTransverseMomentumBenchmark()
       binsEdges.data());
   loadBinsFromFile("benchmarks/benchmark_data/CorrectRoads.txt", correctHistogram);
 
+  plotHistogramsRatio(correctHistogram, generatedHistogram, binsEdges,
+      "benchmarks/transverse_momentum/CorrectRoadsBenchmark.pdf", "Correct Roads Histogram");
+
   TH1F duplicateHistogram("plot-transverse-momentum-benchmark.duplicate-histogram", "Duplicate Histogram", BinNumber,
       binsEdges.data());
   loadBinsFromFile("benchmarks/benchmark_data/DuplicateRoads.txt", duplicateHistogram);
+
+  plotHistogramsRatio(duplicateHistogram, generatedHistogram, binsEdges,
+      "benchmarks/transverse_momentum/DuplicateRoadsBenchmark.pdf", "Duplicate Roads Histogram");
 
   TH1F fakeHistogram("plot-transverse-momentum-benchmark.fake-histogram", "Fake Histogram", BinNumber,
       binsEdges.data());
   loadBinsFromFile("benchmarks/benchmark_data/FakeRoads.txt", fakeHistogram);
 
-  plotHistogramsRatio(correctHistogram, generatedHistogram, binsEdges,
-      "benchmarks/transverse_momentum/CorrectRoadsBenchmark.pdf", "Correct Roads Histogram");
-
-  plotHistogramsRatio(duplicateHistogram, generatedHistogram, binsEdges,
-      "benchmarks/transverse_momentum/DuplicateRoadsBenchmark.pdf", "Duplicate Roads Histogram");
-
   plotHistogramsRatio(fakeHistogram, generatedHistogram, binsEdges,
       "benchmarks/transverse_momentum/FakeRoadsBenchmark.pdf", "Fake Roads Histogram");
+
+  TH1F duplicateAndCorrectHistogram("plot-transverse-momentum-benchmark.duplicate-and-correct-histogram",
+      "Duplicate And Correct Histogram", BinNumber, binsEdges.data());
+  duplicateAndCorrectHistogram.Add(&correctHistogram, &duplicateHistogram);
+
+  plotHistogramsRatio(duplicateHistogram, duplicateAndCorrectHistogram, binsEdges,
+      "benchmarks/transverse_momentum/DuplicateOverCorrectRoadsBenchmark.pdf",
+      "Duplicate Over Correct Roads Histogram");
 }
 
 int main()
