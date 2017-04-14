@@ -1,4 +1,4 @@
-/// \file CALayer.cxx
+/// \file CAIOUtils.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,34 +16,20 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CALayer.h"
+#ifndef TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_
+#define TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_
 
-#include <algorithm>
+#include <unordered_map>
 
-#include "CAConstants.h"
-#include "CAIndexTableUtils.h"
+#include "CAEvent.h"
+#include "CALabel.h"
+#include "CARoad.h"
 
-CALayer::CALayer()
-    : mLayerIndex { CAConstants::ITS::UnusedIndex }
-{
+namespace CAIOUtils {
+std::vector<CAEvent> loadEventData(const std::string&);
+std::vector<std::unordered_map<int, CALabel>> loadLabels(const int, const std::string&);
+void writeRoadsReport(std::ofstream&, std::ofstream&, std::ofstream&, std::vector<CARoad>&,
+    std::unordered_map<int, CALabel>&);
 }
 
-CALayer::CALayer(const int layerIndex)
-    : mLayerIndex { layerIndex }
-{
-}
-
-void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
-    const float alphaAngle, const int monteCarlo)
-{
-  mClusters.emplace_back(mLayerIndex, clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
-}
-
-void CALayer::sortClusters()
-{
-
-  std::sort(mClusters.begin(), mClusters.end(), [](const CACluster& cluster1, const CACluster& cluster2) -> bool {
-
-    return cluster1.indexTableBinIndex < cluster2.indexTableBinIndex;
-  });
-}
+#endif /* TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_ */

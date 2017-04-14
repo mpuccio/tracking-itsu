@@ -4,7 +4,8 @@ set(SRCS
   CACell.cxx
   CACluster.cxx
   CAEvent.cxx
-  CAEventLoader.cxx
+  CAIOUtils.cxx
+  CALabel.cxx
   CALayer.cxx
   CAIndexTable.cxx
   CARoad.cxx

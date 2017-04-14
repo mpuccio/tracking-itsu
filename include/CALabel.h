@@ -1,4 +1,4 @@
-/// \file CAEventLoader.h
+/// \file CALabel.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -15,14 +15,23 @@
 ///   You should have received a copy of the GNU General Public License
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
+#ifndef TRACKINGITSU_INCLUDE_CALABEL_H_
+#define TRACKINGITSU_INCLUDE_CALABEL_H_
 
-#ifndef TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_
-#define TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_
+#include <ostream>
 
-#include "CAEvent.h"
+struct CALabel final
+{
+    CALabel(const int, const float, const float, const float, const int, const int);
 
-namespace CAEventLoader {
-std::vector<CAEvent> loadEventData(const std::string&);
-}
+    int monteCarloId;
+    float transverseMomentum;
+    float phiCoordinate;
+    float pseudorapidity;
+    int pdgCode;
+    int numberOfClusters;
 
-#endif /* TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_ */
+    friend std::ostream& operator<<(std::ostream&, const CALabel&);
+};
+
+#endif /* TRACKINGITSU_INCLUDE_CALABEL_H_ */

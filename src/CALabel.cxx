@@ -1,4 +1,4 @@
-/// \file CALayer.cxx
+/// \file CALabel.cxx
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -15,35 +15,21 @@
 ///   You should have received a copy of the GNU General Public License
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
+#include "CALabel.h"
 
-#include "CALayer.h"
-
-#include <algorithm>
-
-#include "CAConstants.h"
-#include "CAIndexTableUtils.h"
-
-CALayer::CALayer()
-    : mLayerIndex { CAConstants::ITS::UnusedIndex }
+CALabel::CALabel(const int monteCarloId, const float transverseMomentum, const float phiCoordinate,
+    const float pseudorapidity, const int pdgCode, const int numberOfClusters)
+    : monteCarloId { monteCarloId }, transverseMomentum { transverseMomentum }, phiCoordinate { phiCoordinate }, pseudorapidity {
+        pseudorapidity }, pdgCode { pdgCode }, numberOfClusters { numberOfClusters }
 {
+  // TNothing to do
 }
 
-CALayer::CALayer(const int layerIndex)
-    : mLayerIndex { layerIndex }
-{
-}
-
-void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
-    const float alphaAngle, const int monteCarlo)
-{
-  mClusters.emplace_back(mLayerIndex, clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
-}
-
-void CALayer::sortClusters()
+std::ostream& operator<<(std::ostream& outputStream, const CALabel& label)
 {
 
-  std::sort(mClusters.begin(), mClusters.end(), [](const CACluster& cluster1, const CACluster& cluster2) -> bool {
+  outputStream << label.monteCarloId << "\t" << label.transverseMomentum << "\t" << label.phiCoordinate << "\t"
+      << label.pseudorapidity << "\t" << label.pdgCode << "\t" << label.numberOfClusters;
 
-    return cluster1.indexTableBinIndex < cluster2.indexTableBinIndex;
-  });
+  return outputStream;
 }

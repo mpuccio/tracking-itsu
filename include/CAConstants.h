@@ -42,15 +42,18 @@ constexpr std::array<float, LayersNumber> LayersRCoordinate { { 2.33959f, 3.1407
 }
 
 namespace Thresholds {
-constexpr std::array<float, ITS::TrackletsPerRoad> TrackletMaxDeltaZThreshold { 0.1f, 0.1f, 0.3f, 0.3f, 0.3f, 0.3f };
+constexpr std::array<float, ITS::TrackletsPerRoad> TrackletMaxDeltaZThreshold { { 0.1f, 0.1f, 0.3f, 0.3f, 0.3f, 0.3f } };
 constexpr float CellMaxDeltaTanLambdaThreshold { 0.025f };
-constexpr std::array<float, ITS::CellsPerRoad> CellMaxDeltaZThreshold { 0.2f, 0.4f, 0.5f, 0.6f, 3.0f };
-constexpr std::array<float, ITS::CellsPerRoad> CellMaxDistanceOfClosestApproachThreshold { 0.05f, 0.04f, 0.05f, 0.2f, 0.4f };
+constexpr std::array<float, ITS::CellsPerRoad> CellMaxDeltaZThreshold { { 0.2f, 0.4f, 0.5f, 0.6f, 3.0f } };
+constexpr std::array<float, ITS::CellsPerRoad> CellMaxDistanceOfClosestApproachThreshold { { 0.05f, 0.04f, 0.05f, 0.2f,
+    0.4f } };
 constexpr float CellMaxDeltaPhiThreshold { 0.14f };
 constexpr float ZCoordinateCut { 0.5f };
 constexpr float PhiCoordinateCut { 0.3f };
-constexpr std::array<float, ITS::CellsPerRoad - 1> NeighbourCellMaxNormalVectorsDelta { 0.002f, 0.009f, 0.002f, 0.005f };
-constexpr std::array<float, ITS::CellsPerRoad - 1> NeighbourCellMaxCurvaturesDelta { 0.008f, 0.0025f, 0.003f, 0.0035f };
+constexpr std::array<float, ITS::CellsPerRoad - 1> NeighbourCellMaxNormalVectorsDelta {
+    { 0.002f, 0.009f, 0.002f, 0.005f } };
+constexpr std::array<float, ITS::CellsPerRoad - 1> NeighbourCellMaxCurvaturesDelta {
+    { 0.008f, 0.0025f, 0.003f, 0.0035f } };
 constexpr int CellsMinLevel { 5 };
 }
 
@@ -58,8 +61,11 @@ namespace IndexTable {
 constexpr int ZBins { 20 };
 constexpr int PhiBins { 20 };
 constexpr float InversePhiBinSize { CAConstants::IndexTable::PhiBins / CAConstants::Math::TwoPi };
-constexpr std::array<float, ITS::LayersNumber> InverseZBinSize { 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f, 0.5
-    * ZBins / 16.333f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 73.745f, 0.5 * ZBins / 73.745f };
+constexpr std::array<float, ITS::LayersNumber> InverseZBinSize { { 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f, 0.5
+    * ZBins / 16.333f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 73.745f, 0.5 * ZBins / 73.745f } };
+}
+namespace PDGCodes {
+constexpr int PionCode { 211 };
 }
 }
 

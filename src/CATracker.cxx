@@ -54,7 +54,7 @@ CATracker::CATracker(const CAEvent& event)
   }
 }
 
-void CATracker::clustersToTracks()
+std::vector<CARoad> CATracker::clustersToTracks()
 {
   CATrackerContext trackerContext { };
 
@@ -63,9 +63,11 @@ void CATracker::clustersToTracks()
   findCellsNeighbours(trackerContext);
   findTracks(trackerContext);
   computeMontecarloLabels(trackerContext);
+
+  return trackerContext.roads;
 }
 
-void CATracker::clustersToTracksVerbose()
+std::vector<CARoad> CATracker::clustersToTracksVerbose()
 {
   CATrackerContext trackerContext { };
 
@@ -76,6 +78,8 @@ void CATracker::clustersToTracksVerbose()
   evaluateTask(&CATracker::computeMontecarloLabels, this, "Computing Montecarlo Labels", trackerContext);
 
   std::cout << "Found " << trackerContext.roads.size() << " roads for event " << mEvent.getEventId() + 1 << std::endl;
+
+  return trackerContext.roads;
 }
 
 void CATracker::computeTracklets(CATrackerContext& trackerContext)
@@ -205,9 +209,9 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
       const float firstCellClusterQuadraticRCoordinate = firstCellCluster.rCoordinate * firstCellCluster.rCoordinate;
       const float secondCellClusterQuadraticRCoordinate = secondCellCluster.rCoordinate * secondCellCluster.rCoordinate;
 
-      const std::array<float, 3> firstDeltaVector { secondCellCluster.xCoordinate - firstCellCluster.xCoordinate,
+      const std::array<float, 3> firstDeltaVector { { secondCellCluster.xCoordinate - firstCellCluster.xCoordinate,
           secondCellCluster.yCoordinate - firstCellCluster.yCoordinate, secondCellClusterQuadraticRCoordinate
-              - firstCellClusterQuadraticRCoordinate };
+              - firstCellClusterQuadraticRCoordinate } };
 
       bool isFirstCellForCurrentTracklet = true;
       const int nextLayerTrackletsNum = trackerContext.tracklets[iLayer + 1].size();
@@ -237,9 +241,9 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
             const float thirdCellClusterQuadraticRCoordinate = thirdCellCluster.rCoordinate
                 * thirdCellCluster.rCoordinate;
 
-            const std::array<float, 3> secondDeltaVector { thirdCellCluster.xCoordinate - firstCellCluster.xCoordinate,
-                thirdCellCluster.yCoordinate - firstCellCluster.yCoordinate, thirdCellClusterQuadraticRCoordinate
-                    - firstCellClusterQuadraticRCoordinate };
+            const std::array<float, 3> secondDeltaVector { { thirdCellCluster.xCoordinate
+                - firstCellCluster.xCoordinate, thirdCellCluster.yCoordinate - firstCellCluster.yCoordinate,
+                thirdCellClusterQuadraticRCoordinate - firstCellClusterQuadraticRCoordinate } };
 
             std::array<float, 3> cellPlaneNormalVector { CAMathUtils::crossProduct(firstDeltaVector, secondDeltaVector) };
 
@@ -256,8 +260,8 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
 
             const float inverseVectorNorm = 1.0f / vectorNorm;
 
-            const std::array<float, 3> normalizedPlaneVector { cellPlaneNormalVector[0] * inverseVectorNorm,
-                cellPlaneNormalVector[1] * inverseVectorNorm, cellPlaneNormalVector[2] * inverseVectorNorm };
+            const std::array<float, 3> normalizedPlaneVector { { cellPlaneNormalVector[0] * inverseVectorNorm,
+                cellPlaneNormalVector[1] * inverseVectorNorm, cellPlaneNormalVector[2] * inverseVectorNorm } };
 
             const float planeDistance = -normalizedPlaneVector[0] * secondCellCluster.xCoordinate
                 - normalizedPlaneVector[1] * secondCellCluster.yCoordinate
@@ -269,8 +273,8 @@ void CATracker::computeCells(CATrackerContext& trackerContext)
                 (1.0f - normalizedPlaneVectorQuadraticZCoordinate - 4.0f * planeDistance * normalizedPlaneVector[2])
                     / (4.0f * normalizedPlaneVectorQuadraticZCoordinate));
 
-            const std::array<float, 2> circleCenter { -0.5f * normalizedPlaneVector[0] / normalizedPlaneVector[2], -0.5f
-                * normalizedPlaneVector[1] / normalizedPlaneVector[2] };
+            const std::array<float, 2> circleCenter { { -0.5f * normalizedPlaneVector[0] / normalizedPlaneVector[2],
+                -0.5f * normalizedPlaneVector[1] / normalizedPlaneVector[2] } };
 
             const float distanceOfClosestApproach = std::abs(
                 cellTrajectoryRadius
@@ -334,8 +338,9 @@ void CATracker::findCellsNeighbours(CATrackerContext& trackerContext)
         const std::array<float, 3> currentCellNormalVector = currentCell.getNormalVectorCoordinates();
         const std::array<float, 3> nextCellNormalVector = nextCell.getNormalVectorCoordinates();
 
-        const std::array<float, 3> normalVectorsDeltaVector = { currentCellNormalVector[0] - nextCellNormalVector[0],
-            currentCellNormalVector[1] - nextCellNormalVector[1], currentCellNormalVector[2] - nextCellNormalVector[2] };
+        const std::array<float, 3> normalVectorsDeltaVector =
+            { { currentCellNormalVector[0] - nextCellNormalVector[0], currentCellNormalVector[1]
+                - nextCellNormalVector[1], currentCellNormalVector[2] - nextCellNormalVector[2] } };
 
         const float deltaNormalVectorsModulus = (normalVectorsDeltaVector[0] * normalVectorsDeltaVector[0])
             + (normalVectorsDeltaVector[1] * normalVectorsDeltaVector[1])
@@ -430,7 +435,7 @@ void CATracker::computeMontecarloLabels(CATrackerContext& trackerContext)
     CARoad& currentRoad = trackerContext.roads[iRoad];
 
     int maxOccurrencesValue = CAConstants::ITS::UnusedIndex;
-    int count;
+    int count = 0;
 
     bool isFakeRoad = false;
     bool isFirstRoadCell = true;

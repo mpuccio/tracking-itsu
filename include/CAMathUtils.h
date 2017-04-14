@@ -36,12 +36,13 @@ constexpr float CAMathUtils::getNormalizedPhiCoordinate(const float phiCoordinat
          (phiCoordinate > CAConstants::Math::TwoPi) ? phiCoordinate - CAConstants::Math::TwoPi : phiCoordinate;
 }
 
-constexpr std::array<float, 3> CAMathUtils::crossProduct(const std::array<float, 3>& firstVector, const std::array<float, 3>& secondVector) {
+constexpr std::array<float, 3> CAMathUtils::crossProduct(const std::array<float, 3>& firstVector,
+    const std::array<float, 3>& secondVector)
+{
 
-  return std::array<float, 3> { (firstVector[1] * secondVector[2])
-    - (firstVector[2] * secondVector[1]), (firstVector[2] * secondVector[0])
-    - (firstVector[0] * secondVector[2]), (firstVector[0] * secondVector[1])
-    - (firstVector[1] * secondVector[0]) };
+  return std::array<float, 3> { { (firstVector[1] * secondVector[2]) - (firstVector[2] * secondVector[1]),
+      (firstVector[2] * secondVector[0]) - (firstVector[0] * secondVector[2]), (firstVector[0] * secondVector[1])
+          - (firstVector[1] * secondVector[0]) } };
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CAUTILS_H_ */
