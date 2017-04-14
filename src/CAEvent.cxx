@@ -23,7 +23,7 @@
 CAEvent::CAEvent(const int eventId)
     : mEventId { eventId }
 {
-  for(int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
     mLayers[iLayer] = CALayer(iLayer);
   }
@@ -61,9 +61,10 @@ const int CAEvent::getTotalClusters() const
   return totalClusters;
 }
 
-void CAEvent::sortClusters() {
+void CAEvent::sortClusters()
+{
 
-  for(int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
     mLayers[iLayer].sortClusters();
   }

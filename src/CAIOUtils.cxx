@@ -98,7 +98,7 @@ std::vector<std::unordered_map<int, CALabel>> CAIOUtils::loadLabels(const int ev
 
         if (inputStringStream >> transverseMomentum >> phiCoordinate >> pseudorapidity >> pdgCode >> numberOfClusters) {
 
-          if(std::abs(pdgCode) == CAConstants::PDGCodes::PionCode && numberOfClusters == 7) {
+          if (std::abs(pdgCode) == CAConstants::PDGCodes::PionCode && numberOfClusters == 7) {
 
             currentEventLabelsMap.emplace(std::piecewise_construct, std::forward_as_tuple(monteCarloId),
                 std::forward_as_tuple(monteCarloId, transverseMomentum, phiCoordinate, pseudorapidity, pdgCode,
@@ -140,7 +140,7 @@ void CAIOUtils::writeRoadsReport(std::ofstream& correctRoadsOutputStream, std::o
 
     } else {
 
-      if(foundMonteCarloIds.count(currentLabel.monteCarloId)) {
+      if (foundMonteCarloIds.count(currentLabel.monteCarloId)) {
 
         duplicateRoadsOutputStream << currentLabel << std::endl;
 

@@ -40,7 +40,8 @@ class CAIndexTable final
     std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
 };
 
-inline const int CAIndexTable::getBin(const int binIndex) const {
+inline const int CAIndexTable::getBin(const int binIndex) const
+{
 
   return mTableBins[binIndex];
 }

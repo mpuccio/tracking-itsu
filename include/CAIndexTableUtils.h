@@ -24,8 +24,7 @@
 
 #include "CAConstants.h"
 
-namespace CAIndexTableUtils
-{
+namespace CAIndexTableUtils {
 constexpr float getInverseZBinSize(const int);
 constexpr int getZBinIndex(const float, const float);
 constexpr int getPhiBinIndex(const float);

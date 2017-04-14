@@ -23,9 +23,15 @@
 #include "CAConstants.h"
 #include "CAIndexTableUtils.h"
 
-CALayer::CALayer() : mLayerIndex{ CAConstants::ITS::UnusedIndex } {}
+CALayer::CALayer()
+    : mLayerIndex { CAConstants::ITS::UnusedIndex }
+{
+}
 
-CALayer::CALayer(const int layerIndex) : mLayerIndex { layerIndex } {}
+CALayer::CALayer(const int layerIndex)
+    : mLayerIndex { layerIndex }
+{
+}
 
 void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
     const float alphaAngle, const int monteCarlo)
@@ -33,7 +39,8 @@ void CALayer::addCluster(const int clusterId, const float xCoordinate, const flo
   mClusters.emplace_back(mLayerIndex, clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
 }
 
-void CALayer::sortClusters() {
+void CALayer::sortClusters()
+{
 
   std::sort(mClusters.begin(), mClusters.end(), [](const CACluster& cluster1, const CACluster& cluster2) -> bool {
 
