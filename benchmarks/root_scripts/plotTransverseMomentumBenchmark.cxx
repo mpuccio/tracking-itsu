@@ -15,7 +15,7 @@ constexpr int EventLabelsSeparator { -1 };
 constexpr int PionCode { 211 };
 }
 
-void loadBinsFromFile(const char* fileName, TH1F& histogram)
+void loadBinsFromFile(const std::string& fileName, TH1F& histogram)
 {
   std::ifstream inputStream;
   std::string line;
@@ -48,7 +48,7 @@ void loadBinsFromFile(const char* fileName, TH1F& histogram)
 }
 
 void plotHistogramsRatio(TH1F& numeratorHistogram, TH1F& denominatorHistogram,
-    std::array<float, BinNumber + 1>& binsEdges, const char* outputFileName, const char* histogramTitle)
+    std::array<float, BinNumber + 1>& binsEdges, const std::string& outputFileName, const char* histogramTitle)
 {
   TCanvas graphCanvas { };
   graphCanvas.SetGrid();
@@ -60,12 +60,11 @@ void plotHistogramsRatio(TH1F& numeratorHistogram, TH1F& denominatorHistogram,
   histogramsRatio.Divide(&numeratorHistogram, &denominatorHistogram);
   histogramsRatio.Draw();
 
-  graphCanvas.Print(outputFileName);
+  graphCanvas.Print(outputFileName.c_str());
 }
 
-void plotTransverseMomentumBenchmark()
+void plotTransverseMomentumBenchmark(const std::string& inputFolder, const std::string& outputFolder)
 {
-
   float binSize = std::log(MaxTransverseMomentum / MinTransverseMomentum) / BinNumber;
   std::array<float, BinNumber + 1> binsEdges;
 
@@ -76,40 +75,51 @@ void plotTransverseMomentumBenchmark()
 
   TH1F generatedHistogram("plot-transverse-momentum-benchmark.generated-histogram", "Generated Histogram", BinNumber,
       binsEdges.data());
-  loadBinsFromFile("benchmarks/benchmark_data/labels.txt", generatedHistogram);
+  loadBinsFromFile(inputFolder + "labels.txt", generatedHistogram);
 
   TH1F correctHistogram("plot-transverse-momentum-benchmark.correct-histogram", "Correct Histogram", BinNumber,
       binsEdges.data());
-  loadBinsFromFile("benchmarks/benchmark_data/CorrectRoads.txt", correctHistogram);
+  loadBinsFromFile(inputFolder + "CorrectRoads.txt", correctHistogram);
 
-  plotHistogramsRatio(correctHistogram, generatedHistogram, binsEdges,
-      "benchmarks/transverse_momentum/CorrectRoadsBenchmark.pdf", "Correct Roads Histogram");
+  plotHistogramsRatio(correctHistogram, generatedHistogram, binsEdges, outputFolder + "CorrectRoadsBenchmark.pdf",
+      "Correct Roads Histogram");
 
   TH1F duplicateHistogram("plot-transverse-momentum-benchmark.duplicate-histogram", "Duplicate Histogram", BinNumber,
       binsEdges.data());
-  loadBinsFromFile("benchmarks/benchmark_data/DuplicateRoads.txt", duplicateHistogram);
+  loadBinsFromFile(inputFolder + "DuplicateRoads.txt", duplicateHistogram);
 
-  plotHistogramsRatio(duplicateHistogram, generatedHistogram, binsEdges,
-      "benchmarks/transverse_momentum/DuplicateRoadsBenchmark.pdf", "Duplicate Roads Histogram");
+  plotHistogramsRatio(duplicateHistogram, generatedHistogram, binsEdges, outputFolder + "DuplicateRoadsBenchmark.pdf",
+      "Duplicate Roads Histogram");
 
   TH1F fakeHistogram("plot-transverse-momentum-benchmark.fake-histogram", "Fake Histogram", BinNumber,
       binsEdges.data());
-  loadBinsFromFile("benchmarks/benchmark_data/FakeRoads.txt", fakeHistogram);
+  loadBinsFromFile(inputFolder + "FakeRoads.txt", fakeHistogram);
 
-  plotHistogramsRatio(fakeHistogram, generatedHistogram, binsEdges,
-      "benchmarks/transverse_momentum/FakeRoadsBenchmark.pdf", "Fake Roads Histogram");
+  plotHistogramsRatio(fakeHistogram, generatedHistogram, binsEdges, outputFolder + "FakeRoadsBenchmark.pdf",
+      "Fake Roads Histogram");
 
   TH1F duplicateAndCorrectHistogram("plot-transverse-momentum-benchmark.duplicate-and-correct-histogram",
       "Duplicate And Correct Histogram", BinNumber, binsEdges.data());
   duplicateAndCorrectHistogram.Add(&correctHistogram, &duplicateHistogram);
 
   plotHistogramsRatio(duplicateHistogram, duplicateAndCorrectHistogram, binsEdges,
-      "benchmarks/transverse_momentum/DuplicateOverCorrectRoadsBenchmark.pdf",
-      "Duplicate Over Correct Roads Histogram");
+      outputFolder + "DuplicateOverCorrectRoadsBenchmark.pdf", "Duplicate Over Correct Roads Histogram");
 }
 
-int main()
+int main(int argc, char** argv)
 {
+  std::string inputFolder { "" };
+  std::string outputFolder { "" };
 
-  plotTransverseMomentumBenchmark();
+  if (argv[1] != NULL) {
+
+    inputFolder = std::string(argv[1]);
+  }
+
+  if (argv[2] != NULL) {
+
+    outputFolder = std::string(argv[2]);
+  }
+
+  plotTransverseMomentumBenchmark(inputFolder, outputFolder);
 }
