@@ -51,19 +51,10 @@ int main(int argc, char** argv)
 
     CAEvent& currentEvent = events[iEvent];
 
-    std::cout << "Sorting clusters for event " << iEvent + 1 << std::endl;
-    t1 = clock();
-
-    currentEvent.sortClusters();
-
-    t2 = clock();
-    const float sortingDiff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
-    std::cout << "Clusters sorted in " << sortingDiff << "ms" << std::endl;
-
     std::cout << "Processing event " << iEvent + 1 << ":" << std::endl;
     t1 = clock();
 
-    std::vector<CARoad> roads = CATracker(currentEvent).clustersToTracksVerbose();
+    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksVerbose();
 
     t2 = clock();
     const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
@@ -79,10 +70,12 @@ int main(int argc, char** argv)
 
     if (createBenchmarkData) {
 
-      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
-          labelsMap[iEvent]);
-    }
+      for(auto& currentVertexRoads : roads) {
 
+        CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, currentVertexRoads,
+          labelsMap[iEvent]);
+      }
+    }
   }
 
   std::cout << std::endl;

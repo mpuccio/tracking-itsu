@@ -21,11 +21,13 @@
 
 #include <array>
 
+#include "CAArrayUtils.h"
+
 namespace CAConstants {
 
 namespace Math {
-constexpr float Pi { 3.14159265359 };
-constexpr float TwoPi { 2.0 * Pi };
+constexpr float Pi { 3.14159265359f };
+constexpr float TwoPi { 2.0f * Pi };
 constexpr float FloatMinThreshold { 1e-20f };
 }
 
@@ -61,8 +63,8 @@ namespace IndexTable {
 constexpr int ZBins { 20 };
 constexpr int PhiBins { 20 };
 constexpr float InversePhiBinSize { CAConstants::IndexTable::PhiBins / CAConstants::Math::TwoPi };
-constexpr std::array<float, ITS::LayersNumber> InverseZBinSize { { 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f, 0.5
-    * ZBins / 16.333f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 73.745f, 0.5 * ZBins / 73.745f } };
+constexpr float getInverseBinSize(const int layerIndex) { return 0.5f * ZBins / ITS::LayersZCoordinate[layerIndex]; };
+constexpr std::array<float, ITS::LayersNumber> InverseZBinSize { CAArrayUtils::fillArray<float, ITS::LayersNumber>(getInverseBinSize)};
 }
 namespace PDGCodes {
 constexpr int PionCode { 211 };

@@ -1,5 +1,5 @@
-/// \file CACluster.cxx
-/// \brief 
+/// \file CAPrimaryVertexDependentCluster.cxx
+/// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
 ///
@@ -16,16 +16,18 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CACluster.h"
-
-#include <cmath>
+#include "CAPrimaryVertexDependentCluster.h"
 
 #include "CAIndexTableUtils.h"
 #include "CAMathUtils.h"
 
-CACluster::CACluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
-    const float alphaAngle, const int monteCarlo)
-    : mClusterId { clusterId }, mXCoordinate { xCoordinate }, mYCoordinate { yCoordinate }, mZCoordinate { zCoordinate }, mAlphaAngle {
-        alphaAngle }, mMonteCarloId { monteCarlo }
+CAPrimaryVertexDependentCluster::CAPrimaryVertexDependentCluster(const int layerIndex,
+    const std::array<float, 3>& primaryVertex, const CACluster& cluster)
+    : mNativeCluster{&cluster}, mPhiCoordinate { CAMathUtils::getNormalizedPhiCoordinate(
+        CAMathUtils::calculatePhiCoordinate(cluster.getXCoordinate() - primaryVertex[0], cluster.getYCoordinate() - primaryVertex[1])) }, mRCoordinate {
+        CAMathUtils::calculateRCoordinate(cluster.getXCoordinate() - primaryVertex[0], cluster.getYCoordinate() - primaryVertex[1]) }, mIndexTableBinIndex {
+        CAIndexTableUtils::getBinIndex(CAIndexTableUtils::getZBinIndex(layerIndex, cluster.getZCoordinate()),
+            CAIndexTableUtils::getPhiBinIndex(mPhiCoordinate)) }
 {
+  // Nothing to do
 }

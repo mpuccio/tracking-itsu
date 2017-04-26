@@ -24,12 +24,13 @@
 #include "CAConstants.h"
 #include "CALayer.h"
 #include "CAMathUtils.h"
+#include "CAPrimaryVertexDependentCluster.h"
 
 class CAIndexTable final
 {
   public:
     CAIndexTable();
-    CAIndexTable(const CALayer&);
+    CAIndexTable(const int, const std::vector<CAPrimaryVertexDependentCluster>&);
 
     const int getBin(const int) const;
 

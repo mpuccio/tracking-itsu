@@ -1,4 +1,4 @@
-/// \file CATrackerContext.h
+/// \file CAPrimaryVertexContext.h
 /// \brief 
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -20,11 +20,19 @@
 
 #include "CATracklet.h"
 #include "CACell.h"
+#include "CAEvent.h"
+#include "CAIndexTable.h"
+#include "CAPrimaryVertexDependentCluster.h"
 #include "CARoad.h"
 
-struct CATrackerContext final
+struct CAPrimaryVertexContext final
 {
-    explicit CATrackerContext() = default;
+    explicit CAPrimaryVertexContext(const CAEvent&, const int);
+
+    const int primaryVertexIndex;
+
+    std::array<std::vector<CAPrimaryVertexDependentCluster>, CAConstants::ITS::LayersNumber> clusters;
+    std::array<CAIndexTable, CAConstants::ITS::TrackletsPerRoad> indexTables;
 
     std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;

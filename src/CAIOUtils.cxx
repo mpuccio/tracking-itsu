@@ -49,7 +49,7 @@ std::vector<CAEvent> CAIOUtils::loadEventData(const std::string& fileName)
       if (layerId == PrimaryVertexLayerId) {
 
         events.emplace_back(events.size());
-        events.back().setPrimaryVertex(xCoordinate, yCoordinate, zCoordinate);
+        events.back().addPrimaryVertex(xCoordinate, yCoordinate, zCoordinate);
 
         clusterId = 0;
 

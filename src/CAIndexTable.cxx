@@ -18,8 +18,6 @@
 
 #include "CAIndexTable.h"
 
-#include <functional>
-
 #include "CAIndexTableUtils.h"
 
 CAIndexTable::CAIndexTable()
@@ -27,18 +25,16 @@ CAIndexTable::CAIndexTable()
 {
 }
 
-CAIndexTable::CAIndexTable(const CALayer& layer)
-    : mLayerIndex { layer.getLayerIndex() }
+CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CAPrimaryVertexDependentCluster>& clusters)
+    : mLayerIndex { layerIndex }
 {
-  int layerClustersNum = layer.getClustersSize();
-
+  const int layerClustersNum = clusters.size();
   int previousBinIndex = 0;
   mTableBins[0] = 0;
 
   for (int iCluster = 1; iCluster < layerClustersNum; ++iCluster) {
 
-    const CACluster& currentCluster = layer.getCluster(iCluster);
-    const int currentBinIndex = currentCluster.indexTableBinIndex;
+    const int currentBinIndex = clusters[iCluster].getIndexTableBinIndex();
 
     if (currentBinIndex > previousBinIndex) {
 

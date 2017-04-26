@@ -24,7 +24,7 @@
 #include "CAConstants.h"
 #include "CAEvent.h"
 #include "CAIndexTable.h"
-#include "CATrackerContext.h"
+#include "CAPrimaryVertexContext.h"
 
 class CATracker final
 {
@@ -34,21 +34,20 @@ class CATracker final
     CATracker(const CATracker&) = delete;
     CATracker &operator=(const CATracker&) = delete;
 
-    std::vector<CARoad> clustersToTracks();
-    std::vector<CARoad> clustersToTracksVerbose();
+    std::vector<std::vector<CARoad>> clustersToTracks();
+    std::vector<std::vector<CARoad>> clustersToTracksVerbose();
 
   protected:
-    void computeTracklets(CATrackerContext&);
-    void computeCells(CATrackerContext&);
-    void findCellsNeighbours(CATrackerContext&);
-    void findTracks(CATrackerContext&);
-    void traverseCellsTree(CATrackerContext&, const int, const int);
-    void computeMontecarloLabels(CATrackerContext&);
+    void computeTracklets(CAPrimaryVertexContext&);
+    void computeCells(CAPrimaryVertexContext&);
+    void findCellsNeighbours(CAPrimaryVertexContext&);
+    void findTracks(CAPrimaryVertexContext&);
+    void traverseCellsTree(CAPrimaryVertexContext&, const int, const int);
+    void computeMontecarloLabels(CAPrimaryVertexContext&);
 
   private:
     const CAEvent& mEvent;
     std::vector<int> mUsedClustersTable;
-    std::array<CAIndexTable, CAConstants::ITS::TrackletsPerRoad> mIndexTables;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */
