@@ -63,8 +63,13 @@ namespace IndexTable {
 constexpr int ZBins { 20 };
 constexpr int PhiBins { 20 };
 constexpr float InversePhiBinSize { CAConstants::IndexTable::PhiBins / CAConstants::Math::TwoPi };
-constexpr float getInverseBinSize(const int layerIndex) { return 0.5f * ZBins / ITS::LayersZCoordinate[layerIndex]; };
-constexpr std::array<float, ITS::LayersNumber> InverseZBinSize { CAArrayUtils::fillArray<float, ITS::LayersNumber>(getInverseBinSize)};
+constexpr float getInverseBinSize(const int layerIndex)
+{
+  return 0.5f * ZBins / ITS::LayersZCoordinate[layerIndex];
+}
+;
+constexpr std::array<float, ITS::LayersNumber> InverseZBinSize { CAArrayUtils::fillArray<float, ITS::LayersNumber>(
+    getInverseBinSize) };
 }
 namespace PDGCodes {
 constexpr int PionCode { 211 };

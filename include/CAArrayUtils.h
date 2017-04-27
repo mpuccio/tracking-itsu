@@ -20,6 +20,7 @@
 #define TRACKINGITSU_INCLUDE_CAARRAYUTILS_H_
 
 #include <array>
+#include <cstddef>
 #include <utility>
 
 namespace CAArrayUtils {

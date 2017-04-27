@@ -21,10 +21,10 @@
 
 #include <vector>
 
-#include "CAConstants.h"
-#include "CAEvent.h"
-#include "CAIndexTable.h"
-#include "CAPrimaryVertexContext.h"
+#include "CARoad.h"
+
+class CAEvent;
+struct CAPrimaryVertexContext;
 
 class CATracker final
 {
@@ -36,6 +36,7 @@ class CATracker final
 
     std::vector<std::vector<CARoad>> clustersToTracks();
     std::vector<std::vector<CARoad>> clustersToTracksVerbose();
+    std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark();
 
   protected:
     void computeTracklets(CAPrimaryVertexContext&);

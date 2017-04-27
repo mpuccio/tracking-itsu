@@ -20,6 +20,7 @@
 #define TRACKINGITSU_INCLUDE_CAEVENT_H_
 
 #include <array>
+#include <vector>
 
 #include "CAConstants.h"
 #include "CALayer.h"
@@ -61,7 +62,8 @@ inline const CALayer& CAEvent::getLayer(const int layerIndex) const
   return mLayers[layerIndex];
 }
 
-inline int CAEvent::getPrimaryVerticesNum() const {
+inline int CAEvent::getPrimaryVerticesNum() const
+{
 
   return mPrimaryVertices.size();
 }

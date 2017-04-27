@@ -23,9 +23,10 @@
 
 CAPrimaryVertexDependentCluster::CAPrimaryVertexDependentCluster(const int layerIndex,
     const std::array<float, 3>& primaryVertex, const CACluster& cluster)
-    : mNativeCluster{&cluster}, mPhiCoordinate { CAMathUtils::getNormalizedPhiCoordinate(
-        CAMathUtils::calculatePhiCoordinate(cluster.getXCoordinate() - primaryVertex[0], cluster.getYCoordinate() - primaryVertex[1])) }, mRCoordinate {
-        CAMathUtils::calculateRCoordinate(cluster.getXCoordinate() - primaryVertex[0], cluster.getYCoordinate() - primaryVertex[1]) }, mIndexTableBinIndex {
+    : mNativeCluster { &cluster }, mPhiCoordinate { CAMathUtils::getNormalizedPhiCoordinate(
+        CAMathUtils::calculatePhiCoordinate(cluster.getXCoordinate() - primaryVertex[0],
+            cluster.getYCoordinate() - primaryVertex[1])) }, mRCoordinate { CAMathUtils::calculateRCoordinate(
+        cluster.getXCoordinate() - primaryVertex[0], cluster.getYCoordinate() - primaryVertex[1]) }, mIndexTableBinIndex {
         CAIndexTableUtils::getBinIndex(CAIndexTableUtils::getZBinIndex(layerIndex, cluster.getZCoordinate()),
             CAIndexTableUtils::getPhiBinIndex(mPhiCoordinate)) }
 {

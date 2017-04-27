@@ -20,10 +20,9 @@
 #define TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_
 
 #include <array>
+#include <vector>
 
 #include "CAConstants.h"
-#include "CALayer.h"
-#include "CAMathUtils.h"
 #include "CAPrimaryVertexDependentCluster.h"
 
 class CAIndexTable final

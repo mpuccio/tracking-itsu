@@ -25,7 +25,7 @@
 
 class CAPrimaryVertexDependentCluster final
 {
-public:
+  public:
     CAPrimaryVertexDependentCluster(const int, const std::array<float, 3>&, const CACluster&);
 
     const int getClusterId() const;
@@ -38,7 +38,7 @@ public:
     const float getRCoordinate() const;
     const int getIndexTableBinIndex() const;
 
-private:
+  private:
     const CACluster *mNativeCluster;
     float mPhiCoordinate;
     float mRCoordinate;

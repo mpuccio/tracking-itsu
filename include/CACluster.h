@@ -21,7 +21,7 @@
 
 class CACluster final
 {
-public:
+  public:
     CACluster(const int, const float, const float, const float, const float, const int);
 
     const int getClusterId() const;
@@ -31,7 +31,7 @@ public:
     const float getAlphaAngle() const;
     const int getMonteCarloId() const;
 
-private:
+  private:
     int mClusterId;
     float mXCoordinate;
     float mYCoordinate;

@@ -20,6 +20,9 @@
 
 #include <algorithm>
 
+#include "CAEvent.h"
+#include "CALayer.h"
+
 CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
     : primaryVertexIndex { primaryVertexIndex }
 {
@@ -27,6 +30,7 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
 
     const CALayer& currentLayer = event.getLayer(iLayer);
     const int clustersNum = currentLayer.getClustersSize();
+    clusters[iLayer].reserve(clustersNum);
 
     for (int iCluster = 0; iCluster < clustersNum; ++iCluster) {
 
@@ -39,7 +43,7 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
           return cluster1.getIndexTableBinIndex() < cluster2.getIndexTableBinIndex();
         });
 
-    if(iLayer > 0) {
+    if (iLayer > 0) {
 
       indexTables[iLayer - 1] = CAIndexTable(iLayer, clusters[iLayer]);
     }

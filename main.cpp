@@ -25,11 +25,16 @@ int main(int argc, char** argv)
   std::vector<CAEvent> events = CAIOUtils::loadEventData(eventsFileName);
   const int eventsNum = events.size();
   std::vector<std::unordered_map<int, CALabel>> labelsMap;
-
   bool createBenchmarkData = false;
   std::ofstream correctRoadsOutputStream;
   std::ofstream duplicateRoadsOutputStream;
   std::ofstream fakeRoadsOutputStream;
+
+  int verticesNum = 0;
+  for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
+
+    verticesNum += events[iEvent].getPrimaryVerticesNum();
+  }
 
   if (argv[2] != NULL) {
 
@@ -51,10 +56,10 @@ int main(int argc, char** argv)
 
     CAEvent& currentEvent = events[iEvent];
 
-    std::cout << "Processing event " << iEvent + 1 << ":" << std::endl;
+//    std::cout << "Processing event " << iEvent + 1 << ":" << std::endl;
     t1 = clock();
 
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksVerbose();
+    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark();
 
     t2 = clock();
     const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
@@ -66,22 +71,22 @@ int main(int argc, char** argv)
     if (maxTime < diff)
       maxTime = diff;
 
-    std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
+//    std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
 
     if (createBenchmarkData) {
 
-      for(auto& currentVertexRoads : roads) {
+      for (auto& currentVertexRoads : roads) {
 
-        CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, currentVertexRoads,
-          labelsMap[iEvent]);
+        CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream,
+            currentVertexRoads, labelsMap[iEvent]);
       }
     }
   }
 
-  std::cout << std::endl;
-  std::cout << "Avg time: " << totalTime / eventsNum << "ms" << std::endl;
-  std::cout << "Min time: " << minTime << "ms" << std::endl;
-  std::cout << "Max time: " << maxTime << "ms" << std::endl;
+//  std::cout << std::endl;
+//  std::cout << "Avg time: " << totalTime / verticesNum << "ms" << std::endl;
+//  std::cout << "Min time: " << minTime << "ms" << std::endl;
+//  std::cout << "Max time: " << maxTime << "ms" << std::endl;
 
   return 0;
 }

@@ -18,7 +18,10 @@
 
 #include "CAIndexTable.h"
 
+#include <algorithm>
+
 #include "CAIndexTableUtils.h"
+#include "CAMathUtils.h"
 
 CAIndexTable::CAIndexTable()
     : mLayerIndex { CAConstants::ITS::UnusedIndex }
@@ -38,7 +41,7 @@ CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CAPrimaryVert
 
     if (currentBinIndex > previousBinIndex) {
 
-      for (int iBin = previousBinIndex + 1; iBin <= currentBinIndex; iBin++) {
+      for (int iBin = previousBinIndex + 1; iBin <= currentBinIndex; ++iBin) {
 
         mTableBins[iBin] = iCluster;
       }

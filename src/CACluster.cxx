@@ -18,11 +18,6 @@
 
 #include "CACluster.h"
 
-#include <cmath>
-
-#include "CAIndexTableUtils.h"
-#include "CAMathUtils.h"
-
 CACluster::CACluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
     const float alphaAngle, const int monteCarlo)
     : mClusterId { clusterId }, mXCoordinate { xCoordinate }, mYCoordinate { yCoordinate }, mZCoordinate { zCoordinate }, mAlphaAngle {

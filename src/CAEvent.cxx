@@ -18,7 +18,6 @@
 
 #include "CAEvent.h"
 
-#include <initializer_list>
 #include <iostream>
 
 CAEvent::CAEvent(const int eventId)
@@ -32,7 +31,7 @@ CAEvent::CAEvent(const int eventId)
 
 void CAEvent::addPrimaryVertex(const float xCoordinate, const float yCoordinate, const float zCoordinate)
 {
-  mPrimaryVertices.emplace_back(std::array<float, 3>{ { xCoordinate, yCoordinate, zCoordinate } });
+  mPrimaryVertices.emplace_back(std::array<float, 3> { { xCoordinate, yCoordinate, zCoordinate } });
 }
 
 void CAEvent::printPrimaryVertices() const

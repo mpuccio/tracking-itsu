@@ -75,7 +75,7 @@ void plotTransverseMomentumBenchmark(const std::string& inputFolder, const std::
 
   TH1F generatedHistogram("plot-transverse-momentum-benchmark.generated-histogram", "Generated Histogram", BinNumber,
       binsEdges.data());
-  loadBinsFromFile(inputFolder + "labels.txt", generatedHistogram);
+  loadBinsFromFile(inputFolder + "merged_labels.txt", generatedHistogram);
 
   TH1F correctHistogram("plot-transverse-momentum-benchmark.correct-histogram", "Correct Histogram", BinNumber,
       binsEdges.data());

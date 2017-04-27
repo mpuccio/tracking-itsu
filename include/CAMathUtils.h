@@ -19,7 +19,8 @@
 #ifndef TRACKINGITSU_INCLUDE_CAUTILS_H_
 #define TRACKINGITSU_INCLUDE_CAUTILS_H_
 
-#include "CACluster.h"
+#include <array>
+
 #include "CAConstants.h"
 
 namespace CAMathUtils {

@@ -18,12 +18,17 @@
 #ifndef TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
 #define TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
 
-#include "CATracklet.h"
+#include <array>
+#include <vector>
+
 #include "CACell.h"
-#include "CAEvent.h"
+#include "CAConstants.h"
 #include "CAIndexTable.h"
 #include "CAPrimaryVertexDependentCluster.h"
 #include "CARoad.h"
+#include "CATracklet.h"
+
+class CAEvent;
 
 struct CAPrimaryVertexContext final
 {

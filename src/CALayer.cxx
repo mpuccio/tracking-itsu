@@ -18,10 +18,7 @@
 
 #include "CALayer.h"
 
-#include <algorithm>
-
 #include "CAConstants.h"
-#include "CAIndexTableUtils.h"
 
 CALayer::CALayer()
     : mLayerIndex { CAConstants::ITS::UnusedIndex }
