@@ -28,7 +28,7 @@ CAIndexTable::CAIndexTable()
 {
 }
 
-CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CAPrimaryVertexDependentCluster>& clusters)
+CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CACluster>& clusters)
     : mLayerIndex { layerIndex }
 {
   const int layerClustersNum = clusters.size();
@@ -37,7 +37,7 @@ CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CAPrimaryVert
 
   for (int iCluster = 1; iCluster < layerClustersNum; ++iCluster) {
 
-    const int currentBinIndex = clusters[iCluster].getIndexTableBinIndex();
+    const int currentBinIndex = clusters[iCluster].indexTableBinIndex;
 
     if (currentBinIndex > previousBinIndex) {
 

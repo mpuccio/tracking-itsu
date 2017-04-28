@@ -9,7 +9,6 @@ set(SRCS
   CALayer.cxx
   CAIndexTable.cxx
   CAPrimaryVertexContext.cxx
-  CAPrimaryVertexDependentCluster.cxx
   CARoad.cxx
   CATracker.cxx
   CATracklet.cxx

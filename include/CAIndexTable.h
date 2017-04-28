@@ -22,14 +22,14 @@
 #include <array>
 #include <vector>
 
-#include "CAConstants.h"
-#include "CAPrimaryVertexDependentCluster.h"
+#include <CACluster.h>
+#include <CAConstants.h>
 
 class CAIndexTable final
 {
   public:
     CAIndexTable();
-    CAIndexTable(const int, const std::vector<CAPrimaryVertexDependentCluster>&);
+    CAIndexTable(const int, const std::vector<CACluster>&);
 
     const int getBin(const int) const;
 

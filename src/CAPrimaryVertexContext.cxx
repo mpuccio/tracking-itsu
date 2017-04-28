@@ -39,8 +39,8 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
     }
 
     std::sort(clusters[iLayer].begin(), clusters[iLayer].end(),
-        [](CAPrimaryVertexDependentCluster& cluster1, CAPrimaryVertexDependentCluster& cluster2) {
-          return cluster1.getIndexTableBinIndex() < cluster2.getIndexTableBinIndex();
+        [](CACluster& cluster1, CACluster& cluster2) {
+          return cluster1.indexTableBinIndex < cluster2.indexTableBinIndex;
         });
 
     if (iLayer > 0) {

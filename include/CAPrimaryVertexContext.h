@@ -24,7 +24,6 @@
 #include "CACell.h"
 #include "CAConstants.h"
 #include "CAIndexTable.h"
-#include "CAPrimaryVertexDependentCluster.h"
 #include "CARoad.h"
 #include "CATracklet.h"
 
@@ -36,7 +35,7 @@ struct CAPrimaryVertexContext final
 
     const int primaryVertexIndex;
 
-    std::array<std::vector<CAPrimaryVertexDependentCluster>, CAConstants::ITS::LayersNumber> clusters;
+    std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> clusters;
     std::array<CAIndexTable, CAConstants::ITS::TrackletsPerRoad> indexTables;
 
     std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;

@@ -40,6 +40,7 @@ doxygen/generated
 Debug
 Release
 Profile
+MemoryBenchmark
 
 # Benchmark data folders
 benchmarks/benchmark_data

@@ -19,55 +19,22 @@
 #ifndef TRACKINGITSU_INCLUDE_CACLUSTER_H_
 #define TRACKINGITSU_INCLUDE_CACLUSTER_H_
 
-class CACluster final
+#include <array>
+
+struct CACluster final
 {
-  public:
     CACluster(const int, const float, const float, const float, const float, const int);
+    CACluster(const int, const std::array<float, 3>&, const CACluster&);
 
-    const int getClusterId() const;
-    const float getXCoordinate() const;
-    const float getYCoordinate() const;
-    const float getZCoordinate() const;
-    const float getAlphaAngle() const;
-    const int getMonteCarloId() const;
-
-  private:
-    int mClusterId;
-    float mXCoordinate;
-    float mYCoordinate;
-    float mZCoordinate;
-    float mAlphaAngle;
-    int mMonteCarloId;
+    int clusterId;
+    float xCoordinate;
+    float yCoordinate;
+    float zCoordinate;
+    float alphaAngle;
+    int monteCarloId;
+    float phiCoordinate;
+    float rCoordinate;
+    int indexTableBinIndex;
 };
-
-inline const int CACluster::getClusterId() const
-{
-  return mClusterId;
-}
-
-inline const float CACluster::getXCoordinate() const
-{
-  return mXCoordinate;
-}
-
-inline const float CACluster::getYCoordinate() const
-{
-  return mYCoordinate;
-}
-
-inline const float CACluster::getZCoordinate() const
-{
-  return mZCoordinate;
-}
-
-inline const float CACluster::getAlphaAngle() const
-{
-  return mAlphaAngle;
-}
-
-inline const int CACluster::getMonteCarloId() const
-{
-  return mMonteCarloId;
-}
 
 #endif /* TRACKINGITSU_INCLUDE_CACLUSTER_H_ */
