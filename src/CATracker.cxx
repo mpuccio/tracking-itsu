@@ -21,6 +21,7 @@
 #include <array>
 #include <cmath>
 #include <ctime>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 
@@ -112,7 +113,7 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracksVerbose()
   return roads;
 }
 
-std::vector<std::vector<CARoad>> CATracker::clustersToTracksMemoryBenchmark()
+std::vector<std::vector<CARoad>> CATracker::clustersToTracksMemoryBenchmark(std::ofstream& memoryBenchmarkOutputStream)
 {
   const int verticesNum = mEvent.getPrimaryVerticesNum();
   std::vector<std::vector<CARoad>> roads;
@@ -132,24 +133,24 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracksMemoryBenchmark()
 
     for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
-      std::cout << primaryVertexContext.clusters[iLayer].size() << "\t";
+      memoryBenchmarkOutputStream << primaryVertexContext.clusters[iLayer].size() << "\t";
     }
 
-    std::cout << std::endl;
+    memoryBenchmarkOutputStream << std::endl;
 
     for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
-      std::cout << primaryVertexContext.tracklets[iLayer].size() << "\t";
+      memoryBenchmarkOutputStream << primaryVertexContext.tracklets[iLayer].size() << "\t";
     }
 
-    std::cout << std::endl;
+    memoryBenchmarkOutputStream << std::endl;
 
     for (int iLayer = 0; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
-      std::cout << primaryVertexContext.cells[iLayer].size() << "\t";
+      memoryBenchmarkOutputStream << primaryVertexContext.cells[iLayer].size() << "\t";
     }
 
-    std::cout << std::endl << primaryVertexContext.roads.size() << std::endl;
+    memoryBenchmarkOutputStream << std::endl << primaryVertexContext.roads.size() << std::endl;
   }
 
   return roads;

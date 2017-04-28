@@ -45,3 +45,4 @@ MemoryBenchmark
 # Benchmark data folders
 benchmarks/benchmark_data
 benchmarks/transverse_momentum
+benchmarks/memory_efficiency

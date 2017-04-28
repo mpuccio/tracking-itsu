@@ -22,6 +22,7 @@ int main(int argc, char** argv)
   }
 
   std::string eventsFileName(argv[1]);
+  std::string benchmarkFolderName = getDirectory(eventsFileName);
   std::vector<CAEvent> events = CAIOUtils::loadEventData(eventsFileName);
   const int eventsNum = events.size();
   std::vector<std::unordered_map<int, CALabel>> labelsMap;
@@ -38,10 +39,9 @@ int main(int argc, char** argv)
 
   if (argv[2] != NULL) {
 
-    createBenchmarkData = true;
-
     std::string labelsFileName(argv[2]);
-    std::string benchmarkFolderName = getDirectory(labelsFileName);
+
+    createBenchmarkData = true;
     labelsMap = CAIOUtils::loadLabels(eventsNum, labelsFileName);
 
     correctRoadsOutputStream.open(benchmarkFolderName + "CorrectRoads.txt");
@@ -49,17 +49,25 @@ int main(int argc, char** argv)
     fakeRoadsOutputStream.open(benchmarkFolderName + "FakeRoads.txt");
   }
 
-  clock_t t1, t2;
-  float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
+#if defined MEMORY_BENCHMARK
+  std::ofstream memoryBenchmarkOutputStream;
+  memoryBenchmarkOutputStream.open(benchmarkFolderName + "MemoryOccupancy.txt");
+#endif
+
 
   for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
 
     CAEvent& currentEvent = events[iEvent];
+    std::cout << "Processing event " << iEvent + 1 << std::endl;
 
-//    std::cout << "Processing event " << iEvent + 1 << ":" << std::endl;
+#if defined DEBUG
+    clock_t t1, t2;
+    float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
+
     t1 = clock();
 
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark();
+
+    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksVerbose();
 
     t2 = clock();
     const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
@@ -71,7 +79,12 @@ int main(int argc, char** argv)
     if (maxTime < diff)
       maxTime = diff;
 
-//    std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
+    std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
+#elif defined MEMORY_BENCHMARK
+    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
+#else
+    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
+#endif
 
     if (createBenchmarkData) {
 
@@ -83,10 +96,12 @@ int main(int argc, char** argv)
     }
   }
 
-//  std::cout << std::endl;
-//  std::cout << "Avg time: " << totalTime / verticesNum << "ms" << std::endl;
-//  std::cout << "Min time: " << minTime << "ms" << std::endl;
-//  std::cout << "Max time: " << maxTime << "ms" << std::endl;
+#if defined DEBUG
+  std::cout << std::endl;
+  std::cout << "Avg time: " << totalTime / verticesNum << "ms" << std::endl;
+  std::cout << "Min time: " << minTime << "ms" << std::endl;
+  std::cout << "Max time: " << maxTime << "ms" << std::endl;
+#endif
 
   return 0;
 }

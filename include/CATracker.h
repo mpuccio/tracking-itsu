@@ -19,6 +19,7 @@
 #ifndef TRACKINGITSU_INCLUDE_CATRACKER_H_
 #define TRACKINGITSU_INCLUDE_CATRACKER_H_
 
+#include <iostream>
 #include <vector>
 
 #include "CARoad.h"
@@ -36,7 +37,7 @@ class CATracker final
 
     std::vector<std::vector<CARoad>> clustersToTracks();
     std::vector<std::vector<CARoad>> clustersToTracksVerbose();
-    std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark();
+    std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark(std::ofstream&);
 
   protected:
     void computeTracklets(CAPrimaryVertexContext&);
