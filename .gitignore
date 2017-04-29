@@ -40,7 +40,9 @@ doxygen/generated
 Debug
 Release
 Profile
+MemoryBenchmark
 
 # Benchmark data folders
 benchmarks/benchmark_data
 benchmarks/transverse_momentum
+benchmarks/memory_occupancy

@@ -53,8 +53,8 @@ constexpr int CAIndexTableUtils::getPhiBinIndex(const float currentPhi)
 
 constexpr int CAIndexTableUtils::getBinIndex(const int zIndex, const int phiIndex)
 {
-
-  return phiIndex * CAConstants::IndexTable::PhiBins + zIndex;
+  return std::min(phiIndex * CAConstants::IndexTable::PhiBins + zIndex,
+      CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins);
 }
 
 #endif /* TRACKINGITSU_CAINDEXTABLEUTILS_H_ */

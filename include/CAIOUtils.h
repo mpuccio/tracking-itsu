@@ -19,7 +19,10 @@
 #ifndef TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_
 #define TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_
 
+#include <iostream>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "CAEvent.h"
 #include "CALabel.h"

@@ -20,16 +20,16 @@
 #define TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_
 
 #include <array>
+#include <vector>
 
-#include "CAConstants.h"
-#include "CALayer.h"
-#include "CAMathUtils.h"
+#include <CACluster.h>
+#include <CAConstants.h>
 
 class CAIndexTable final
 {
   public:
     CAIndexTable();
-    CAIndexTable(const CALayer&);
+    CAIndexTable(const int, const std::vector<CACluster>&);
 
     const int getBin(const int) const;
 

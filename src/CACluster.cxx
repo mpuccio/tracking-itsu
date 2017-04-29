@@ -16,19 +16,25 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CACluster.h"
+#include <CACluster.h>
 
-#include <cmath>
+#include <CAIndexTableUtils.h>
+#include <CAMathUtils.h>
 
-#include "CAIndexTableUtils.h"
-#include "CAMathUtils.h"
+CACluster::CACluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
+    const float alphaAngle, const int monteCarloId)
+    : clusterId { clusterId }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, alphaAngle {
+        alphaAngle }, monteCarloId { monteCarloId }, phiCoordinate { 0 }, rCoordinate { 0 }, indexTableBinIndex { 0 }
+{
+}
 
-CACluster::CACluster(const int layerIndex, const int clusterId, const float xCoordinate, const float yCoordinate,
-    const float zCoordinate, const float alphaAngle, const int monteCarlo)
-    : clusterId { clusterId }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate {
-        CAMathUtils::getNormalizedPhiCoordinate(CAMathUtils::calculatePhiCoordinate(xCoordinate, yCoordinate)) }, rCoordinate {
-        CAMathUtils::calculateRCoordinate(xCoordinate, yCoordinate) }, alphaAngle { alphaAngle }, monteCarlo {
-        monteCarlo }, indexTableBinIndex { CAIndexTableUtils::getBinIndex(
-        CAIndexTableUtils::getZBinIndex(layerIndex, zCoordinate), CAIndexTableUtils::getPhiBinIndex(phiCoordinate)) }
+CACluster::CACluster(const int layerIndex, const std::array<float, 3> &primaryVertex, const CACluster& other)
+    : clusterId { other.clusterId }, xCoordinate { other.xCoordinate }, yCoordinate { other.yCoordinate }, zCoordinate {
+        other.zCoordinate }, alphaAngle { other.alphaAngle }, monteCarloId { other.monteCarloId }, phiCoordinate {
+        CAMathUtils::getNormalizedPhiCoordinate(
+            CAMathUtils::calculatePhiCoordinate(xCoordinate - primaryVertex[0], yCoordinate - primaryVertex[1])) }, rCoordinate {
+        CAMathUtils::calculateRCoordinate(xCoordinate - primaryVertex[0], yCoordinate - primaryVertex[1]) }, indexTableBinIndex {
+        CAIndexTableUtils::getBinIndex(CAIndexTableUtils::getZBinIndex(layerIndex, zCoordinate),
+            CAIndexTableUtils::getPhiBinIndex(phiCoordinate)) }
 {
 }

@@ -18,31 +18,30 @@
 
 #include "CAIndexTable.h"
 
-#include <functional>
+#include <algorithm>
 
 #include "CAIndexTableUtils.h"
+#include "CAMathUtils.h"
 
 CAIndexTable::CAIndexTable()
     : mLayerIndex { CAConstants::ITS::UnusedIndex }
 {
 }
 
-CAIndexTable::CAIndexTable(const CALayer& layer)
-    : mLayerIndex { layer.getLayerIndex() }
+CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CACluster>& clusters)
+    : mLayerIndex { layerIndex }
 {
-  int layerClustersNum = layer.getClustersSize();
-
+  const int layerClustersNum = clusters.size();
   int previousBinIndex = 0;
   mTableBins[0] = 0;
 
   for (int iCluster = 1; iCluster < layerClustersNum; ++iCluster) {
 
-    const CACluster& currentCluster = layer.getCluster(iCluster);
-    const int currentBinIndex = currentCluster.indexTableBinIndex;
+    const int currentBinIndex = clusters[iCluster].indexTableBinIndex;
 
     if (currentBinIndex > previousBinIndex) {
 
-      for (int iBin = previousBinIndex + 1; iBin <= currentBinIndex; iBin++) {
+      for (int iBin = previousBinIndex + 1; iBin <= currentBinIndex; ++iBin) {
 
         mTableBins[iBin] = iCluster;
       }

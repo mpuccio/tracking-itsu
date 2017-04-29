@@ -34,7 +34,6 @@ class CALayer final
     int getClustersSize() const;
 
     void addCluster(const int, const float, const float, const float, const float, const int);
-    void sortClusters();
 
   private:
     int mLayerIndex;

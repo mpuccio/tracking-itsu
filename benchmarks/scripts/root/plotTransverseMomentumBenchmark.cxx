@@ -1,3 +1,25 @@
+/// \file plotTransverseMomentumBenchmark.cxx
+/// \brief
+///
+/// \author Iacopo Colonnelli, Politecnico di Torino
+
+/***************************************************************************
+ *  Copyright (C) 2017  Iacopo Colonnelli
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ***************************************************************************/
+
 #include <array>
 #include <cmath>
 #include <fstream>
@@ -15,7 +37,7 @@ constexpr int EventLabelsSeparator { -1 };
 constexpr int PionCode { 211 };
 }
 
-void loadBinsFromFile(const std::string& fileName, TH1F& histogram)
+void loadData(const std::string& fileName, TH1F& histogram)
 {
   std::ifstream inputStream;
   std::string line;
@@ -65,6 +87,8 @@ void plotHistogramsRatio(TH1F& numeratorHistogram, TH1F& denominatorHistogram,
 
 void plotTransverseMomentumBenchmark(const std::string& inputFolder, const std::string& outputFolder)
 {
+  std::string histogramPrefix = "plot-transverse-momentum-benchmark";
+
   float binSize = std::log(MaxTransverseMomentum / MinTransverseMomentum) / BinNumber;
   std::array<float, BinNumber + 1> binsEdges;
 
@@ -73,32 +97,32 @@ void plotTransverseMomentumBenchmark(const std::string& inputFolder, const std::
     binsEdges[iBin] = MinTransverseMomentum * std::exp(iBin * binSize);
   }
 
-  TH1F generatedHistogram("plot-transverse-momentum-benchmark.generated-histogram", "Generated Histogram", BinNumber,
+  TH1F generatedHistogram((histogramPrefix + ".generated-histogram").c_str(), "Generated Histogram", BinNumber,
       binsEdges.data());
-  loadBinsFromFile(inputFolder + "labels.txt", generatedHistogram);
+  loadData(inputFolder + "merged_labels.txt", generatedHistogram);
 
-  TH1F correctHistogram("plot-transverse-momentum-benchmark.correct-histogram", "Correct Histogram", BinNumber,
+  TH1F correctHistogram((histogramPrefix + ".correct-histogram").c_str(), "Correct Histogram", BinNumber,
       binsEdges.data());
-  loadBinsFromFile(inputFolder + "CorrectRoads.txt", correctHistogram);
+  loadData(inputFolder + "CorrectRoads.txt", correctHistogram);
 
   plotHistogramsRatio(correctHistogram, generatedHistogram, binsEdges, outputFolder + "CorrectRoadsBenchmark.pdf",
       "Correct Roads Histogram");
 
-  TH1F duplicateHistogram("plot-transverse-momentum-benchmark.duplicate-histogram", "Duplicate Histogram", BinNumber,
+  TH1F duplicateHistogram((histogramPrefix + ".duplicate-histogram").c_str(), "Duplicate Histogram", BinNumber,
       binsEdges.data());
-  loadBinsFromFile(inputFolder + "DuplicateRoads.txt", duplicateHistogram);
+  loadData(inputFolder + "DuplicateRoads.txt", duplicateHistogram);
 
   plotHistogramsRatio(duplicateHistogram, generatedHistogram, binsEdges, outputFolder + "DuplicateRoadsBenchmark.pdf",
       "Duplicate Roads Histogram");
 
-  TH1F fakeHistogram("plot-transverse-momentum-benchmark.fake-histogram", "Fake Histogram", BinNumber,
+  TH1F fakeHistogram((histogramPrefix + ".fake-histogram").c_str(), "Fake Histogram", BinNumber,
       binsEdges.data());
-  loadBinsFromFile(inputFolder + "FakeRoads.txt", fakeHistogram);
+  loadData(inputFolder + "FakeRoads.txt", fakeHistogram);
 
   plotHistogramsRatio(fakeHistogram, generatedHistogram, binsEdges, outputFolder + "FakeRoadsBenchmark.pdf",
       "Fake Roads Histogram");
 
-  TH1F duplicateAndCorrectHistogram("plot-transverse-momentum-benchmark.duplicate-and-correct-histogram",
+  TH1F duplicateAndCorrectHistogram((histogramPrefix + ".duplicate-and-correct-histogram").c_str(),
       "Duplicate And Correct Histogram", BinNumber, binsEdges.data());
   duplicateAndCorrectHistogram.Add(&correctHistogram, &duplicateHistogram);
 

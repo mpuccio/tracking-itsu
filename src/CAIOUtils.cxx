@@ -18,10 +18,14 @@
 
 #include "CAIOUtils.h"
 
-#include <sstream>
-#include <string>
+#include <cstdlib>
 #include <fstream>
+#include <sstream>
+#include <tuple>
 #include <unordered_set>
+#include <utility>
+
+#include "CAConstants.h"
 
 namespace {
 
@@ -35,7 +39,7 @@ std::vector<CAEvent> CAIOUtils::loadEventData(const std::string& fileName)
   std::ifstream inputStream;
   std::string line, unusedVariable;
   int layerId, monteCarlo;
-  int clusterId = 0;
+  int clusterId = -1;
   float xCoordinate, yCoordinate, zCoordinate, alphaAngle;
 
   inputStream.open(fileName);
@@ -48,9 +52,12 @@ std::vector<CAEvent> CAIOUtils::loadEventData(const std::string& fileName)
 
       if (layerId == PrimaryVertexLayerId) {
 
-        events.emplace_back(events.size());
-        events.back().setPrimaryVertex(xCoordinate, yCoordinate, zCoordinate);
+        if (clusterId != 0) {
 
+          events.emplace_back(events.size());
+        }
+
+        events.back().addPrimaryVertex(xCoordinate, yCoordinate, zCoordinate);
         clusterId = 0;
 
       } else {

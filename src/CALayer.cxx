@@ -18,32 +18,22 @@
 
 #include "CALayer.h"
 
-#include <algorithm>
-
 #include "CAConstants.h"
-#include "CAIndexTableUtils.h"
 
 CALayer::CALayer()
     : mLayerIndex { CAConstants::ITS::UnusedIndex }
 {
+  //Nothing to do
 }
 
 CALayer::CALayer(const int layerIndex)
     : mLayerIndex { layerIndex }
 {
+  //Nothing to do
 }
 
 void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
     const float alphaAngle, const int monteCarlo)
 {
-  mClusters.emplace_back(mLayerIndex, clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
-}
-
-void CALayer::sortClusters()
-{
-
-  std::sort(mClusters.begin(), mClusters.end(), [](const CACluster& cluster1, const CACluster& cluster2) -> bool {
-
-    return cluster1.indexTableBinIndex < cluster2.indexTableBinIndex;
-  });
+  mClusters.emplace_back(clusterId, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
 }
