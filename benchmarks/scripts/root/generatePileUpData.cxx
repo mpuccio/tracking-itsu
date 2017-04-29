@@ -24,7 +24,8 @@
 #include <string>
 
 namespace {
-constexpr int PrimaryVertexLayerId{ -1  };
+constexpr int MonteCarloOffsetMultiple{ 100000 };
+constexpr int PrimaryVertexId{ -1  };
 constexpr int EventsFileColumnsNum{ 10 };
 constexpr int EventsFileMonteCarloIndex{ 8 };
 constexpr int LabelsFileColumnsNum{ 6 };
@@ -57,24 +58,23 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
 
   std::ifstream inputStream;
   std::ofstream outputStream;
-  std::string line;
+  std::string inputLine;
   int layerId, monteCarloId, verticesNum = 0, maxMonteCarloLabel = 0, monteCarloOffset = 0;
   std::vector<std::string> clusterLines;
-  std::array<std::string, EventsFileColumnsNum> lineData;
 
   inputStream.open(inputFolder + "data.txt");
   outputStream.open(outputFolder + "merged_data.txt");
 
 
-  while (std::getline(inputStream, line)) {
+  while (std::getline(inputStream, inputLine)) {
 
-    std::istringstream inputStringStream(line);
+    std::istringstream inputStringStream(inputLine);
 
     if (inputStringStream >> layerId) {
 
-      if (layerId == PrimaryVertexLayerId) {
+      if (layerId == PrimaryVertexId) {
 
-        maxMonteCarloLabel = roundUp(maxMonteCarloLabel, 100000);
+        maxMonteCarloLabel = roundUp(maxMonteCarloLabel, MonteCarloOffsetMultiple);
         monteCarloOffset += maxMonteCarloLabel;
         maxMonteCarloLabel = 0;
 
@@ -83,7 +83,7 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
           const int linesNum = clusterLines.size();
           for(int iLine = 0; iLine < linesNum; ++iLine) {
 
-            outputStream << clusterLines[iLine];
+            outputStream << clusterLines[iLine] << std::endl;
           }
 
           verticesNum = 0;
@@ -91,12 +91,14 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
           clusterLines.clear();
         }
 
-        outputStream << line;
+        outputStream << inputLine << std::endl;
         ++verticesNum;
 
       } else {
 
-        lineData[0] = layerId;
+        std::array<std::string, EventsFileColumnsNum> lineData;
+
+        lineData[0] = std::to_string(layerId);
 
         for(int iValue = 1; iValue < EventsFileColumnsNum; ++iValue) {
 
@@ -110,11 +112,36 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
           maxMonteCarloLabel = monteCarloId;
         }
 
-        lineData[EventsFileMonteCarloIndex] = monteCarloId + monteCarloOffset;
+        if(monteCarloOffset > 0) {
 
-        clusterLines.push_back(line);
+          lineData[EventsFileMonteCarloIndex] = std::to_string(monteCarloId + monteCarloOffset);
+
+          std::ostringstream outputStringStream;
+          for(int iValue = 0; iValue < EventsFileColumnsNum; ++iValue) {
+
+            if(iValue != 0) {
+
+              outputStringStream << "\t";
+            }
+
+            outputStringStream << lineData[iValue];
+          }
+
+          clusterLines.push_back(outputStringStream.str());
+
+        } else {
+
+          clusterLines.push_back(inputLine);
+        }
+
       }
     }
+  }
+
+  const int linesNum = clusterLines.size();
+  for(int iLine = 0; iLine < linesNum; ++iLine) {
+
+    outputStream << clusterLines[iLine] << std::endl;
   }
 
   std::cout << "Generated " << outputFolder << "merged_data.txt with pile-up " << pileUp << std::endl;
@@ -124,47 +151,48 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
 
   std::ifstream inputStream;
   std::ofstream outputStream;
-  std::string line;
+  std::string inputLine;
   int monteCarloId, verticesNum = 0, maxMonteCarloLabel = 0, monteCarloOffset = 0;
-  std::vector<std::string> clusterLines;
-  std::array<std::string, LabelsFileColumnsNum> lineData;
+  std::vector<std::string> labelLines;
 
   inputStream.open(inputFolder + "labels.txt");
   outputStream.open(outputFolder + "merged_labels.txt");
 
 
-  while (std::getline(inputStream, line)) {
+  while (std::getline(inputStream, inputLine)) {
 
-    std::istringstream inputStringStream(line);
+    std::istringstream inputStringStream(inputLine);
 
     if (inputStringStream >> monteCarloId) {
 
-      if (monteCarloId == PrimaryVertexLayerId) {
+      if (monteCarloId == PrimaryVertexId) {
 
-        maxMonteCarloLabel = roundUp(maxMonteCarloLabel, 100000);
+        maxMonteCarloLabel = roundUp(maxMonteCarloLabel, MonteCarloOffsetMultiple);
         monteCarloOffset += maxMonteCarloLabel;
         maxMonteCarloLabel = 0;
 
         if(verticesNum == pileUp) {
 
-          outputStream << line;
+          outputStream << inputLine << std::endl;
 
-          const int linesNum = clusterLines.size();
+          const int linesNum = labelLines.size();
           for(int iLine = 0; iLine < linesNum; ++iLine) {
 
-            outputStream << clusterLines[iLine];
+            outputStream << labelLines[iLine] << std::endl;
           }
 
           verticesNum = 0;
           monteCarloOffset = 0;
-          clusterLines.clear();
+          labelLines.clear();
         }
 
         ++verticesNum;
 
       } else {
 
-        lineData[0] = monteCarloId;
+        std::array<std::string, EventsFileColumnsNum> lineData;
+
+        lineData[0] = std::to_string(monteCarloId);
 
         for(int iValue = 1; iValue < LabelsFileColumnsNum; ++iValue) {
 
@@ -176,11 +204,36 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
           maxMonteCarloLabel = monteCarloId;
         }
 
-        lineData[0] = monteCarloId + monteCarloOffset;
+        if(monteCarloOffset > 0) {
 
-        clusterLines.push_back(line);
+          lineData[0] = std::to_string(monteCarloId + monteCarloOffset);
+
+          std::ostringstream outputStringStream;
+          for(int iValue = 0; iValue < LabelsFileColumnsNum; ++iValue) {
+
+            if(iValue != 0) {
+
+              outputStringStream << "\t";
+            }
+
+            outputStringStream << lineData[iValue];
+          }
+
+          labelLines.push_back(outputStringStream.str());
+
+        } else {
+
+          labelLines.push_back(inputLine);
+        }
       }
     }
+  }
+
+  outputStream << PrimaryVertexId << std::endl;
+  const int linesNum = labelLines.size();
+  for(int iLine = 0; iLine < linesNum; ++iLine) {
+
+    outputStream << labelLines[iLine] << std::endl;
   }
 
   std::cout << "Generated " << outputFolder << "merged_data.txt with pile-up " << pileUp << std::endl;
