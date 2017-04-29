@@ -99,8 +99,6 @@ void plotHistogram(TH1F& histogram, std::vector<std::array<std::vector<int>, Dat
       clustersProduct *= dataReport[iEvent][ClustersDataType][iClustersLayer];
     }
 
-    std::cout << static_cast<double>(currentValue) / clustersProduct << std::endl;
-
     histogram.Fill(static_cast<double>(currentValue) / clustersProduct);
   }
 
