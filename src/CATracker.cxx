@@ -189,8 +189,7 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
       const float tanLambda = (currentCluster.zCoordinate
           - mEvent.getPrimaryVertex(primaryVertexContext.primaryVertexIndex)[2]) / currentCluster.rCoordinate;
       const float directionZIntersection = tanLambda
-          * (CAConstants::ITS::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate)
-          + currentCluster.zCoordinate;
+          * (CAConstants::ITS::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate) + currentCluster.zCoordinate;
 
       const std::vector<int> nextLayerBinsSubset = primaryVertexContext.indexTables[iLayer].selectBins(
           directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut,
@@ -216,8 +215,7 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
         for (int iNextLayerCluster = currentBinFirstCluster; iNextLayerCluster < nextBinFirstClusterIndex;
             ++iNextLayerCluster) {
 
-          const CACluster& nextCluster =
-              primaryVertexContext.clusters[iLayer + 1][iNextLayerCluster];
+          const CACluster& nextCluster = primaryVertexContext.clusters[iLayer + 1][iNextLayerCluster];
 
           if (mUsedClustersTable[nextCluster.clusterId] != CAConstants::ITS::UnusedIndex) {
 
@@ -225,8 +223,8 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
           }
 
           const float deltaZ = std::abs(
-              tanLambda * (nextCluster.rCoordinate - currentCluster.rCoordinate)
-                  + currentCluster.zCoordinate - nextCluster.zCoordinate);
+              tanLambda * (nextCluster.rCoordinate - currentCluster.rCoordinate) + currentCluster.zCoordinate
+                  - nextCluster.zCoordinate);
           const float deltaPhi = std::abs(currentCluster.phiCoordinate - nextCluster.phiCoordinate);
 
           if (deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold[iLayer]
@@ -244,6 +242,13 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
                 / (currentCluster.rCoordinate - nextCluster.rCoordinate);
             const float trackletPhi = std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
                 currentCluster.xCoordinate - nextCluster.xCoordinate);
+
+            if (primaryVertexContext.tracklets[iLayer].size() + 1
+                == primaryVertexContext.tracklets[iLayer].capacity()) {
+
+              std::cout << "Reallocation on Tracklets vector for event " << mEvent.getEventId() + 1 << ", layer "
+                  << iLayer + 1 << std::endl;
+            }
 
             primaryVertexContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, trackletTanLambda,
                 trackletPhi);
@@ -284,19 +289,15 @@ void CATracker::computeCells(CAPrimaryVertexContext& primaryVertexContext)
         continue;
       }
 
-      const CACluster& firstCellCluster =
-          primaryVertexContext.clusters[iLayer][currentTracklet.firstClusterIndex];
-      const CACluster& secondCellCluster =
-          primaryVertexContext.clusters[iLayer + 1][currentTracklet.secondClusterIndex];
+      const CACluster& firstCellCluster = primaryVertexContext.clusters[iLayer][currentTracklet.firstClusterIndex];
+      const CACluster& secondCellCluster = primaryVertexContext.clusters[iLayer + 1][currentTracklet.secondClusterIndex];
 
-      const float firstCellClusterQuadraticRCoordinate = firstCellCluster.rCoordinate
-          * firstCellCluster.rCoordinate;
-      const float secondCellClusterQuadraticRCoordinate = secondCellCluster.rCoordinate
-          * secondCellCluster.rCoordinate;
+      const float firstCellClusterQuadraticRCoordinate = firstCellCluster.rCoordinate * firstCellCluster.rCoordinate;
+      const float secondCellClusterQuadraticRCoordinate = secondCellCluster.rCoordinate * secondCellCluster.rCoordinate;
 
-      const std::array<float, 3> firstDeltaVector { { secondCellCluster.xCoordinate
-          - firstCellCluster.xCoordinate, secondCellCluster.yCoordinate - firstCellCluster.yCoordinate,
-          secondCellClusterQuadraticRCoordinate - firstCellClusterQuadraticRCoordinate } };
+      const std::array<float, 3> firstDeltaVector { { secondCellCluster.xCoordinate - firstCellCluster.xCoordinate,
+          secondCellCluster.yCoordinate - firstCellCluster.yCoordinate, secondCellClusterQuadraticRCoordinate
+              - firstCellClusterQuadraticRCoordinate } };
 
       bool isFirstCellForCurrentTracklet = true;
       const int nextLayerTrackletsNum = primaryVertexContext.tracklets[iLayer + 1].size();
@@ -328,9 +329,8 @@ void CATracker::computeCells(CAPrimaryVertexContext& primaryVertexContext)
                 * thirdCellCluster.rCoordinate;
 
             const std::array<float, 3> secondDeltaVector { { thirdCellCluster.xCoordinate
-                - firstCellCluster.xCoordinate, thirdCellCluster.yCoordinate
-                - firstCellCluster.yCoordinate, thirdCellClusterQuadraticRCoordinate
-                - firstCellClusterQuadraticRCoordinate } };
+                - firstCellCluster.xCoordinate, thirdCellCluster.yCoordinate - firstCellCluster.yCoordinate,
+                thirdCellClusterQuadraticRCoordinate - firstCellClusterQuadraticRCoordinate } };
 
             std::array<float, 3> cellPlaneNormalVector { CAMathUtils::crossProduct(firstDeltaVector, secondDeltaVector) };
 
@@ -350,8 +350,7 @@ void CATracker::computeCells(CAPrimaryVertexContext& primaryVertexContext)
             const std::array<float, 3> normalizedPlaneVector { { cellPlaneNormalVector[0] * inverseVectorNorm,
                 cellPlaneNormalVector[1] * inverseVectorNorm, cellPlaneNormalVector[2] * inverseVectorNorm } };
 
-            const float planeDistance = -normalizedPlaneVector[0]
-                * (secondCellCluster.xCoordinate - primaryVertex[0])
+            const float planeDistance = -normalizedPlaneVector[0] * (secondCellCluster.xCoordinate - primaryVertex[0])
                 - (normalizedPlaneVector[1] * secondCellCluster.yCoordinate - primaryVertex[1])
                 - normalizedPlaneVector[2] * secondCellClusterQuadraticRCoordinate;
 
@@ -380,6 +379,12 @@ void CATracker::computeCells(CAPrimaryVertexContext& primaryVertexContext)
 
               primaryVertexContext.cellsLookupTable[iLayer - 1][iTracklet] = primaryVertexContext.cells[iLayer].size();
               isFirstCellForCurrentTracklet = false;
+            }
+
+            if (primaryVertexContext.cells[iLayer].size() + 1 == primaryVertexContext.cells[iLayer].capacity()) {
+
+              std::cout << "Reallocation on Cells vector for event " << mEvent.getEventId() + 1 << ", layer "
+                  << iLayer + 1 << std::endl;
             }
 
             primaryVertexContext.cells[iLayer].emplace_back(currentTracklet.firstClusterIndex,
@@ -549,8 +554,7 @@ void CATracker::computeMontecarloLabels(CAPrimaryVertexContext& primaryVertexCon
 
       if (isFirstRoadCell) {
 
-        maxOccurrencesValue =
-            primaryVertexContext.clusters[iCell][currentCell.getFirstClusterIndex()].monteCarloId;
+        maxOccurrencesValue = primaryVertexContext.clusters[iCell][currentCell.getFirstClusterIndex()].monteCarloId;
         count = 1;
 
         const int secondMonteCarlo =

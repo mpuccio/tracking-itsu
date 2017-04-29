@@ -133,7 +133,7 @@ void plotMemoryOccupancyBenchmark(const std::string& inputFolder, const std::str
   }
 
   /// Cells Histograms
-  binSize = 2e-08 / BinNumber;
+  binSize = 2e-07 / BinNumber;
   for (int iBin = 0; iBin <= BinNumber; ++iBin) {
 
     binsEdges[iBin] = iBin * binSize;
