@@ -19,3 +19,8 @@ script: |
   cd build 
   cmake ..
   make
+  wget http://personalpages.to.infn.it/~puccio/data.tgz
+  tar -xvzf data.tgz
+  wget personalpages.to.infn.it/~puccio/labels.tgz
+  tar -xvzf labels.tgz
+  ./tracking-itsu-main data.txt labels.txt
