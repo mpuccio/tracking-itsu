@@ -236,7 +236,7 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
     outputStream << labelLines[iLine] << std::endl;
   }
 
-  std::cout << "Generated " << outputFolder << "merged_data.txt with pile-up " << pileUp << std::endl;
+  std::cout << "Generated " << outputFolder << "merged_labels.txt with pile-up " << pileUp << std::endl;
 }
 
 void generatePileUpData(const int pileUp, const std::string& inputFolder) {
