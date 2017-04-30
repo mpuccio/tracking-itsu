@@ -243,13 +243,6 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
             const float trackletPhi = std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
                 currentCluster.xCoordinate - nextCluster.xCoordinate);
 
-            if (primaryVertexContext.tracklets[iLayer].size() + 1
-                == primaryVertexContext.tracklets[iLayer].capacity()) {
-
-              std::cout << "Reallocation on Tracklets vector for event " << mEvent.getEventId() + 1 << ", layer "
-                  << iLayer + 1 << std::endl;
-            }
-
             primaryVertexContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, trackletTanLambda,
                 trackletPhi);
           }
@@ -379,12 +372,6 @@ void CATracker::computeCells(CAPrimaryVertexContext& primaryVertexContext)
 
               primaryVertexContext.cellsLookupTable[iLayer - 1][iTracklet] = primaryVertexContext.cells[iLayer].size();
               isFirstCellForCurrentTracklet = false;
-            }
-
-            if (primaryVertexContext.cells[iLayer].size() + 1 == primaryVertexContext.cells[iLayer].capacity()) {
-
-              std::cout << "Reallocation on Cells vector for event " << mEvent.getEventId() + 1 << ", layer "
-                  << iLayer + 1 << std::endl;
             }
 
             primaryVertexContext.cells[iLayer].emplace_back(currentTracklet.firstClusterIndex,
