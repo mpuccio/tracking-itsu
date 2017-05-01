@@ -24,7 +24,7 @@
 #include <string>
 
 namespace {
-constexpr int MonteCarloOffsetMultiple{ 100000 };
+constexpr int MonteCarloOffset{ 100000 };
 constexpr int PrimaryVertexId{ -1  };
 constexpr int EventsFileColumnsNum{ 10 };
 constexpr int EventsFileMonteCarloIndex{ 8 };
@@ -37,29 +37,12 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
 void generatePileUpData(const int pileUp, const std::string& inputFolder);
 void generatePileUpData(const int pileUp, const std::string& inputFolder, const std::string& outputFolder);
 
-int roundUp(const int numToRound, const int multiple) {
-
-  if(multiple == 0) {
-
-    return numToRound;
-  }
-
-  int remainder = numToRound % multiple;
-
-  if(remainder == 0) {
-
-    return numToRound;
-  }
-
-  return numToRound + multiple - remainder;
-}
-
 void mergeEvents(const int pileUp, const std::string& inputFolder, const std::string& outputFolder) {
 
   std::ifstream inputStream;
   std::ofstream outputStream;
   std::string inputLine;
-  int layerId, monteCarloId, verticesNum = 0, maxMonteCarloLabel = 0, monteCarloOffset = 0;
+  int layerId, monteCarloId, verticesNum = 0;
   std::vector<std::string> clusterLines;
 
   inputStream.open(inputFolder + "data.txt");
@@ -74,10 +57,6 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
 
       if (layerId == PrimaryVertexId) {
 
-        maxMonteCarloLabel = roundUp(maxMonteCarloLabel, MonteCarloOffsetMultiple);
-        monteCarloOffset += maxMonteCarloLabel;
-        maxMonteCarloLabel = 0;
-
         if(verticesNum == pileUp) {
 
           const int linesNum = clusterLines.size();
@@ -87,7 +66,6 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
           }
 
           verticesNum = 0;
-          monteCarloOffset = 0;
           clusterLines.clear();
         }
 
@@ -107,14 +85,9 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
 
         monteCarloId = std::stoi(lineData[EventsFileMonteCarloIndex]);
 
-        if(monteCarloId > maxMonteCarloLabel) {
+        if(verticesNum > 1) {
 
-          maxMonteCarloLabel = monteCarloId;
-        }
-
-        if(monteCarloOffset > 0) {
-
-          lineData[EventsFileMonteCarloIndex] = std::to_string(monteCarloId + monteCarloOffset);
+          lineData[EventsFileMonteCarloIndex] = std::to_string(monteCarloId + ((verticesNum - 1) * MonteCarloOffset));
 
           std::ostringstream outputStringStream;
           for(int iValue = 0; iValue < EventsFileColumnsNum; ++iValue) {
@@ -152,7 +125,7 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
   std::ifstream inputStream;
   std::ofstream outputStream;
   std::string inputLine;
-  int monteCarloId, verticesNum = 0, maxMonteCarloLabel = 0, monteCarloOffset = 0;
+  int monteCarloId, verticesNum = 0;
   std::vector<std::string> labelLines;
 
   inputStream.open(inputFolder + "labels.txt");
@@ -167,10 +140,6 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
 
       if (monteCarloId == PrimaryVertexId) {
 
-        maxMonteCarloLabel = roundUp(maxMonteCarloLabel, MonteCarloOffsetMultiple);
-        monteCarloOffset += maxMonteCarloLabel;
-        maxMonteCarloLabel = 0;
-
         if(verticesNum == pileUp) {
 
           outputStream << inputLine << std::endl;
@@ -182,7 +151,6 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
           }
 
           verticesNum = 0;
-          monteCarloOffset = 0;
           labelLines.clear();
         }
 
@@ -199,14 +167,9 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
           inputStringStream >> lineData[iValue];
         }
 
-        if(monteCarloId > maxMonteCarloLabel) {
+        if(verticesNum > 1) {
 
-          maxMonteCarloLabel = monteCarloId;
-        }
-
-        if(monteCarloOffset > 0) {
-
-          lineData[0] = std::to_string(monteCarloId + monteCarloOffset);
+          lineData[0] = std::to_string(monteCarloId + ((verticesNum - 1) * MonteCarloOffset));
 
           std::ostringstream outputStringStream;
           for(int iValue = 0; iValue < LabelsFileColumnsNum; ++iValue) {
