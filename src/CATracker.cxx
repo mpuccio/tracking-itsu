@@ -123,20 +123,21 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracksMemoryBenchmark(std:
 
     CAPrimaryVertexContext primaryVertexContext { mEvent, iVertex };
 
-    computeTracklets(primaryVertexContext);
-    computeCells(primaryVertexContext);
-    findCellsNeighbours(primaryVertexContext);
-    findTracks(primaryVertexContext);
-    computeMontecarloLabels(primaryVertexContext);
-
-    roads.emplace_back(primaryVertexContext.roads);
-
     for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
       memoryBenchmarkOutputStream << primaryVertexContext.clusters[iLayer].size() << "\t";
     }
 
     memoryBenchmarkOutputStream << std::endl;
+
+    for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
+
+      memoryBenchmarkOutputStream << primaryVertexContext.tracklets[iLayer].capacity() << "\t";
+    }
+
+    memoryBenchmarkOutputStream << std::endl;
+
+    computeTracklets(primaryVertexContext);
 
     for (int iLayer = 0; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
@@ -147,10 +148,27 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracksMemoryBenchmark(std:
 
     for (int iLayer = 0; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
+      memoryBenchmarkOutputStream << primaryVertexContext.cells[iLayer].capacity() << "\t";
+    }
+
+    memoryBenchmarkOutputStream << std::endl;
+
+    computeCells(primaryVertexContext);
+
+    for (int iLayer = 0; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
+
       memoryBenchmarkOutputStream << primaryVertexContext.cells[iLayer].size() << "\t";
     }
 
-    memoryBenchmarkOutputStream << std::endl << primaryVertexContext.roads.size() << std::endl;
+    memoryBenchmarkOutputStream << std::endl;
+
+    findCellsNeighbours(primaryVertexContext);
+    findTracks(primaryVertexContext);
+    computeMontecarloLabels(primaryVertexContext);
+
+    roads.emplace_back(primaryVertexContext.roads);
+
+    memoryBenchmarkOutputStream << primaryVertexContext.roads.size() << std::endl;
   }
 
   return roads;

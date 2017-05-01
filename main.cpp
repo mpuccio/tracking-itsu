@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 
   clock_t t1, t2;
   float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
-#if defined TRACKINGITSU_MEMORY_BENCHMARK
+#if defined MEMORY_BENCHMARK
   std::ofstream memoryBenchmarkOutputStream;
   memoryBenchmarkOutputStream.open(benchmarkFolderName + "MemoryOccupancy.txt");
 #endif
