@@ -4,6 +4,8 @@
 #include <fstream>
 #include <vector>
 
+#include <valgrind/callgrind.h>
+
 #include "CAIOUtils.h"
 #include "CATracker.h"
 
@@ -63,6 +65,9 @@ int main(int argc, char** argv)
 
     t1 = clock();
 
+    // Run callgrind with --collect-atstart=no
+    CALLGRIND_TOGGLE_COLLECT;
+
 #if defined MEMORY_BENCHMARK
     std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
 #elif defined DEBUG
@@ -70,6 +75,8 @@ int main(int argc, char** argv)
 #else
     std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
 #endif
+
+    CALLGRIND_TOGGLE_COLLECT;
 
     t2 = clock();
     const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
@@ -85,11 +92,8 @@ int main(int argc, char** argv)
 
     if (createBenchmarkData) {
 
-      for (auto& currentVertexRoads : roads) {
-
-        CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream,
-            currentVertexRoads, labelsMap[iEvent]);
-      }
+      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream,
+          roads, labelsMap[iEvent]);
     }
   }
 
