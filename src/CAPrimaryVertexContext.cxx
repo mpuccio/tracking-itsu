@@ -53,16 +53,16 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
 
       tracklets[iLayer].reserve(
           std::ceil(
-              clustersNum * event.getLayer(iLayer + 1).getClustersSize()
-                  * CAConstants::Memory::TrackletsMemoryCoefficients[iLayer]));
+              (CAConstants::Memory::TrackletsMemoryCoefficients[iLayer] * clustersNum)
+                  * event.getLayer(iLayer + 1).getClustersSize()));
     }
 
     if (iLayer < CAConstants::ITS::CellsPerRoad) {
 
       cells[iLayer].reserve(
           std::ceil(
-              CAConstants::Memory::CellsMemoryCoefficients[iLayer] * clustersNum
-                  * event.getLayer(iLayer + 1).getClustersSize() * event.getLayer(iLayer + 2).getClustersSize()));
+              ((CAConstants::Memory::CellsMemoryCoefficients[iLayer] * clustersNum)
+                  * event.getLayer(iLayer + 1).getClustersSize()) * event.getLayer(iLayer + 2).getClustersSize()));
     }
   }
 }

@@ -122,39 +122,46 @@ std::vector<std::unordered_map<int, CALabel>> CAIOUtils::loadLabels(const int ev
 }
 
 void CAIOUtils::writeRoadsReport(std::ofstream& correctRoadsOutputStream, std::ofstream& duplicateRoadsOutputStream,
-    std::ofstream& fakeRoadsOutputStream, std::vector<CARoad>& roads, std::unordered_map<int, CALabel>& labelsMap)
+    std::ofstream& fakeRoadsOutputStream, const std::vector<std::vector<CARoad>>& roads, const std::unordered_map<int, CALabel>& labelsMap)
 {
-  const int numRoads = roads.size();
+  const int numVertices = roads.size();
   std::unordered_set<int> foundMonteCarloIds;
 
   correctRoadsOutputStream << EventLabelsSeparator << std::endl;
   fakeRoadsOutputStream << EventLabelsSeparator << std::endl;
 
-  for (int iRoad = 0; iRoad < numRoads; ++iRoad) {
+  for(int iVertex = 0; iVertex < numVertices; ++iVertex) {
 
-    const int currentRoadLabel = roads[iRoad].getLabel();
+    const std::vector<CARoad>& currentVertexRoads = roads[iVertex];
+    const int numRoads = currentVertexRoads.size();
 
-    if (!labelsMap.count(currentRoadLabel)) {
+    for (int iRoad = 0; iRoad < numRoads; ++iRoad) {
 
-      continue;
-    }
+      const CARoad& currentRoad = currentVertexRoads[iRoad];
+      const int currentRoadLabel = currentRoad.getLabel();
 
-    CALabel& currentLabel = labelsMap.at(currentRoadLabel);
+      if (!labelsMap.count(currentRoadLabel)) {
 
-    if (roads[iRoad].isFakeRoad()) {
+        continue;
+      }
 
-      fakeRoadsOutputStream << currentLabel << std::endl;
+      const CALabel& currentLabel = labelsMap.at(currentRoadLabel);
 
-    } else {
+      if (currentRoad.isFakeRoad()) {
 
-      if (foundMonteCarloIds.count(currentLabel.monteCarloId)) {
-
-        duplicateRoadsOutputStream << currentLabel << std::endl;
+        fakeRoadsOutputStream << currentLabel << std::endl;
 
       } else {
 
-        correctRoadsOutputStream << currentLabel << std::endl;
-        foundMonteCarloIds.emplace(currentLabel.monteCarloId);
+        if (foundMonteCarloIds.count(currentLabel.monteCarloId)) {
+
+          duplicateRoadsOutputStream << currentLabel << std::endl;
+
+        } else {
+
+          correctRoadsOutputStream << currentLabel << std::endl;
+          foundMonteCarloIds.emplace(currentLabel.monteCarloId);
+        }
       }
     }
   }

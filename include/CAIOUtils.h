@@ -31,8 +31,8 @@
 namespace CAIOUtils {
 std::vector<CAEvent> loadEventData(const std::string&);
 std::vector<std::unordered_map<int, CALabel>> loadLabels(const int, const std::string&);
-void writeRoadsReport(std::ofstream&, std::ofstream&, std::ofstream&, std::vector<CARoad>&,
-    std::unordered_map<int, CALabel>&);
+void writeRoadsReport(std::ofstream&, std::ofstream&, std::ofstream&, const std::vector<std::vector<CARoad>>&,
+    const std::unordered_map<int, CALabel>&);
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CAEVENTLOADER_H_ */
