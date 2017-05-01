@@ -4,7 +4,9 @@
 #include <fstream>
 #include <vector>
 
+#if defined HAVE_VALGRIND
 #include <valgrind/callgrind.h>
+#endif
 
 #include "CAIOUtils.h"
 #include "CATracker.h"
@@ -53,7 +55,7 @@ int main(int argc, char** argv)
 
   clock_t t1, t2;
   float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
-#if defined MEMORY_BENCHMARK
+#if defined TRACKINGITSU_MEMORY_BENCHMARK
   std::ofstream memoryBenchmarkOutputStream;
   memoryBenchmarkOutputStream.open(benchmarkFolderName + "MemoryOccupancy.txt");
 #endif
@@ -65,8 +67,10 @@ int main(int argc, char** argv)
 
     t1 = clock();
 
+#if defined HAVE_VALGRIND
     // Run callgrind with --collect-atstart=no
     CALLGRIND_TOGGLE_COLLECT;
+#endif
 
 #if defined MEMORY_BENCHMARK
     std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
@@ -76,7 +80,9 @@ int main(int argc, char** argv)
     std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
 #endif
 
+#if defined HAVE_VALGRIND
     CALLGRIND_TOGGLE_COLLECT;
+#endif
 
     t2 = clock();
     const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
