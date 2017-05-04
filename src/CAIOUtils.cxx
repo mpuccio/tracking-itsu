@@ -122,7 +122,8 @@ std::vector<std::unordered_map<int, CALabel>> CAIOUtils::loadLabels(const int ev
 }
 
 void CAIOUtils::writeRoadsReport(std::ofstream& correctRoadsOutputStream, std::ofstream& duplicateRoadsOutputStream,
-    std::ofstream& fakeRoadsOutputStream, const std::vector<std::vector<CARoad>>& roads, const std::unordered_map<int, CALabel>& labelsMap)
+    std::ofstream& fakeRoadsOutputStream, const std::vector<std::vector<CARoad>>& roads,
+    const std::unordered_map<int, CALabel>& labelsMap)
 {
   const int numVertices = roads.size();
   std::unordered_set<int> foundMonteCarloIds;
@@ -130,7 +131,7 @@ void CAIOUtils::writeRoadsReport(std::ofstream& correctRoadsOutputStream, std::o
   correctRoadsOutputStream << EventLabelsSeparator << std::endl;
   fakeRoadsOutputStream << EventLabelsSeparator << std::endl;
 
-  for(int iVertex = 0; iVertex < numVertices; ++iVertex) {
+  for (int iVertex = 0; iVertex < numVertices; ++iVertex) {
 
     const std::vector<CARoad>& currentVertexRoads = roads[iVertex];
     const int numRoads = currentVertexRoads.size();

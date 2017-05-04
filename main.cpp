@@ -98,8 +98,8 @@ int main(int argc, char** argv)
 
     if (createBenchmarkData) {
 
-      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream,
-          roads, labelsMap[iEvent]);
+      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
+          labelsMap[iEvent]);
     }
   }
 

@@ -30,20 +30,21 @@
 #include "TGraph.h"
 #include "TROOT.h"
 
-namespace{
-constexpr int BinNumber{ 1000 };
-constexpr int LayersNumber{ 7 };
-constexpr int TrackletsNumber{ 6 };
-constexpr int CellsNumber{ 5 };
-constexpr int RoadsNumber{ 1 };
-constexpr int DataTypes{ 6 };
-constexpr int ClustersDataType{ 0 };
-constexpr int PredictiveTrackletAllocationDataType{ 1 };
-constexpr int TrackletsDataType{ 2 };
-constexpr int PredictiveCellsAllocationDataType{ 3 };
-constexpr int CellsDataType{ 4 };
-constexpr int RoadsDataType{ 5 };
-constexpr std::array<int, DataTypes> LineDataNum{ LayersNumber, TrackletsNumber, TrackletsNumber, CellsNumber, CellsNumber, RoadsNumber };
+namespace {
+constexpr int BinNumber { 1000 };
+constexpr int LayersNumber { 7 };
+constexpr int TrackletsNumber { 6 };
+constexpr int CellsNumber { 5 };
+constexpr int RoadsNumber { 1 };
+constexpr int DataTypes { 6 };
+constexpr int ClustersDataType { 0 };
+constexpr int PredictiveTrackletAllocationDataType { 1 };
+constexpr int TrackletsDataType { 2 };
+constexpr int PredictiveCellsAllocationDataType { 3 };
+constexpr int CellsDataType { 4 };
+constexpr int RoadsDataType { 5 };
+constexpr std::array<int, DataTypes> LineDataNum { LayersNumber, TrackletsNumber, TrackletsNumber, CellsNumber,
+    CellsNumber, RoadsNumber };
 }
 
 std::vector<std::array<std::vector<int>, DataTypes>> loadData(const std::string& fileName)
@@ -63,7 +64,7 @@ std::vector<std::array<std::vector<int>, DataTypes>> loadData(const std::string&
     const int currentLineDataNum = LineDataNum[lineType];
     currentLineData.reserve(currentLineDataNum);
 
-    for(int iValue = 0; iValue < currentLineDataNum; ++iValue) {
+    for (int iValue = 0; iValue < currentLineDataNum; ++iValue) {
 
       inputStringStream >> currentDataValue;
       currentLineData.emplace_back(currentDataValue);
@@ -72,7 +73,7 @@ std::vector<std::array<std::vector<int>, DataTypes>> loadData(const std::string&
     eventReport[lineType] = currentLineData;
     ++lineType;
 
-    if(lineType == DataTypes) {
+    if (lineType == DataTypes) {
 
       lineType = 0;
       dataReport.emplace_back(eventReport);
@@ -82,7 +83,8 @@ std::vector<std::array<std::vector<int>, DataTypes>> loadData(const std::string&
   return dataReport;
 }
 
-void plotHistogram(TH1F& histogram, const std::string& outputFileName) {
+void plotHistogram(TH1F& histogram, const std::string& outputFileName)
+{
 
   TCanvas graphCanvas { };
   graphCanvas.SetGrid();
@@ -92,17 +94,18 @@ void plotHistogram(TH1F& histogram, const std::string& outputFileName) {
 }
 
 void fillMemoryOccupancyHistogram(TH1F& histogram, std::vector<std::array<std::vector<int>, DataTypes>>& dataReport,
-    const int dataType, const int layerIndex) {
+    const int dataType, const int layerIndex)
+{
 
   const int numEvents = dataReport.size();
 
-  for(int iEvent = 0; iEvent < numEvents; ++iEvent) {
+  for (int iEvent = 0; iEvent < numEvents; ++iEvent) {
 
     const int currentValue = dataReport[iEvent][dataType][layerIndex];
     const int complexity = LayersNumber + 1 - LineDataNum[dataType];
     long clustersProduct = 1;
 
-    for(int iClustersLayer = layerIndex; iClustersLayer < layerIndex + complexity; ++iClustersLayer) {
+    for (int iClustersLayer = layerIndex; iClustersLayer < layerIndex + complexity; ++iClustersLayer) {
 
       clustersProduct *= dataReport[iEvent][ClustersDataType][iClustersLayer];
     }
@@ -112,15 +115,16 @@ void fillMemoryOccupancyHistogram(TH1F& histogram, std::vector<std::array<std::v
 }
 
 void fillFillFactorHistogram(TH1F& histogram, std::vector<std::array<std::vector<int>, DataTypes>>& dataReport,
-    const int dataType) {
+    const int dataType)
+{
 
   const int numEvents = dataReport.size();
 
-  for(int iEvent = 0; iEvent < numEvents; ++iEvent) {
+  for (int iEvent = 0; iEvent < numEvents; ++iEvent) {
 
-    for(int iLayer = 0; iLayer < LineDataNum[dataType]; ++iLayer) {
+    for (int iLayer = 0; iLayer < LineDataNum[dataType]; ++iLayer) {
 
-      const int preallocatedSizeValue = dataReport[iEvent][dataType-1][iLayer];
+      const int preallocatedSizeValue = dataReport[iEvent][dataType - 1][iLayer];
       const int actualSizeValue = dataReport[iEvent][dataType][iLayer];
 
       histogram.Fill(100.0f * actualSizeValue / preallocatedSizeValue);
@@ -144,7 +148,7 @@ void plotMemoryOccupancyBenchmark(const std::string& inputFolder, const std::str
     binsEdges[iBin] = iBin * binSize;
   }
 
-  for(int iLayer = 0; iLayer < TrackletsNumber; ++iLayer) {
+  for (int iLayer = 0; iLayer < TrackletsNumber; ++iLayer) {
 
     histogramId = std::string(graphPrefix + ".tracklets-graph-" + std::to_string(iLayer));
     histogramTitle = std::string("Layer " + std::to_string(iLayer + 1) + " Tracklets Histogram");
@@ -162,7 +166,7 @@ void plotMemoryOccupancyBenchmark(const std::string& inputFolder, const std::str
     binsEdges[iBin] = iBin * binSize;
   }
 
-  for(int iLayer = 0; iLayer < CellsNumber; ++iLayer) {
+  for (int iLayer = 0; iLayer < CellsNumber; ++iLayer) {
 
     histogramId = std::string(graphPrefix + ".cells-graph-" + std::to_string(iLayer));
     histogramTitle = std::string("Layer " + std::to_string(iLayer + 1) + " Cells Histogram");

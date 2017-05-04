@@ -24,11 +24,11 @@
 #include <string>
 
 namespace {
-constexpr int MonteCarloOffset{ 100000 };
-constexpr int PrimaryVertexId{ -1  };
-constexpr int EventsFileColumnsNum{ 10 };
-constexpr int EventsFileMonteCarloIndex{ 8 };
-constexpr int LabelsFileColumnsNum{ 6 };
+constexpr int MonteCarloOffset { 100000 };
+constexpr int PrimaryVertexId { -1 };
+constexpr int EventsFileColumnsNum { 10 };
+constexpr int EventsFileMonteCarloIndex { 8 };
+constexpr int LabelsFileColumnsNum { 6 };
 }
 
 int roundUp(const int numToRound, const int multiple);
@@ -37,7 +37,8 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
 void generatePileUpData(const int pileUp, const std::string& inputFolder);
 void generatePileUpData(const int pileUp, const std::string& inputFolder, const std::string& outputFolder);
 
-void mergeEvents(const int pileUp, const std::string& inputFolder, const std::string& outputFolder) {
+void mergeEvents(const int pileUp, const std::string& inputFolder, const std::string& outputFolder)
+{
 
   std::ifstream inputStream;
   std::ofstream outputStream;
@@ -48,7 +49,6 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
   inputStream.open(inputFolder + "data.txt");
   outputStream.open(outputFolder + "merged_data.txt");
 
-
   while (std::getline(inputStream, inputLine)) {
 
     std::istringstream inputStringStream(inputLine);
@@ -57,10 +57,10 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
 
       if (layerId == PrimaryVertexId) {
 
-        if(verticesNum == pileUp) {
+        if (verticesNum == pileUp) {
 
           const int linesNum = clusterLines.size();
-          for(int iLine = 0; iLine < linesNum; ++iLine) {
+          for (int iLine = 0; iLine < linesNum; ++iLine) {
 
             outputStream << clusterLines[iLine] << std::endl;
           }
@@ -78,21 +78,21 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
 
         lineData[0] = std::to_string(layerId);
 
-        for(int iValue = 1; iValue < EventsFileColumnsNum; ++iValue) {
+        for (int iValue = 1; iValue < EventsFileColumnsNum; ++iValue) {
 
           inputStringStream >> lineData[iValue];
         }
 
         monteCarloId = std::stoi(lineData[EventsFileMonteCarloIndex]);
 
-        if(verticesNum > 1) {
+        if (verticesNum > 1) {
 
           lineData[EventsFileMonteCarloIndex] = std::to_string(monteCarloId + ((verticesNum - 1) * MonteCarloOffset));
 
           std::ostringstream outputStringStream;
-          for(int iValue = 0; iValue < EventsFileColumnsNum; ++iValue) {
+          for (int iValue = 0; iValue < EventsFileColumnsNum; ++iValue) {
 
-            if(iValue != 0) {
+            if (iValue != 0) {
 
               outputStringStream << "\t";
             }
@@ -112,7 +112,7 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
   }
 
   const int linesNum = clusterLines.size();
-  for(int iLine = 0; iLine < linesNum; ++iLine) {
+  for (int iLine = 0; iLine < linesNum; ++iLine) {
 
     outputStream << clusterLines[iLine] << std::endl;
   }
@@ -120,7 +120,8 @@ void mergeEvents(const int pileUp, const std::string& inputFolder, const std::st
   std::cout << "Generated " << outputFolder << "merged_data.txt with pile-up " << pileUp << std::endl;
 }
 
-void mergeLabels(const int pileUp, const std::string& inputFolder, const std::string& outputFolder) {
+void mergeLabels(const int pileUp, const std::string& inputFolder, const std::string& outputFolder)
+{
 
   std::ifstream inputStream;
   std::ofstream outputStream;
@@ -131,7 +132,6 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
   inputStream.open(inputFolder + "labels.txt");
   outputStream.open(outputFolder + "merged_labels.txt");
 
-
   while (std::getline(inputStream, inputLine)) {
 
     std::istringstream inputStringStream(inputLine);
@@ -140,12 +140,12 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
 
       if (monteCarloId == PrimaryVertexId) {
 
-        if(verticesNum == pileUp) {
+        if (verticesNum == pileUp) {
 
           outputStream << inputLine << std::endl;
 
           const int linesNum = labelLines.size();
-          for(int iLine = 0; iLine < linesNum; ++iLine) {
+          for (int iLine = 0; iLine < linesNum; ++iLine) {
 
             outputStream << labelLines[iLine] << std::endl;
           }
@@ -162,19 +162,19 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
 
         lineData[0] = std::to_string(monteCarloId);
 
-        for(int iValue = 1; iValue < LabelsFileColumnsNum; ++iValue) {
+        for (int iValue = 1; iValue < LabelsFileColumnsNum; ++iValue) {
 
           inputStringStream >> lineData[iValue];
         }
 
-        if(verticesNum > 1) {
+        if (verticesNum > 1) {
 
           lineData[0] = std::to_string(monteCarloId + ((verticesNum - 1) * MonteCarloOffset));
 
           std::ostringstream outputStringStream;
-          for(int iValue = 0; iValue < LabelsFileColumnsNum; ++iValue) {
+          for (int iValue = 0; iValue < LabelsFileColumnsNum; ++iValue) {
 
-            if(iValue != 0) {
+            if (iValue != 0) {
 
               outputStringStream << "\t";
             }
@@ -194,7 +194,7 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
 
   outputStream << PrimaryVertexId << std::endl;
   const int linesNum = labelLines.size();
-  for(int iLine = 0; iLine < linesNum; ++iLine) {
+  for (int iLine = 0; iLine < linesNum; ++iLine) {
 
     outputStream << labelLines[iLine] << std::endl;
   }
@@ -202,18 +202,21 @@ void mergeLabels(const int pileUp, const std::string& inputFolder, const std::st
   std::cout << "Generated " << outputFolder << "merged_labels.txt with pile-up " << pileUp << std::endl;
 }
 
-void generatePileUpData(const int pileUp, const std::string& inputFolder) {
+void generatePileUpData(const int pileUp, const std::string& inputFolder)
+{
 
   generatePileUpData(pileUp, inputFolder, inputFolder);
 }
 
-void generatePileUpData(const int pileUp, const std::string& inputFolder, const std::string& outputFolder) {
+void generatePileUpData(const int pileUp, const std::string& inputFolder, const std::string& outputFolder)
+{
 
   mergeEvents(pileUp, inputFolder, outputFolder);
   mergeLabels(pileUp, inputFolder, outputFolder);
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 
   int pileUp;
   std::string inputFolder { "" };
