@@ -67,10 +67,18 @@ constexpr float getInverseBinSize(const int layerIndex)
 {
   return 0.5f * ZBins / ITS::LayersZCoordinate[layerIndex];
 }
-;
+
 constexpr std::array<float, ITS::LayersNumber> InverseZBinSize { CAArrayUtils::fillArray<float, ITS::LayersNumber>(
     getInverseBinSize) };
 }
+
+namespace Memory {
+constexpr std::array<float, ITS::TrackletsPerRoad> TrackletsMemoryCoefficients { { 0.0016353f, 0.0013627f, 0.000984f,
+    0.00078135f, 0.00057934f, 0.00052217f } };
+constexpr std::array<float, ITS::CellsPerRoad> CellsMemoryCoefficients { { 2.3208e-08f, 2.104e-08f, 1.6432e-08f,
+    1.2412e-08f, 1.3543e-08f } };
+}
+
 namespace PDGCodes {
 constexpr int PionCode { 211 };
 }

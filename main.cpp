@@ -4,6 +4,10 @@
 #include <fstream>
 #include <vector>
 
+#if defined HAVE_VALGRIND
+#include <valgrind/callgrind.h>
+#endif
+
 #include "CAIOUtils.h"
 #include "CATracker.h"
 
@@ -49,25 +53,36 @@ int main(int argc, char** argv)
     fakeRoadsOutputStream.open(benchmarkFolderName + "FakeRoads.txt");
   }
 
+  clock_t t1, t2;
+  float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
 #if defined MEMORY_BENCHMARK
   std::ofstream memoryBenchmarkOutputStream;
   memoryBenchmarkOutputStream.open(benchmarkFolderName + "MemoryOccupancy.txt");
 #endif
-
 
   for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
 
     CAEvent& currentEvent = events[iEvent];
     std::cout << "Processing event " << iEvent + 1 << std::endl;
 
-#if defined DEBUG
-    clock_t t1, t2;
-    float totalTime = 0.f, minTime = std::numeric_limits<float>::max(), maxTime = -1;
-
     t1 = clock();
 
+#if defined HAVE_VALGRIND
+    // Run callgrind with --collect-atstart=no
+    CALLGRIND_TOGGLE_COLLECT;
+#endif
 
+#if defined MEMORY_BENCHMARK
+    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
+#elif defined DEBUG
     std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksVerbose();
+#else
+    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
+#endif
+
+#if defined HAVE_VALGRIND
+    CALLGRIND_TOGGLE_COLLECT;
+#endif
 
     t2 = clock();
     const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
@@ -80,28 +95,18 @@ int main(int argc, char** argv)
       maxTime = diff;
 
     std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
-#elif defined MEMORY_BENCHMARK
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
-#else
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
-#endif
 
     if (createBenchmarkData) {
 
-      for (auto& currentVertexRoads : roads) {
-
-        CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream,
-            currentVertexRoads, labelsMap[iEvent]);
-      }
+      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
+          labelsMap[iEvent]);
     }
   }
 
-#if defined DEBUG
   std::cout << std::endl;
   std::cout << "Avg time: " << totalTime / verticesNum << "ms" << std::endl;
   std::cout << "Min time: " << minTime << "ms" << std::endl;
   std::cout << "Max time: " << maxTime << "ms" << std::endl;
-#endif
 
   return 0;
 }

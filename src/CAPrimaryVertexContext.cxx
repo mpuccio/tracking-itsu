@@ -19,7 +19,9 @@
 #include "CAPrimaryVertexContext.h"
 
 #include <algorithm>
+#include <cmath>
 
+#include "CAConstants.h"
 #include "CAEvent.h"
 #include "CALayer.h"
 
@@ -38,14 +40,29 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
       clusters[iLayer].emplace_back(iLayer, event.getPrimaryVertex(primaryVertexIndex), currentCluster);
     }
 
-    std::sort(clusters[iLayer].begin(), clusters[iLayer].end(),
-        [](CACluster& cluster1, CACluster& cluster2) {
-          return cluster1.indexTableBinIndex < cluster2.indexTableBinIndex;
-        });
+    std::sort(clusters[iLayer].begin(), clusters[iLayer].end(), [](CACluster& cluster1, CACluster& cluster2) {
+      return cluster1.indexTableBinIndex < cluster2.indexTableBinIndex;
+    });
 
     if (iLayer > 0) {
 
       indexTables[iLayer - 1] = CAIndexTable(iLayer, clusters[iLayer]);
+    }
+
+    if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
+
+      tracklets[iLayer].reserve(
+          std::ceil(
+              (CAConstants::Memory::TrackletsMemoryCoefficients[iLayer] * clustersNum)
+                  * event.getLayer(iLayer + 1).getClustersSize()));
+    }
+
+    if (iLayer < CAConstants::ITS::CellsPerRoad) {
+
+      cells[iLayer].reserve(
+          std::ceil(
+              ((CAConstants::Memory::CellsMemoryCoefficients[iLayer] * clustersNum)
+                  * event.getLayer(iLayer + 1).getClustersSize()) * event.getLayer(iLayer + 2).getClustersSize()));
     }
   }
 }

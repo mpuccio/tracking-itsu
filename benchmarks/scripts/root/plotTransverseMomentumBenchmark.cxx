@@ -115,8 +115,7 @@ void plotTransverseMomentumBenchmark(const std::string& inputFolder, const std::
   plotHistogramsRatio(duplicateHistogram, generatedHistogram, binsEdges, outputFolder + "DuplicateRoadsBenchmark.pdf",
       "Duplicate Roads Histogram");
 
-  TH1F fakeHistogram((histogramPrefix + ".fake-histogram").c_str(), "Fake Histogram", BinNumber,
-      binsEdges.data());
+  TH1F fakeHistogram((histogramPrefix + ".fake-histogram").c_str(), "Fake Histogram", BinNumber, binsEdges.data());
   loadData(inputFolder + "FakeRoads.txt", fakeHistogram);
 
   plotHistogramsRatio(fakeHistogram, generatedHistogram, binsEdges, outputFolder + "FakeRoadsBenchmark.pdf",
