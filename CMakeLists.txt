@@ -15,8 +15,21 @@ set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
 
 check_include_file_cxx(valgrind/callgrind.h HAVE_VALGRIND)
 
+if(TRACKINGITSU_GPU_MODE)
+    find_package(CUDA QUIET REQUIRED)
+    
+    set(CUDA_VERBOSE_BUILD ON)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_52,code=sm_52")
+    
+    include_directories(${CUDA_INCLUDE_DIRS})
+endif(TRACKINGITSU_GPU_MODE)
+
 include_directories(${TRACKING-ITSU_SOURCE_DIR}/include)
 add_subdirectory(src)
 
 add_executable(tracking-itsu-main main.cpp)
 target_link_libraries(tracking-itsu-main src)
+
+if(TRACKINGITSU_GPU_MODE)
+    target_link_libraries(tracking-itsu-main ${CUDA_LIBRARIES})   
+endif(TRACKINGITSU_GPU_MODE)

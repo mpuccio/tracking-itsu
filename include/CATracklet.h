@@ -16,17 +16,18 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TRACKINGITSU_CADOUBLET_H_
-#define TRACKINGITSU_CADOUBLET_H_
+#ifndef TRACKINGITSU_INCLUDE_CATRACKLET_H_
+#define TRACKINGITSU_INCLUDE_CATRACKLET_H_
 
-struct CATracklet final
-{
-    CATracklet(const int, const int, const float, const float);
+struct CATracklet
+    final
+    {
+      CATracklet(const int, const int, const float, const float);
 
-    const int firstClusterIndex;
-    const int secondClusterIndex;
-    const float tanLambda;
-    const float phiCoordinate;
-};
+      const int firstClusterIndex;
+      const int secondClusterIndex;
+      const float tanLambda;
+      const float phiCoordinate;
+  };
 
-#endif /* TRACKINGITSU_CADOUBLET_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CATRACKLET_H_ */

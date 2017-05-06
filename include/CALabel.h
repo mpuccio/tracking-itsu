@@ -20,18 +20,19 @@
 
 #include <ostream>
 
-struct CALabel final
-{
-    CALabel(const int, const float, const float, const float, const int, const int);
+struct CALabel
+    final
+    {
+      CALabel(const int, const float, const float, const float, const int, const int);
 
-    int monteCarloId;
-    float transverseMomentum;
-    float phiCoordinate;
-    float pseudorapidity;
-    int pdgCode;
-    int numberOfClusters;
+      int monteCarloId;
+      float transverseMomentum;
+      float phiCoordinate;
+      float pseudorapidity;
+      int pdgCode;
+      int numberOfClusters;
 
-    friend std::ostream& operator<<(std::ostream&, const CALabel&);
-};
+      friend std::ostream& operator<<(std::ostream&, const CALabel&);
+  };
 
 #endif /* TRACKINGITSU_INCLUDE_CALABEL_H_ */

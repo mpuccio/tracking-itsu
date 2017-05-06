@@ -25,47 +25,48 @@
 #include "CAConstants.h"
 #include "CALayer.h"
 
-class CAEvent final
-{
+class CAEvent
+  final
+  {
 
-  public:
-    explicit CAEvent(const int);
+    public:
+      explicit CAEvent(const int);
 
-    int getEventId() const;
-    const std::array<float, 3>& getPrimaryVertex(const int) const;
-    const CALayer& getLayer(const int) const;
-    int getPrimaryVerticesNum() const;
+      int getEventId() const;
+      const std::array<float, 3>& getPrimaryVertex(const int) const;
+      const CALayer& getLayer(const int) const;
+      int getPrimaryVerticesNum() const;
 
-    void addPrimaryVertex(const float, const float, const float);
-    void printPrimaryVertices() const;
-    void pushClusterToLayer(const int, const int, const float, const float, const float, const float, const int);
-    const int getTotalClusters() const;
+      void addPrimaryVertex(const float, const float, const float);
+      void printPrimaryVertices() const;
+      void pushClusterToLayer(const int, const int, const float, const float, const float, const float, const int);
+      const int getTotalClusters() const;
 
-  private:
-    const int mEventId;
-    std::vector<std::array<float, 3>> mPrimaryVertices;
-    std::array<CALayer, CAConstants::ITS::LayersNumber> mLayers;
-};
+    private:
+      const int mEventId;
+      std::vector<std::array<float, 3>> mPrimaryVertices;
+      std::array<CALayer, CAConstants::ITS::LayersNumber> mLayers;
+  };
 
-inline int CAEvent::getEventId() const
-{
-  return mEventId;
-}
+  inline int CAEvent::getEventId() const
+  {
+    return mEventId;
+  }
 
-inline const std::array<float, 3>& CAEvent::getPrimaryVertex(const int vertexIndex) const
-{
-  return mPrimaryVertices[vertexIndex];
-}
+  inline const std::array<float, 3>& CAEvent::getPrimaryVertex(const int vertexIndex) const
+  {
+    return mPrimaryVertices[vertexIndex];
+  }
 
-inline const CALayer& CAEvent::getLayer(const int layerIndex) const
-{
-  return mLayers[layerIndex];
-}
+  inline const CALayer& CAEvent::getLayer(const int layerIndex) const
+  {
+    return mLayers[layerIndex];
+  }
 
-inline int CAEvent::getPrimaryVerticesNum() const
-{
+  inline int CAEvent::getPrimaryVerticesNum() const
+  {
 
-  return mPrimaryVertices.size();
-}
+    return mPrimaryVertices.size();
+  }
 
 #endif /* TRACKINGITSU_INCLUDE_CAEVENT_H_ */

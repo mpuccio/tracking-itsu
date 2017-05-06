@@ -23,60 +23,61 @@
 
 #include "CAConstants.h"
 
-class CARoad final
-{
-  public:
-    CARoad();
-    CARoad(int, int);
+class CARoad
+  final
+  {
+    public:
+      CARoad();
+      CARoad(int, int);
 
-    int getRoadSize() const;
-    int getLabel() const;
-    void setLabel(const int);
-    bool isFakeRoad() const;
-    void setFakeRoad(const bool);
-    int &operator[](const int&);
+      int getRoadSize() const;
+      int getLabel() const;
+      void setLabel(const int);
+      bool isFakeRoad() const;
+      void setFakeRoad(const bool);
+      int &operator[](const int&);
 
-    void resetRoad();
-    void addCell(int, int);
+      void resetRoad();
+      void addCell(int, int);
 
-  private:
-    std::array<int, CAConstants::ITS::CellsPerRoad> mCellIds;
-    int mRoadSize;
-    int mLabel;
-    bool mIsFakeRoad;
-};
+    private:
+      std::array<int, CAConstants::ITS::CellsPerRoad> mCellIds;
+      int mRoadSize;
+      int mLabel;
+      bool mIsFakeRoad;
+  };
 
-inline int CARoad::getRoadSize() const
-{
+  inline int CARoad::getRoadSize() const
+  {
 
-  return mRoadSize;
-}
+    return mRoadSize;
+  }
 
-inline int CARoad::getLabel() const
-{
+  inline int CARoad::getLabel() const
+  {
 
-  return mLabel;
-}
+    return mLabel;
+  }
 
-inline void CARoad::setLabel(const int label)
-{
+  inline void CARoad::setLabel(const int label)
+  {
 
-  mLabel = label;
-}
+    mLabel = label;
+  }
 
-inline int& CARoad::operator [](const int& i)
-{
-  return mCellIds[i];
-}
+  inline int& CARoad::operator [](const int& i)
+  {
+    return mCellIds[i];
+  }
 
-inline bool CARoad::isFakeRoad() const
-{
-  return mIsFakeRoad;
-}
+  inline bool CARoad::isFakeRoad() const
+  {
+    return mIsFakeRoad;
+  }
 
-inline void CARoad::setFakeRoad(const bool isFakeRoad)
-{
-  mIsFakeRoad = isFakeRoad;
-}
+  inline void CARoad::setFakeRoad(const bool isFakeRoad)
+  {
+    mIsFakeRoad = isFakeRoad;
+  }
 
 #endif /* TRACKINGITSU_INCLUDE_CAROAD_H_ */

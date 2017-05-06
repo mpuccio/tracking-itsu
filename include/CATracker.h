@@ -27,29 +27,30 @@
 class CAEvent;
 struct CAPrimaryVertexContext;
 
-class CATracker final
-{
-  public:
-    explicit CATracker(const CAEvent&);
+class CATracker
+  final
+  {
+    public:
+      explicit CATracker(const CAEvent&);
 
-    CATracker(const CATracker&) = delete;
-    CATracker &operator=(const CATracker&) = delete;
+      CATracker(const CATracker&) = delete;
+      CATracker &operator=(const CATracker&) = delete;
 
-    std::vector<std::vector<CARoad>> clustersToTracks();
-    std::vector<std::vector<CARoad>> clustersToTracksVerbose();
-    std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark(std::ofstream&);
+      std::vector<std::vector<CARoad>> clustersToTracks();
+      std::vector<std::vector<CARoad>> clustersToTracksVerbose();
+      std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark(std::ofstream&);
 
-  protected:
-    void computeTracklets(CAPrimaryVertexContext&);
-    void computeCells(CAPrimaryVertexContext&);
-    void findCellsNeighbours(CAPrimaryVertexContext&);
-    void findTracks(CAPrimaryVertexContext&);
-    void traverseCellsTree(CAPrimaryVertexContext&, const int, const int);
-    void computeMontecarloLabels(CAPrimaryVertexContext&);
+    protected:
+      void computeTracklets(CAPrimaryVertexContext&);
+      void computeCells(CAPrimaryVertexContext&);
+      void findCellsNeighbours(CAPrimaryVertexContext&);
+      void findTracks(CAPrimaryVertexContext&);
+      void traverseCellsTree(CAPrimaryVertexContext&, const int, const int);
+      void computeMontecarloLabels(CAPrimaryVertexContext&);
 
-  private:
-    const CAEvent& mEvent;
-    std::vector<int> mUsedClustersTable;
-};
+    private:
+      const CAEvent& mEvent;
+      std::vector<int> mUsedClustersTable;
+  };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */

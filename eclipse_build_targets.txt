@@ -7,6 +7,9 @@ cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$
 > cmake-gcc
 cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=${ConfigName} -DCMAKE_CXX_COMPILER=c++
 
+> cmake-nvcc
+cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=${ConfigName} -DCMAKE_CXX_COMPILER=nvcc -DTRACKINGITSU_GPU_MODE
+
 ############
 #   ROOT   #
 ############

@@ -21,20 +21,21 @@
 
 #include <array>
 
-struct CACluster final
-{
-    CACluster(const int, const float, const float, const float, const float, const int);
-    CACluster(const int, const std::array<float, 3>&, const CACluster&);
+struct CACluster
+    final
+    {
+      CACluster(const int, const float, const float, const float, const float, const int);
+      CACluster(const int, const std::array<float, 3>&, const CACluster&);
 
-    int clusterId;
-    float xCoordinate;
-    float yCoordinate;
-    float zCoordinate;
-    float alphaAngle;
-    int monteCarloId;
-    float phiCoordinate;
-    float rCoordinate;
-    int indexTableBinIndex;
-};
+      int clusterId;
+      float xCoordinate;
+      float yCoordinate;
+      float zCoordinate;
+      float alphaAngle;
+      int monteCarloId;
+      float phiCoordinate;
+      float rCoordinate;
+      int indexTableBinIndex;
+  };
 
 #endif /* TRACKINGITSU_INCLUDE_CACLUSTER_H_ */

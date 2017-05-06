@@ -1,5 +1,5 @@
-/// \file CAIndexTable.h
-/// \brief 
+/// \file CADefinitions.h
+/// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
 ///
@@ -16,35 +16,25 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_
-#define TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_
+#ifndef TRACKINGITSU_INCLUDE_CADEFINITIONS_H_
+#define TRACKINGITSU_INCLUDE_CADEFINITIONS_H_
 
-#include <array>
-#include <vector>
+#if defined(__CUDACC__)
+# define GPU_HOST __host__
+# define GPU_DEVICE __device__
+# define GPU_HOST_DEVICE __host__ __device__
+# define GPU_GLOBAL __global__
+# define GPU_SHARED __shared__
+# define GPU_SYNC __syncthreads()
+#else
+# define GPU_HOST
+# define GPU_DEVICE
+# define GPU_HOST_DEVICE
+# define GPU_GLOBAL
+# define GPU_SHARED
+# define GPU_SYNC
 
-#include <CACluster.h>
-#include <CAConstants.h>
+typedef struct float4 {float x; float y; float z; float w;}float4;
+#endif
 
-class CAIndexTable
-  final
-  {
-    public:
-      CAIndexTable();
-      CAIndexTable(const int, const std::vector<CACluster>&);
-
-      const int getBin(const int) const;
-
-      const std::vector<int> selectBins(const float, const float, const float, const float);
-
-    private:
-      int mLayerIndex;
-      std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
-  };
-
-  inline const int CAIndexTable::getBin(const int binIndex) const
-  {
-
-    return mTableBins[binIndex];
-  }
-
-#endif /* TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CADEFINITIONS_H_ */

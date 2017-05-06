@@ -19,8 +19,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
-#ifndef TRACKINGITSU_CAINDEXTABLEUTILS_H_
-#define TRACKINGITSU_CAINDEXTABLEUTILS_H_
+#ifndef TRACKINGITSU_INCLUDE_CAINDEXTABLEUTILS_H_
+#define TRACKINGITSU_INCLUDE_CAINDEXTABLEUTILS_H_
 
 #include "CAConstants.h"
 
@@ -57,4 +57,4 @@ constexpr int CAIndexTableUtils::getBinIndex(const int zIndex, const int phiInde
       CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins);
 }
 
-#endif /* TRACKINGITSU_CAINDEXTABLEUTILS_H_ */
+#endif /* TRACKINGITSU_INCLUDE_CAINDEXTABLEUTILS_H_ */

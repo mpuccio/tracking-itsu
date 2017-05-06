@@ -18,33 +18,41 @@
 #ifndef TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
 #define TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
 
+#define TRACKINGITSU_GPU_MODE
+
 #include <array>
 #include <vector>
 
 #include "CACell.h"
 #include "CAConstants.h"
+#include "CAEvent.h"
 #include "CAIndexTable.h"
 #include "CARoad.h"
 #include "CATracklet.h"
 
-class CAEvent;
+#include "cuda/CACUDAArray.h"
 
-struct CAPrimaryVertexContext final
-{
-    explicit CAPrimaryVertexContext(const CAEvent&, const int);
+struct CAPrimaryVertexContext
+    final
+    {
+      explicit CAPrimaryVertexContext(const CAEvent&, const int);
 
-    const int primaryVertexIndex;
+      const int primaryVertexIndex;
 
-    std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> clusters;
-    std::array<CAIndexTable, CAConstants::ITS::TrackletsPerRoad> indexTables;
+      std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> clusters;
+      std::array<CAIndexTable, CAConstants::ITS::TrackletsPerRoad> indexTables;
+      std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
+      std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
+      std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> cells;
+      std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> cellsLookupTable;
+      std::vector<CARoad> roads;
 
-    std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
-    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
+#if defined(TRACKINGITSU_GPU_MODE)
+      std::array<CACUDAArray<CACluster>, CAConstants::ITS::LayersNumber> dClusters;
+      std::array<CACUDAArray<CAIndexTable>, CAConstants::ITS::TrackletsPerRoad> dIndexTables;
+      std::array<CACUDAArray<CATracklet>, CAConstants::ITS::TrackletsPerRoad> dTracklets;
+#endif
 
-    std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> cells;
-    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> cellsLookupTable;
-
-    std::vector<CARoad> roads;
-};
+  };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_ */
