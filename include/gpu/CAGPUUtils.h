@@ -1,4 +1,4 @@
-/// \file CADefinitions.h
+/// \file CAGPUUtils.h
 /// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,27 +16,20 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TRACKINGITSU_INCLUDE_CADEFINITIONS_H_
-#define TRACKINGITSU_INCLUDE_CADEFINITIONS_H_
+#ifndef TRACKINGITSU_INCLUDE_GPU_CAGPUUTILS_H_
+#define TRACKINGITSU_INCLUDE_GPU_CAGPUUTILS_H_
 
-#if defined(TRACKINGITSU_CUDA_COMPILE)
-# define TRACKINGITSU_GPU_MODE
-#endif
+#include "CADefinitions.h"
 
-#if defined(__CUDACC__)
-# define GPU_HOST __host__
-# define GPU_DEVICE __device__
-# define GPU_HOST_DEVICE __host__ __device__
-# define GPU_GLOBAL __global__
-# define GPU_SHARED __shared__
-# define GPU_SYNC __syncthreads()
-#else
-# define GPU_HOST
-# define GPU_DEVICE
-# define GPU_HOST_DEVICE
-# define GPU_GLOBAL
-# define GPU_SHARED
-# define GPU_SYNC
-#endif
+namespace CAGPUUtils {
+void gpuMalloc(void**, const int);
+void gpuFree(void*);
+void gpuMemset(void *, int, int);
+void gpuMemcpyHostToDevice(void *, const void *, int);
 
-#endif /* TRACKINGITSU_INCLUDE_CADEFINITIONS_H_ */
+void gpuStartProfiler();
+void gpuStopProfiler();
+}
+
+
+#endif /* TRACKINGITSU_INCLUDE_GPU_CAGPUUTILS_H_ */

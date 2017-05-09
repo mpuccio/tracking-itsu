@@ -45,16 +45,12 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
     });
 
 #if defined(TRACKINGITSU_GPU_MODE)
-    dClusters[iLayer] = CACUDAArray<CACluster>{ &clusters[iLayer][0], static_cast<int>(clusters[iLayer].size()) };
+    dClusters[iLayer] = CAGPUArray<CACluster> { &clusters[iLayer][0], static_cast<int>(clusters[iLayer].size()) };
 #endif
 
     if (iLayer > 0) {
 
       indexTables[iLayer - 1] = CAIndexTable(iLayer, clusters[iLayer]);
-
-#if defined(TRACKINGITSU_GPU_MODE)
-      dIndexTables[iLayer - 1] = CACUDAArray<CAIndexTable>{ &indexTables[iLayer - 1], 1 };
-#endif
     }
 
     if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
@@ -65,7 +61,7 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
                   * event.getLayer(iLayer + 1).getClustersSize()));
 
 #if defined(TRACKINGITSU_GPU_MODE)
-      dTracklets[iLayer] = CACUDAArray<CATracklet>{ static_cast<int>(tracklets[iLayer].capacity()) };
+      dTracklets[iLayer] = CAGPUArray<CATracklet> { static_cast<int>(tracklets[iLayer].capacity()) };
 #endif
     }
 
@@ -77,5 +73,9 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
                   * event.getLayer(iLayer + 1).getClustersSize()) * event.getLayer(iLayer + 2).getClustersSize()));
     }
   }
+
+#if defined(TRACKINGITSU_GPU_MODE)
+  dIndexTables = CAGPUArray<CAIndexTable> { indexTables.data(), CAConstants::ITS::TrackletsPerRoad };
+#endif
 }
 

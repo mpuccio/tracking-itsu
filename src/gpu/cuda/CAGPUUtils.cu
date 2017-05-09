@@ -1,4 +1,4 @@
-/// \file CADefinitions.h
+/// \file CAGPUtils.cu
 /// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,27 +16,35 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TRACKINGITSU_INCLUDE_CADEFINITIONS_H_
-#define TRACKINGITSU_INCLUDE_CADEFINITIONS_H_
+#include "CAGPUUtils.h"
 
-#if defined(TRACKINGITSU_CUDA_COMPILE)
-# define TRACKINGITSU_GPU_MODE
-#endif
+#include <cuda_runtime.h>
+#include <cuda_profiler_api.h>
 
-#if defined(__CUDACC__)
-# define GPU_HOST __host__
-# define GPU_DEVICE __device__
-# define GPU_HOST_DEVICE __host__ __device__
-# define GPU_GLOBAL __global__
-# define GPU_SHARED __shared__
-# define GPU_SYNC __syncthreads()
-#else
-# define GPU_HOST
-# define GPU_DEVICE
-# define GPU_HOST_DEVICE
-# define GPU_GLOBAL
-# define GPU_SHARED
-# define GPU_SYNC
-#endif
+void CAGPUUtils::gpuMalloc(void **p, const int size)
+{
+  cudaMalloc(p, size);
+}
 
-#endif /* TRACKINGITSU_INCLUDE_CADEFINITIONS_H_ */
+void CAGPUUtils::gpuFree(void *p)
+{
+  cudaFree(p);
+}
+
+void CAGPUUtils::gpuMemset(void *p, int value, int size)
+{
+  cudaMemset(p, value, size);
+}
+
+void CAGPUUtils::gpuMemcpyHostToDevice(void *dst, const void *src, int size)
+{
+  cudaMemcpy(dst, src, size, cudaMemcpyHostToDevice);
+}
+
+void CAGPUUtils::gpuStartProfiler() {
+  cudaProfilerStart();
+}
+
+void CAGPUUtils::gpuStopProfiler() {
+  cudaProfilerStop();
+}

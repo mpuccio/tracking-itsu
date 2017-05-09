@@ -4,12 +4,17 @@
 #include <fstream>
 #include <vector>
 
-#if defined HAVE_VALGRIND
-#include <valgrind/callgrind.h>
-#endif
-
+#include "CADefinitions.h"
 #include "CAIOUtils.h"
 #include "CATracker.h"
+
+#if defined HAVE_VALGRIND
+# include <valgrind/callgrind.h>
+#endif
+
+#if defined TRACKINGITSU_GPU_MODE
+# include "CAGPUUtils.h"
+#endif
 
 std::string getDirectory(const std::string& fname)
 {
@@ -60,6 +65,10 @@ int main(int argc, char** argv)
   memoryBenchmarkOutputStream.open(benchmarkFolderName + "MemoryOccupancy.txt");
 #endif
 
+#if defined GPU_PROFILING_MODE
+  CAGPUUtils::gpuStartProfiler();
+#endif
+
   for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
 
     CAEvent& currentEvent = events[iEvent];
@@ -102,6 +111,10 @@ int main(int argc, char** argv)
           labelsMap[iEvent]);
     }
   }
+
+#if defined GPU_PROFILING_MODE
+  CAGPUUtils::gpuStopProfiler();
+#endif
 
   std::cout << std::endl;
   std::cout << "Avg time: " << totalTime / verticesNum << "ms" << std::endl;

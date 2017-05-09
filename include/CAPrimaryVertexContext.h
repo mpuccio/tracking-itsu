@@ -18,19 +18,20 @@
 #ifndef TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
 #define TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_
 
-#define TRACKINGITSU_GPU_MODE
-
 #include <array>
 #include <vector>
 
 #include "CACell.h"
 #include "CAConstants.h"
+#include "CADefinitions.h"
 #include "CAEvent.h"
 #include "CAIndexTable.h"
 #include "CARoad.h"
 #include "CATracklet.h"
 
-#include "cuda/CACUDAArray.h"
+#if defined(TRACKINGITSU_GPU_MODE)
+# include "CAGPUArray.h"
+#endif
 
 struct CAPrimaryVertexContext
     final
@@ -48,9 +49,9 @@ struct CAPrimaryVertexContext
       std::vector<CARoad> roads;
 
 #if defined(TRACKINGITSU_GPU_MODE)
-      std::array<CACUDAArray<CACluster>, CAConstants::ITS::LayersNumber> dClusters;
-      std::array<CACUDAArray<CAIndexTable>, CAConstants::ITS::TrackletsPerRoad> dIndexTables;
-      std::array<CACUDAArray<CATracklet>, CAConstants::ITS::TrackletsPerRoad> dTracklets;
+      std::array<CAGPUArray<CACluster>, CAConstants::ITS::LayersNumber> dClusters;
+      CAGPUArray<CAIndexTable> dIndexTables;
+      std::array<CAGPUArray<CATracklet>, CAConstants::ITS::TrackletsPerRoad> dTracklets;
 #endif
 
   };
