@@ -34,6 +34,9 @@ class CAGPUArray
       const T* const get() const;
       T operator[](const int) const;
 
+    protected:
+      void destroy();
+
     private:
       T *mArrayPointer;
       int *mSize;
@@ -75,15 +78,7 @@ class CAGPUArray
 
     } catch (...) {
 
-      if (mArrayPointer != nullptr) {
-
-        CAGPUUtils::gpuFree(mArrayPointer);
-      }
-
-      if (mSize != nullptr) {
-
-        CAGPUUtils::gpuFree(mSize);
-      }
+      destroy();
 
       throw;
     }
@@ -92,15 +87,7 @@ class CAGPUArray
   template<typename T>
   CAGPUArray<T>::~CAGPUArray()
   {
-    if (mArrayPointer != nullptr) {
-
-      CAGPUUtils::gpuFree(mArrayPointer);
-    }
-
-    if (mSize != nullptr) {
-
-      CAGPUUtils::gpuFree(mSize);
-    }
+    destroy();
   }
 
   template<typename T>
@@ -113,6 +100,20 @@ class CAGPUArray
   inline T CAGPUArray<T>::operator[](const int index) const
   {
     return mArrayPointer[index];
+  }
+
+  template<typename T>
+  inline void CAGPUArray<T>::destroy() {
+
+    if (mArrayPointer != nullptr) {
+
+      CAGPUUtils::gpuFree(mArrayPointer);
+    }
+
+    if (mSize != nullptr) {
+
+      CAGPUUtils::gpuFree(mSize);
+    }
   }
 
 #endif /* TRAKINGITSU_INCLUDE_GPU_CAGPUARRAY_H_ */
