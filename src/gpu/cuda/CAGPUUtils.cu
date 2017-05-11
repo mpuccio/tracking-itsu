@@ -18,33 +18,53 @@
 
 #include "CAGPUUtils.h"
 
+#include <sstream>
+#include <stdexcept>
+
 #include <cuda_runtime.h>
 #include <cuda_profiler_api.h>
 
+namespace {
+void checkCUDAError(const cudaError_t error, const int line)
+{
+  if (error != cudaSuccess) {
+
+    std::ostringstream errorString;
+
+    errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << "), line(" << line
+        << ")" << std::endl;
+
+    throw std::runtime_error(errorString.str());
+  }
+}
+}
+
 void CAGPUUtils::gpuMalloc(void **p, const int size)
 {
-  cudaMalloc(p, size);
+  checkCUDAError(cudaMalloc(p, size), __LINE__);
 }
 
 void CAGPUUtils::gpuFree(void *p)
 {
-  cudaFree(p);
+  checkCUDAError(cudaFree(p), __LINE__);
 }
 
 void CAGPUUtils::gpuMemset(void *p, int value, int size)
 {
-  cudaMemset(p, value, size);
+  checkCUDAError(cudaMemset(p, value, size), __LINE__);
 }
 
 void CAGPUUtils::gpuMemcpyHostToDevice(void *dst, const void *src, int size)
 {
-  cudaMemcpy(dst, src, size, cudaMemcpyHostToDevice);
+  checkCUDAError(cudaMemcpy(dst, src, size, cudaMemcpyHostToDevice), __LINE__);
 }
 
-void CAGPUUtils::gpuStartProfiler() {
-  cudaProfilerStart();
+void CAGPUUtils::gpuStartProfiler()
+{
+  checkCUDAError(cudaProfilerStart(), __LINE__);
 }
 
-void CAGPUUtils::gpuStopProfiler() {
-  cudaProfilerStop();
+void CAGPUUtils::gpuStopProfiler()
+{
+  checkCUDAError(cudaProfilerStop(), __LINE__);
 }
