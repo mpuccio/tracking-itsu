@@ -209,28 +209,25 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
       const float directionZIntersection = tanLambda
           * (CAConstants::ITS::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate) + currentCluster.zCoordinate;
 
-      const std::vector<int> nextLayerBinsSubset = primaryVertexContext.indexTables[iLayer].selectBins(
+      const std::vector<std::pair<int, int>> nextLayerClustersSubset = primaryVertexContext.indexTables[iLayer].selectClusters(
           directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut,
           directionZIntersection + 2 * CAConstants::Thresholds::ZCoordinateCut,
           currentCluster.phiCoordinate - CAConstants::Thresholds::PhiCoordinateCut,
           currentCluster.phiCoordinate + CAConstants::Thresholds::PhiCoordinateCut);
 
-      if (nextLayerBinsSubset.empty()) {
+      if (nextLayerClustersSubset.empty()) {
 
         continue;
       }
 
-      bool isFirstTrackletFromCurrentCluster = true;
+      const int rowsNum = nextLayerClustersSubset.size();
 
-      const int lastClusterBin = nextLayerBinsSubset.size() - 1;
+      for (int iRow = 0; iRow < rowsNum; ++iRow) {
 
-      for (int iClusterBin = 0; iClusterBin <= lastClusterBin; ++iClusterBin) {
+        const int firstRowClusterIndex = nextLayerClustersSubset[iRow].first;
+        const int lastRowClusterIndex = firstRowClusterIndex + nextLayerClustersSubset[iRow].second - 1;
 
-        const int currentBinIndex = nextLayerBinsSubset[iClusterBin];
-        const int currentBinFirstCluster = primaryVertexContext.indexTables[iLayer].getBin(currentBinIndex);
-        const int nextBinFirstClusterIndex = primaryVertexContext.indexTables[iLayer].getBin(currentBinIndex + 1);
-
-        for (int iNextLayerCluster = currentBinFirstCluster; iNextLayerCluster < nextBinFirstClusterIndex;
+        for (int iNextLayerCluster = firstRowClusterIndex; iNextLayerCluster <= lastRowClusterIndex;
             ++iNextLayerCluster) {
 
           const CACluster& nextCluster = primaryVertexContext.clusters[iLayer + 1][iNextLayerCluster];
@@ -249,11 +246,11 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
               && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut
                   || std::abs(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut)) {
 
-            if (iLayer > 0 && isFirstTrackletFromCurrentCluster) {
+            if (iLayer > 0
+                && primaryVertexContext.trackletsLookupTable[iLayer - 1][iCluster] == CAConstants::ITS::UnusedIndex) {
 
               primaryVertexContext.trackletsLookupTable[iLayer - 1][iCluster] =
                   primaryVertexContext.tracklets[iLayer].size();
-              isFirstTrackletFromCurrentCluster = false;
             }
 
             const float trackletTanLambda = (currentCluster.zCoordinate - nextCluster.zCoordinate)
@@ -310,7 +307,6 @@ void CATracker::computeCells(CAPrimaryVertexContext& primaryVertexContext)
           secondCellCluster.yCoordinate - firstCellCluster.yCoordinate, secondCellClusterQuadraticRCoordinate
               - firstCellClusterQuadraticRCoordinate } };
 
-      bool isFirstCellForCurrentTracklet = true;
       const int nextLayerTrackletsNum = primaryVertexContext.tracklets[iLayer + 1].size();
 
       for (int iNextLayerTracklet = nextLayerFirstTrackletIndex;
@@ -386,10 +382,10 @@ void CATracker::computeCells(CAPrimaryVertexContext& primaryVertexContext)
 
             const float cellTrajectoryCurvature = 1.0f / cellTrajectoryRadius;
 
-            if (isFirstCellForCurrentTracklet && iLayer > 0) {
+            if (iLayer > 0
+                && primaryVertexContext.cellsLookupTable[iLayer - 1][iTracklet] == CAConstants::ITS::UnusedIndex) {
 
               primaryVertexContext.cellsLookupTable[iLayer - 1][iTracklet] = primaryVertexContext.cells[iLayer].size();
-              isFirstCellForCurrentTracklet = false;
             }
 
             primaryVertexContext.cells[iLayer].emplace_back(currentTracklet.firstClusterIndex,

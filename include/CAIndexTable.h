@@ -20,6 +20,7 @@
 #define TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_
 
 #include <array>
+#include <utility>
 #include <vector>
 
 #include <CACluster.h>
@@ -34,7 +35,7 @@ class CAIndexTable
 
       const int getBin(const int) const;
 
-      const std::vector<int> selectBins(const float, const float, const float, const float);
+      const std::vector<std::pair<int,int>> selectClusters(const float, const float, const float, const float);
 
     private:
       int mLayerIndex;
