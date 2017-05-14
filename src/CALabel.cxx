@@ -23,12 +23,11 @@ CALabel::CALabel(const int monteCarloId, const float transverseMomentum, const f
     : monteCarloId { monteCarloId }, transverseMomentum { transverseMomentum }, phiCoordinate { phiCoordinate }, pseudorapidity {
         pseudorapidity }, pdgCode { pdgCode }, numberOfClusters { numberOfClusters }
 {
-  // TNothing to do
+  // Nothing to do
 }
 
 std::ostream& operator<<(std::ostream& outputStream, const CALabel& label)
 {
-
   outputStream << label.monteCarloId << "\t" << label.transverseMomentum << "\t" << label.phiCoordinate << "\t"
       << label.pseudorapidity << "\t" << label.pdgCode << "\t" << label.numberOfClusters;
 

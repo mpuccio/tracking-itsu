@@ -29,12 +29,12 @@ void checkCUDAError(const cudaError_t error, const int line)
 {
   if (error != cudaSuccess) {
 
-    std::ostringstream errorString;
+    std::ostringstream errorString{};
 
     errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << "), line(" << line
         << ")" << std::endl;
 
-    throw std::runtime_error(errorString.str());
+    throw std::runtime_error{ errorString.str() };
   }
 }
 }

@@ -28,15 +28,15 @@
 CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
     : primaryVertexIndex { primaryVertexIndex }
 {
-  for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  for (int iLayer{ 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
-    const CALayer& currentLayer = event.getLayer(iLayer);
-    const int clustersNum = currentLayer.getClustersSize();
+    const CALayer& currentLayer { event.getLayer(iLayer) };
+    const int clustersNum { currentLayer.getClustersSize() };
     clusters[iLayer].reserve(clustersNum);
 
-    for (int iCluster = 0; iCluster < clustersNum; ++iCluster) {
+    for (int iCluster { 0 }; iCluster < clustersNum; ++iCluster) {
 
-      const CACluster& currentCluster = currentLayer.getCluster(iCluster);
+      const CACluster& currentCluster { currentLayer.getCluster(iCluster) };
       clusters[iLayer].emplace_back(iLayer, event.getPrimaryVertex(primaryVertexIndex), currentCluster);
     }
 
@@ -45,7 +45,7 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
     });
 
 #if defined(TRACKINGITSU_GPU_MODE)
-    dClusters[iLayer] = CAGPUArray<CACluster> { &clusters[iLayer][0], static_cast<int>(clusters[iLayer].size()) };
+    dClusters[iLayer] = CAGPUArray<CACluster> {&clusters[iLayer][0], static_cast<int>(clusters[iLayer].size())};
 #endif
 
     if (iLayer > 0) {
@@ -61,7 +61,7 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
                   * event.getLayer(iLayer + 1).getClustersSize()));
 
 #if defined(TRACKINGITSU_GPU_MODE)
-      dTracklets[iLayer] = CAGPUArray<CATracklet> { static_cast<int>(tracklets[iLayer].capacity()) };
+      dTracklets[iLayer] = CAGPUArray<CATracklet> {static_cast<int>(tracklets[iLayer].capacity())};
 #endif
     }
 
@@ -75,7 +75,7 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
   }
 
 #if defined(TRACKINGITSU_GPU_MODE)
-  dIndexTables = CAGPUArray<CAIndexTable> { indexTables.data(), CAConstants::ITS::TrackletsPerRoad };
+  dIndexTables = CAGPUArray<CAIndexTable> {indexTables.data(), CAConstants::ITS::TrackletsPerRoad};
 #endif
 }
 

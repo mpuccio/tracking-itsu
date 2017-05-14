@@ -33,7 +33,6 @@ class CALayer
       const std::vector<CACluster>& getClusters() const;
       const CACluster& getCluster(int) const;
       int getClustersSize() const;
-
       void addCluster(const int, const float, const float, const float, const float, const int);
 
     private:

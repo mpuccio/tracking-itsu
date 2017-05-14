@@ -34,7 +34,6 @@ class CAIndexTable
       CAIndexTable(const int, const std::vector<CACluster>&);
 
       const int getBin(const int) const;
-
       const std::vector<std::pair<int,int>> selectClusters(const float, const float, const float, const float);
 
     private:
@@ -44,8 +43,7 @@ class CAIndexTable
 
   inline const int CAIndexTable::getBin(const int binIndex) const
   {
-
-    return mTableBins[binIndex];
+	  return mTableBins[binIndex];
   }
 
 #endif /* TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_ */

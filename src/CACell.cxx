@@ -28,11 +28,6 @@ CACell::CACell(const int firstClusterIndex, const int secondClusterIndex, const 
   // Nothing to do
 }
 
-void CACell::setLevel(const int level)
-{
-  mLevel = level;
-}
-
 bool CACell::combineCells(const CACell& otherCell, int otherCellId)
 {
   if (mSecondClusterIndex == otherCell.getThirdClusterIndex()
@@ -40,7 +35,7 @@ bool CACell::combineCells(const CACell& otherCell, int otherCellId)
 
     mNeighbours.push_back(otherCellId);
 
-    int otherCellLevel = otherCell.getLevel();
+    const int otherCellLevel { otherCell.getLevel() };
 
     if (otherCellLevel >= mLevel) {
 

@@ -31,17 +31,17 @@ CAIndexTable::CAIndexTable()
 CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CACluster>& clusters)
     : mLayerIndex { layerIndex }
 {
-  const int layerClustersNum = clusters.size();
-  int previousBinIndex = 0;
+  const int layerClustersNum { static_cast<int>(clusters.size()) };
+  int previousBinIndex { 0 };
   mTableBins[0] = 0;
 
-  for (int iCluster = 1; iCluster < layerClustersNum; ++iCluster) {
+  for (int iCluster { 1 }; iCluster < layerClustersNum; ++iCluster) {
 
-    const int currentBinIndex = clusters[iCluster].indexTableBinIndex;
+    const int currentBinIndex { clusters[iCluster].indexTableBinIndex };
 
     if (currentBinIndex > previousBinIndex) {
 
-      for (int iBin = previousBinIndex + 1; iBin <= currentBinIndex; ++iBin) {
+      for (int iBin { previousBinIndex + 1 }; iBin <= currentBinIndex; ++iBin) {
 
         mTableBins[iBin] = iCluster;
       }
@@ -50,7 +50,7 @@ CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CACluster>& c
     }
   }
 
-  for (int iBin = previousBinIndex + 1; iBin <= CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins;
+  for (int iBin { previousBinIndex + 1 }; iBin <= CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins;
       iBin++) {
 
     mTableBins[iBin] = layerClustersNum;
@@ -58,10 +58,10 @@ CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CACluster>& c
 
 }
 
-const std::vector<std::pair<int,int>> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax, const float phiRangeMin,
-    const float phiRangeMax)
+const std::vector<std::pair<int, int>> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax,
+    const float phiRangeMin, const float phiRangeMax)
 {
-  std::vector<std::pair<int,int>> filteredBins;
+  std::vector<std::pair<int, int>> filteredBins{};
 
   if (zRangeMax < -CAConstants::ITS::LayersZCoordinate[mLayerIndex]
       || zRangeMin > CAConstants::ITS::LayersZCoordinate[mLayerIndex] || zRangeMin > zRangeMax) {
@@ -69,14 +69,13 @@ const std::vector<std::pair<int,int>> CAIndexTable::selectClusters(const float z
     return filteredBins;
   }
 
-  const int minZBinIndex = std::max(0, CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMin));
-  const int maxZBinIndex = std::min(CAConstants::IndexTable::ZBins - 1,
-      CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMax));
-  const int zBinsNum = maxZBinIndex - minZBinIndex + 1;
-  const int minPhiBinIndex = CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin));
-  const int maxPhiBinIndex = CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMax));
-
-  int phiBinsNum = maxPhiBinIndex - minPhiBinIndex + 1;
+  const int minZBinIndex { std::max(0, CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMin)) };
+  const int maxZBinIndex { std::min(CAConstants::IndexTable::ZBins - 1,
+      CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMax)) };
+  const int zBinsNum { maxZBinIndex - minZBinIndex + 1 };
+  const int minPhiBinIndex { CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin)) };
+  const int maxPhiBinIndex { CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMax)) };
+  int phiBinsNum { maxPhiBinIndex - minPhiBinIndex + 1 };
 
   if (phiBinsNum < 0) {
 
@@ -85,11 +84,11 @@ const std::vector<std::pair<int,int>> CAIndexTable::selectClusters(const float z
 
   filteredBins.reserve(phiBinsNum);
 
-  for (int iPhiBin = minPhiBinIndex, iPhiCount = 0; iPhiCount < phiBinsNum;
+  for (int iPhiBin { minPhiBinIndex }, iPhiCount { 0 }; iPhiCount < phiBinsNum;
       iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins ? 0 : iPhiBin, iPhiCount++) {
 
-    const int firstBinIndex = CAIndexTableUtils::getBinIndex(minZBinIndex, iPhiBin);
-    const int maxBinIndex = firstBinIndex + zBinsNum;
+    const int firstBinIndex { CAIndexTableUtils::getBinIndex(minZBinIndex, iPhiBin) };
+    const int maxBinIndex { firstBinIndex + zBinsNum };
 
     filteredBins.emplace_back(mTableBins[firstBinIndex], mTableBins[maxBinIndex] - mTableBins[firstBinIndex] + 1);
   }

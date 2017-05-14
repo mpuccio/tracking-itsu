@@ -38,6 +38,9 @@ struct CAPrimaryVertexContext
     {
       explicit CAPrimaryVertexContext(const CAEvent&, const int);
 
+      CAPrimaryVertexContext(const CAPrimaryVertexContext&) = delete;
+      CAPrimaryVertexContext &operator=(const CAPrimaryVertexContext&) = delete;
+
       const int primaryVertexIndex;
 
       std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> clusters;

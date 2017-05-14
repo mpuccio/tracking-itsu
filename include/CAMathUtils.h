@@ -27,8 +27,8 @@ namespace CAMathUtils {
 float calculatePhiCoordinate(const float, const float);
 float calculateRCoordinate(const float, const float);
 constexpr float getNormalizedPhiCoordinate(const float);
-
 constexpr std::array<float, 3> crossProduct(const std::array<float, 3>&, const std::array<float, 3>&);
+constexpr int roundUp(const int, const int);
 }
 
 constexpr float CAMathUtils::getNormalizedPhiCoordinate(const float phiCoordinate)
@@ -44,6 +44,23 @@ constexpr std::array<float, 3> CAMathUtils::crossProduct(const std::array<float,
   return std::array<float, 3> { { (firstVector[1] * secondVector[2]) - (firstVector[2] * secondVector[1]),
       (firstVector[2] * secondVector[0]) - (firstVector[0] * secondVector[2]), (firstVector[0] * secondVector[1])
           - (firstVector[1] * secondVector[0]) } };
+}
+
+constexpr int CAMathUtils::roundUp(const int numToRound, const int multiple) {
+
+  if(multiple == 0) {
+
+	return numToRound;
+  }
+
+  int remainder{ numToRound % multiple };
+
+  if(remainder == 0) {
+
+	return numToRound;
+  }
+
+  return numToRound + multiple - remainder;
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CAUTILS_H_ */

@@ -61,7 +61,6 @@ class CARoad
 
   inline void CARoad::setLabel(const int label)
   {
-
     mLabel = label;
   }
 

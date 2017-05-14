@@ -36,7 +36,6 @@ class CAEvent
       const std::array<float, 3>& getPrimaryVertex(const int) const;
       const CALayer& getLayer(const int) const;
       int getPrimaryVerticesNum() const;
-
       void addPrimaryVertex(const float, const float, const float);
       void printPrimaryVertices() const;
       void pushClusterToLayer(const int, const int, const float, const float, const float, const float, const int);

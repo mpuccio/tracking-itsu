@@ -35,7 +35,7 @@ constexpr int getBinIndex(const int, const int);
 constexpr float getInverseZCoordinate(const int layerIndex)
 {
 
-  return 0.5 * CAConstants::IndexTable::ZBins / CAConstants::ITS::LayersZCoordinate[layerIndex];
+  return 0.5f * CAConstants::IndexTable::ZBins / CAConstants::ITS::LayersZCoordinate[layerIndex];
 }
 
 constexpr int CAIndexTableUtils::getZBinIndex(const float layerIndex, const float zCoordinate)

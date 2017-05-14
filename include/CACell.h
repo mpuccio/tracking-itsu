@@ -38,9 +38,7 @@ class CACell
       int getNumberOfNeighbours() const;
       int getNeighbourCellId(const int) const;
       const std::array<float, 3>& getNormalVectorCoordinates() const;
-
       void setLevel(const int level);
-
       bool combineCells(const CACell&, int);
 
     private:
@@ -105,4 +103,8 @@ class CACell
     return mNormalVectorCoordinates;
   }
 
+  inline void CACell::setLevel(const int level)
+  {
+    mLevel = level;
+  }
 #endif /* TRACKINGITSU_INCLUDE_CACELL_H_ */
