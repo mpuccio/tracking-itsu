@@ -24,10 +24,11 @@
 struct CACluster
     final
     {
-      CACluster(const int, const float, const float, const float, const float, const int);
+      CACluster(const int, const int, const float, const float, const float, const float, const int);
       CACluster(const int, const std::array<float, 3>&, const CACluster&);
 
       int clusterId;
+      int layerIndex;
       float xCoordinate;
       float yCoordinate;
       float zCoordinate;

@@ -107,4 +107,5 @@ class CACell
   {
     mLevel = level;
   }
+
 #endif /* TRACKINGITSU_INCLUDE_CACELL_H_ */

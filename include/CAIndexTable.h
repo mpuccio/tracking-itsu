@@ -19,13 +19,18 @@
 #ifndef TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_
 #define TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_
 
-#include <array>
 #include <utility>
 #include <vector>
 
-#include <CACluster.h>
-#include <CAConstants.h>
+#include "CACluster.h"
+#include "CAConstants.h"
+#include "CADefinitions.h"
 
+#if defined(TRACKINGITSU_GPU_MODE)
+# include "CAGPUArray.h"
+#endif
+
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 class CAIndexTable
   final
   {
@@ -33,17 +38,19 @@ class CAIndexTable
       CAIndexTable();
       CAIndexTable(const int, const std::vector<CACluster>&);
 
-      const int getBin(const int) const;
-      const std::vector<std::pair<int,int>> selectClusters(const float, const float, const float, const float);
+      GPU_DEVICE int getBinFirstClusterIndex(const int) const;
+      const std::array<int, 4> getSelectedBinsRect(const float, const float, const float, const float) const;
+      const std::vector<std::pair<int,int>> selectClusters(const std::array<int, 4>&) const;
 
     private:
       int mLayerIndex;
-      std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
+      GPU_ARRAY<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
   };
 
-  inline const int CAIndexTable::getBin(const int binIndex) const
+  GPU_DEVICE inline int CAIndexTable::getBinFirstClusterIndex(const int binIndex) const
   {
 	  return mTableBins[binIndex];
   }
+}
 
 #endif /* TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_ */

@@ -23,37 +23,34 @@
 #define TRACKINGITSU_INCLUDE_CAINDEXTABLEUTILS_H_
 
 #include "CAConstants.h"
+#include "CADefinitions.h"
 
 namespace CAIndexTableUtils {
-constexpr float getInverseZBinSize(const int);
-constexpr int getZBinIndex(const float, const float);
-constexpr int getPhiBinIndex(const float);
-constexpr int getBinIndex(const int, const int);
+float getInverseZBinSize(const int);
+int getZBinIndex(const int, const float);
+int getPhiBinIndex(const float);
+GPU_HOST_DEVICE int getBinIndex(const int, const int);
 }
-;
 
-constexpr float getInverseZCoordinate(const int layerIndex)
+inline float getInverseZCoordinate(const int layerIndex)
 {
-
   return 0.5f * CAConstants::IndexTable::ZBins / CAConstants::ITS::LayersZCoordinate[layerIndex];
 }
 
-constexpr int CAIndexTableUtils::getZBinIndex(const float layerIndex, const float zCoordinate)
+inline int CAIndexTableUtils::getZBinIndex(const int layerIndex, const float zCoordinate)
 {
-
   return (zCoordinate + CAConstants::ITS::LayersZCoordinate[layerIndex])
       * CAConstants::IndexTable::InverseZBinSize[layerIndex];
 }
 
-constexpr int CAIndexTableUtils::getPhiBinIndex(const float currentPhi)
+inline int CAIndexTableUtils::getPhiBinIndex(const float currentPhi)
 {
-
   return (currentPhi * CAConstants::IndexTable::InversePhiBinSize);
 }
 
-constexpr int CAIndexTableUtils::getBinIndex(const int zIndex, const int phiIndex)
+GPU_HOST_DEVICE inline int CAIndexTableUtils::getBinIndex(const int zIndex, const int phiIndex)
 {
-  return std::min(phiIndex * CAConstants::IndexTable::PhiBins + zIndex,
+  return MATH_MIN(phiIndex * CAConstants::IndexTable::PhiBins + zIndex,
       CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins);
 }
 

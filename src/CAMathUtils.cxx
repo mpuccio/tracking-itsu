@@ -29,3 +29,20 @@ float CAMathUtils::calculateRCoordinate(const float xCoordinate, const float yCo
 {
   return std::sqrt(xCoordinate * xCoordinate + yCoordinate * yCoordinate);
 }
+
+int CAMathUtils::roundUp(const int numToRound, const int multiple)
+{
+  if (multiple == 0) {
+
+    return numToRound;
+  }
+
+  int remainder { numToRound % multiple };
+
+  if (remainder == 0) {
+
+    return numToRound;
+  }
+
+  return numToRound + multiple - remainder;
+}

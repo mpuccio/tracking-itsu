@@ -1,5 +1,5 @@
-/// \file CALayer.cxx
-/// \brief 
+/// \file CATrackingUtils.h
+/// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
 ///
@@ -16,24 +16,16 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CALayer.h"
+#ifndef TRACKINGITSU_INCLUDE_CATRACKINGUTILS_H_
+#define TRACKINGITSU_INCLUDE_CATRACKINGUTILS_H_
 
-#include "CAConstants.h"
+#include "CACluster.h"
+#include "CADefinitions.h"
 
-CALayer::CALayer()
-    : mLayerIndex { CAConstants::ITS::UnusedIndex }
-{
-  //Nothing to do
+namespace TRACKINGITSU_TARGET_NAMESPACE {
+namespace CATrackingUtils {
+GPU_HOST_DEVICE bool isValidTracklet(const CACluster&, const CACluster&, const float, const float);
+}
 }
 
-CALayer::CALayer(const int layerIndex)
-    : mLayerIndex { layerIndex }
-{
-  //Nothing to do
-}
-
-void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
-    const float alphaAngle, const int monteCarlo)
-{
-  mClusters.emplace_back(clusterId, mLayerIndex, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
-}
+#endif /* TRACKINGITSU_INCLUDE_CATRACKINGUTILS_H_ */

@@ -23,9 +23,11 @@
 #include "CAIndexTableUtils.h"
 #include "CAMathUtils.h"
 
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 CAIndexTable::CAIndexTable()
     : mLayerIndex { CAConstants::ITS::UnusedIndex }
 {
+  // Nothing to do
 }
 
 CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CACluster>& clusters)
@@ -58,24 +60,21 @@ CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CACluster>& c
 
 }
 
-const std::vector<std::pair<int, int>> CAIndexTable::selectClusters(const float zRangeMin, const float zRangeMax,
-    const float phiRangeMin, const float phiRangeMax)
+const std::array<int, 4> CAIndexTable::getSelectedBinsRect(const float zRangeMin, const float zRangeMax,
+    const float phiRangeMin, const float phiRangeMax) const
 {
-  std::vector<std::pair<int, int>> filteredBins{};
+  return std::array<int, 4> { { std::max(0, CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMin)),
+      CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin)), std::min(
+          CAConstants::IndexTable::ZBins - 1, CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMax)),
+      CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMax)) } };
+}
 
-  if (zRangeMax < -CAConstants::ITS::LayersZCoordinate[mLayerIndex]
-      || zRangeMin > CAConstants::ITS::LayersZCoordinate[mLayerIndex] || zRangeMin > zRangeMax) {
+const std::vector<std::pair<int, int>> CAIndexTable::selectClusters(const std::array<int, 4>& selectedBinsRect) const
+{
+  std::vector<std::pair<int, int>> filteredBins { };
 
-    return filteredBins;
-  }
-
-  const int minZBinIndex { std::max(0, CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMin)) };
-  const int maxZBinIndex { std::min(CAConstants::IndexTable::ZBins - 1,
-      CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMax)) };
-  const int zBinsNum { maxZBinIndex - minZBinIndex + 1 };
-  const int minPhiBinIndex { CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin)) };
-  const int maxPhiBinIndex { CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMax)) };
-  int phiBinsNum { maxPhiBinIndex - minPhiBinIndex + 1 };
+  const int zBinsNum { selectedBinsRect[2] - selectedBinsRect[0] + 1 };
+  int phiBinsNum { selectedBinsRect[3] - selectedBinsRect[1] + 1 };
 
   if (phiBinsNum < 0) {
 
@@ -84,14 +83,15 @@ const std::vector<std::pair<int, int>> CAIndexTable::selectClusters(const float 
 
   filteredBins.reserve(phiBinsNum);
 
-  for (int iPhiBin { minPhiBinIndex }, iPhiCount { 0 }; iPhiCount < phiBinsNum;
+  for (int iPhiBin { selectedBinsRect[1] }, iPhiCount { 0 }; iPhiCount < phiBinsNum;
       iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins ? 0 : iPhiBin, iPhiCount++) {
 
-    const int firstBinIndex { CAIndexTableUtils::getBinIndex(minZBinIndex, iPhiBin) };
+    const int firstBinIndex { CAIndexTableUtils::getBinIndex(selectedBinsRect[0], iPhiBin) };
     const int maxBinIndex { firstBinIndex + zBinsNum };
 
     filteredBins.emplace_back(mTableBins[firstBinIndex], mTableBins[maxBinIndex] - mTableBins[firstBinIndex] + 1);
   }
 
   return filteredBins;
+}
 }

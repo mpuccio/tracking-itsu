@@ -1,5 +1,5 @@
-/// \file CALayer.cxx
-/// \brief 
+/// \file CATrackingUtils.cxx
+/// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
 ///
@@ -16,24 +16,23 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CALayer.h"
+#include "CATrackingUtils.h"
+
+#include <cmath>
 
 #include "CAConstants.h"
 
-CALayer::CALayer()
-    : mLayerIndex { CAConstants::ITS::UnusedIndex }
+namespace TRACKINGITSU_TARGET_NAMESPACE {
+GPU_HOST_DEVICE bool CATrackingUtils::isValidTracklet(const CACluster &firstLayerCluster,
+    const CACluster &secondLayerCluster, const float tanLambda, const float directionZIntersection)
 {
-  //Nothing to do
-}
+  const float deltaZ { MATH_ABS(
+      tanLambda * (secondLayerCluster.rCoordinate - firstLayerCluster.rCoordinate) + firstLayerCluster.zCoordinate
+          - secondLayerCluster.zCoordinate) };
+  const float deltaPhi { MATH_ABS(firstLayerCluster.phiCoordinate - secondLayerCluster.phiCoordinate) };
 
-CALayer::CALayer(const int layerIndex)
-    : mLayerIndex { layerIndex }
-{
-  //Nothing to do
+  return deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold()[firstLayerCluster.layerIndex]
+      && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut
+          || MATH_ABS(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut);
 }
-
-void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
-    const float alphaAngle, const int monteCarlo)
-{
-  mClusters.emplace_back(clusterId, mLayerIndex, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
 }

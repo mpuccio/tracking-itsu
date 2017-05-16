@@ -23,7 +23,7 @@
 CAEvent::CAEvent(const int eventId)
     : mEventId { eventId }
 {
-  for (int iLayer{ 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
     mLayers[iLayer] = CALayer(iLayer);
   }
@@ -52,7 +52,7 @@ void CAEvent::pushClusterToLayer(const int layerIndex, const int clusterId, cons
   mLayers[layerIndex].addCluster(clusterId, xCoordinate, yCoordinate, zCoordinate, aplhaAngle, monteCarlo);
 }
 
-const int CAEvent::getTotalClusters() const
+int CAEvent::getTotalClusters() const
 {
   int totalClusters { 0 };
 

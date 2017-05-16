@@ -1,5 +1,5 @@
-/// \file CALayer.cxx
-/// \brief 
+/// \file CAGPUTrackingAPI.h
+/// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
 ///
@@ -16,24 +16,20 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CALayer.h"
+#ifndef TRACKINGITSU_INCLUDE_GPU_CAGPUTRACKINGAPI_H_
+#define TRACKINGITSU_INCLUDE_GPU_CAGPUTRACKINGAPI_H_
 
-#include "CAConstants.h"
+#include <utility>
+#include <vector>
 
-CALayer::CALayer()
-    : mLayerIndex { CAConstants::ITS::UnusedIndex }
-{
-  //Nothing to do
+#include "CADefinitions.h"
+#include "CAPrimaryVertexContext.h"
+
+using namespace TRACKINGITSU_TARGET_NAMESPACE;
+
+namespace CAGPUTrackingAPI {
+void getTrackletsFromCluster(CAPrimaryVertexContext&, const int, const int, const float, const float,
+    const std::array<int, 4>&, const std::vector<std::pair<int, int>>&);
 }
 
-CALayer::CALayer(const int layerIndex)
-    : mLayerIndex { layerIndex }
-{
-  //Nothing to do
-}
-
-void CALayer::addCluster(const int clusterId, const float xCoordinate, const float yCoordinate, const float zCoordinate,
-    const float alphaAngle, const int monteCarlo)
-{
-  mClusters.emplace_back(clusterId, mLayerIndex, xCoordinate, yCoordinate, zCoordinate, alphaAngle, monteCarlo);
-}
+#endif /* TRACKINGITSU_INCLUDE_GPU_CAGPUTRACKINGAPI_H_ */

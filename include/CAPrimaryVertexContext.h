@@ -30,9 +30,10 @@
 #include "CATracklet.h"
 
 #if defined(TRACKINGITSU_GPU_MODE)
-# include "CAGPUArray.h"
+# include "CAGPUVector.h"
 #endif
 
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 struct CAPrimaryVertexContext
     final
     {
@@ -52,11 +53,13 @@ struct CAPrimaryVertexContext
       std::vector<CARoad> roads;
 
 #if defined(TRACKINGITSU_GPU_MODE)
-      std::array<CAGPUArray<CACluster>, CAConstants::ITS::LayersNumber> dClusters;
-      CAGPUArray<CAIndexTable> dIndexTables;
-      std::array<CAGPUArray<CATracklet>, CAConstants::ITS::TrackletsPerRoad> dTracklets;
+      std::array<CAGPUVector<CACluster>, CAConstants::ITS::LayersNumber> dClusters;
+      CAGPUVector<CAIndexTable> dIndexTables;
+      std::array<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> dTracklets;
+      std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad> dTrackletsLookupTable;
 #endif
 
   };
+}
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_ */

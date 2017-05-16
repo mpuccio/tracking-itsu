@@ -22,13 +22,20 @@
 #include "CADefinitions.h"
 
 namespace CAGPUUtils {
+
+namespace Host {
 void gpuMalloc(void**, const int);
 void gpuFree(void*);
 void gpuMemset(void *, int, int);
 void gpuMemcpyHostToDevice(void *, const void *, int);
-
+void gpuMemcpyDeviceToHost(void *, const void *, int);
 void gpuStartProfiler();
 void gpuStopProfiler();
+}
+
+namespace Device {
+GPU_DEVICE int gpuAtomicAdd(int*, const int);
+}
 }
 
 

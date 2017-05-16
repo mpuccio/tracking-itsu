@@ -25,10 +25,11 @@
 #include "CAEvent.h"
 #include "CALayer.h"
 
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
     : primaryVertexIndex { primaryVertexIndex }
 {
-  for (int iLayer{ 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
     const CALayer& currentLayer { event.getLayer(iLayer) };
     const int clustersNum { currentLayer.getClustersSize() };
@@ -45,7 +46,7 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
     });
 
 #if defined(TRACKINGITSU_GPU_MODE)
-    dClusters[iLayer] = CAGPUArray<CACluster> {&clusters[iLayer][0], static_cast<int>(clusters[iLayer].size())};
+    dClusters[iLayer] = CAGPUVector<CACluster> {&clusters[iLayer][0], static_cast<int>(clusters[iLayer].size())};
 #endif
 
     if (iLayer > 0) {
@@ -61,11 +62,18 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
                   * event.getLayer(iLayer + 1).getClustersSize()));
 
 #if defined(TRACKINGITSU_GPU_MODE)
-      dTracklets[iLayer] = CAGPUArray<CATracklet> {static_cast<int>(tracklets[iLayer].capacity())};
+      dTracklets[iLayer] = CAGPUVector<CATracklet> {static_cast<int>(tracklets[iLayer].capacity())};
 #endif
     }
 
     if (iLayer < CAConstants::ITS::CellsPerRoad) {
+
+      trackletsLookupTable[iLayer].resize(event.getLayer(iLayer + 1).getClustersSize(), CAConstants::ITS::UnusedIndex);
+
+#if defined(TRACKINGITSU_GPU_MODE)
+      dTrackletsLookupTable[iLayer] = CAGPUVector<int> {&trackletsLookupTable[iLayer][0],
+        static_cast<int>(clusters[iLayer].size())};
+#endif
 
       cells[iLayer].reserve(
           std::ceil(
@@ -75,7 +83,7 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
   }
 
 #if defined(TRACKINGITSU_GPU_MODE)
-  dIndexTables = CAGPUArray<CAIndexTable> {indexTables.data(), CAConstants::ITS::TrackletsPerRoad};
+  dIndexTables = CAGPUVector<CAIndexTable> {indexTables.data(), CAConstants::ITS::TrackletsPerRoad};
 #endif
 }
-
+}

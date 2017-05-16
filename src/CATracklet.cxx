@@ -16,12 +16,18 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <cmath>
+
 #include "CATracklet.h"
 
-CATracklet::CATracklet(const int firstClusterIndex, const int secondClusterIndex, const float tanLambda,
-    const float phiCoordinate)
-    : firstClusterIndex { firstClusterIndex }, secondClusterIndex { secondClusterIndex }, tanLambda { tanLambda }, phiCoordinate {
-        phiCoordinate }
+namespace TRACKINGITSU_TARGET_NAMESPACE {
+GPU_DEVICE CATracklet::CATracklet(const int firstClusterIndex, const int secondClusterIndex,
+    const CACluster& firstCluster, const CACluster& secondCluster)
+    : firstClusterIndex { firstClusterIndex }, secondClusterIndex { secondClusterIndex }, tanLambda {
+        (firstCluster.zCoordinate - secondCluster.zCoordinate) / (firstCluster.rCoordinate - secondCluster.rCoordinate) }, phiCoordinate {
+    MATH_ATAN2(firstCluster.yCoordinate - secondCluster.yCoordinate,
+        firstCluster.xCoordinate - secondCluster.xCoordinate) }
 {
   // Nothing to do
+}
 }

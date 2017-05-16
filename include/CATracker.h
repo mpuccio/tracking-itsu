@@ -22,11 +22,11 @@
 #include <iostream>
 #include <vector>
 
+#include "CAEvent.h"
+#include "CAPrimaryVertexContext.h"
 #include "CARoad.h"
 
-class CAEvent;
-struct CAPrimaryVertexContext;
-
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 class CATracker
   final
   {
@@ -52,5 +52,6 @@ class CATracker
       const CAEvent& mEvent;
       std::vector<int> mUsedClustersTable;
   };
+}
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */

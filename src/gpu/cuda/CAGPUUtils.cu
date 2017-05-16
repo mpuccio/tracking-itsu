@@ -29,42 +29,53 @@ void checkCUDAError(const cudaError_t error, const int line)
 {
   if (error != cudaSuccess) {
 
-    std::ostringstream errorString{};
+    std::ostringstream errorString { };
 
     errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << "), line(" << line
         << ")" << std::endl;
 
-    throw std::runtime_error{ errorString.str() };
+    throw std::runtime_error { errorString.str() };
   }
 }
 }
 
-void CAGPUUtils::gpuMalloc(void **p, const int size)
+void CAGPUUtils::Host::gpuMalloc(void **p, const int size)
 {
   checkCUDAError(cudaMalloc(p, size), __LINE__);
 }
 
-void CAGPUUtils::gpuFree(void *p)
+void CAGPUUtils::Host::gpuFree(void *p)
 {
   checkCUDAError(cudaFree(p), __LINE__);
 }
 
-void CAGPUUtils::gpuMemset(void *p, int value, int size)
+void CAGPUUtils::Host::gpuMemset(void *p, int value, int size)
 {
   checkCUDAError(cudaMemset(p, value, size), __LINE__);
 }
 
-void CAGPUUtils::gpuMemcpyHostToDevice(void *dst, const void *src, int size)
+void CAGPUUtils::Host::gpuMemcpyHostToDevice(void *dst, const void *src, int size)
 {
   checkCUDAError(cudaMemcpy(dst, src, size, cudaMemcpyHostToDevice), __LINE__);
 }
 
-void CAGPUUtils::gpuStartProfiler()
+void CAGPUUtils::Host::gpuMemcpyDeviceToHost(void *dst, const void *src, int size)
+{
+  checkCUDAError(cudaMemcpy(dst, src, size, cudaMemcpyDeviceToHost), __LINE__);
+}
+
+void CAGPUUtils::Host::gpuStartProfiler()
 {
   checkCUDAError(cudaProfilerStart(), __LINE__);
 }
 
-void CAGPUUtils::gpuStopProfiler()
+void CAGPUUtils::Host::gpuStopProfiler()
 {
   checkCUDAError(cudaProfilerStop(), __LINE__);
+}
+
+GPU_DEVICE int CAGPUUtils::Device::gpuAtomicAdd(int *p, const int incrementSize)
+{
+
+  return atomicAdd(p, incrementSize);
 }

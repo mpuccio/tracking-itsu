@@ -28,7 +28,6 @@
 class CAEvent
   final
   {
-
     public:
       explicit CAEvent(const int);
 
@@ -39,7 +38,7 @@ class CAEvent
       void addPrimaryVertex(const float, const float, const float);
       void printPrimaryVertices() const;
       void pushClusterToLayer(const int, const int, const float, const float, const float, const float, const int);
-      const int getTotalClusters() const;
+      int getTotalClusters() const;
 
     private:
       const int mEventId;

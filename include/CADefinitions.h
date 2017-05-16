@@ -24,19 +24,43 @@
 #endif
 
 #if defined(__CUDACC__)
+
+# define TRACKINGITSU_TARGET_NAMESPACE TrackingITSUGPUNamespace
+
 # define GPU_HOST __host__
 # define GPU_DEVICE __device__
 # define GPU_HOST_DEVICE __host__ __device__
 # define GPU_GLOBAL __global__
 # define GPU_SHARED __shared__
 # define GPU_SYNC __syncthreads()
+
+# define MATH_ABS abs
+# define MATH_ATAN2 atan2
+# define MATH_MAX max
+# define MATH_MIN min
+
+# include "CAGPUArray.h"
+# define GPU_ARRAY CAGPUArray
+
 #else
+
+# define TRACKINGITSU_TARGET_NAMESPACE TrackingITSUCPUNamespace
+
 # define GPU_HOST
 # define GPU_DEVICE
 # define GPU_HOST_DEVICE
 # define GPU_GLOBAL
 # define GPU_SHARED
 # define GPU_SYNC
+
+# define MATH_ABS std::abs
+# define MATH_ATAN2 std::atan2
+# define MATH_MAX std::max
+# define MATH_MIN std::min
+
+# include <array>
+# define GPU_ARRAY std::array
+
 #endif
 
 #endif /* TRACKINGITSU_INCLUDE_CADEFINITIONS_H_ */

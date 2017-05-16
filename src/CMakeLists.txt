@@ -11,6 +11,7 @@ set(SRCS
   CAPrimaryVertexContext.cxx
   CARoad.cxx
   CATracker.cxx
+  CATrackingUtils.cxx
   CATracklet.cxx
   CAMathUtils.cxx
 )

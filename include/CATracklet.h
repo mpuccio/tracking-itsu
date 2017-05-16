@@ -19,15 +19,20 @@
 #ifndef TRACKINGITSU_INCLUDE_CATRACKLET_H_
 #define TRACKINGITSU_INCLUDE_CATRACKLET_H_
 
+#include "CACluster.h"
+#include "CADefinitions.h"
+
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 struct CATracklet
     final
     {
-      CATracklet(const int, const int, const float, const float);
+      GPU_DEVICE CATracklet(const int, const int, const CACluster&, const CACluster&);
 
       const int firstClusterIndex;
       const int secondClusterIndex;
       const float tanLambda;
       const float phiCoordinate;
   };
+}
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKLET_H_ */

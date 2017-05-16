@@ -22,6 +22,8 @@ std::string getDirectory(const std::string& fname)
   return (std::string::npos == pos) ? "" : fname.substr(0, pos + 1);
 }
 
+typedef TRACKINGITSU_TARGET_NAMESPACE::CATracker CATracker;
+
 int main(int argc, char** argv)
 {
   if (argv[1] == NULL) {
@@ -66,7 +68,7 @@ int main(int argc, char** argv)
 #endif
 
 #if defined GPU_PROFILING_MODE
-  CAGPUUtils::gpuStartProfiler();
+  CAGPUUtils::Host::gpuStartProfiler();
 #endif
 
   for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
@@ -113,7 +115,7 @@ int main(int argc, char** argv)
   }
 
 #if defined GPU_PROFILING_MODE
-  CAGPUUtils::gpuStopProfiler();
+  CAGPUUtils::Host::gpuStopProfiler();
 #endif
 
   std::cout << std::endl;

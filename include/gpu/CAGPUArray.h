@@ -19,101 +19,67 @@
 #ifndef TRAKINGITSU_INCLUDE_GPU_CAGPUARRAY_H_
 #define TRAKINGITSU_INCLUDE_GPU_CAGPUARRAY_H_
 
-#include "CAGPUUtils.h"
+#include "CADefinitions.h"
 
-template<typename T>
-class CAGPUArray
-  final
-  {
-    public:
-      CAGPUArray();
-      CAGPUArray(const int);
-      CAGPUArray(const T* const, const int);
-      ~CAGPUArray();
+namespace {
+template<typename T, std::size_t Size>
+struct CAGPUArrayTraits
+{
+    typedef T InternalArray[Size];
 
-      const T* const get() const;
-      T operator[](const int) const;
+    GPU_HOST_DEVICE static constexpr T&
+    getReference(const InternalArray& internalArray, std::size_t size) noexcept
+    { return const_cast<T&>(internalArray[size]); }
 
-    protected:
-      void destroy();
+    GPU_HOST_DEVICE static constexpr T*
+    getPointer(const InternalArray& internalArray) noexcept
+    { return const_cast<T*>(internalArray); }
+};
+}
 
-    private:
-      T *mArrayPointer;
-      int *mSize;
-      int mCapacity;
+template<typename T, std::size_t Size>
+struct CAGPUArray
+    final
+    {
+      typedef CAGPUArrayTraits<T, Size> ArrayTraits;
+
+      GPU_HOST_DEVICE T* data() noexcept;
+      GPU_HOST_DEVICE const T* data() const noexcept;
+      GPU_HOST_DEVICE T& operator[](const int) noexcept;
+      GPU_HOST_DEVICE constexpr T& operator[](const int) const noexcept;
+      GPU_HOST_DEVICE std::size_t size() const noexcept;
+
+      typename ArrayTraits::InternalArray arrayPointer;
   };
 
-  template<typename T>
-  CAGPUArray<T>::CAGPUArray()
-      : mArrayPointer { nullptr }, mSize { nullptr }, mCapacity { 0 }
+  template<typename T, std::size_t Size>
+  GPU_HOST_DEVICE T* CAGPUArray<T, Size>::data() noexcept
   {
-    // Nothing to do
+    return ArrayTraits::getPointer(arrayPointer);
   }
 
-  template<typename T>
-  CAGPUArray<T>::CAGPUArray(const int capacity)
-      : CAGPUArray { nullptr, capacity }
+  template<typename T, std::size_t Size>
+  GPU_HOST_DEVICE const T* CAGPUArray<T, Size>::data() const noexcept
   {
-    // Nothing to do
+    return ArrayTraits::getPointer(arrayPointer);
   }
 
-  template<typename T>
-  CAGPUArray<T>::CAGPUArray(const T* const source, const int size)
-      : mCapacity { size }
+  template<typename T, std::size_t Size>
+  GPU_HOST_DEVICE constexpr T& CAGPUArray<T, Size>::operator[](const int index) const noexcept
   {
-    try {
-
-      CAGPUUtils::gpuMalloc((void **) &mArrayPointer, size * sizeof(T));
-      CAGPUUtils::gpuMalloc((void **) &mSize, sizeof(int));
-
-      if (source != nullptr) {
-
-        CAGPUUtils::gpuMemcpyHostToDevice(mArrayPointer, source, size);
-        CAGPUUtils::gpuMemcpyHostToDevice(mSize, &size, sizeof(int));
-
-      } else {
-
-        CAGPUUtils::gpuMemset(mSize, 0, sizeof(int));
-      }
-
-    } catch (...) {
-
-      destroy();
-
-      throw;
-    }
+    return ArrayTraits::getReference(arrayPointer, index);
   }
 
-  template<typename T>
-  CAGPUArray<T>::~CAGPUArray()
+  template<typename T, std::size_t Size>
+  GPU_HOST_DEVICE T& CAGPUArray<T, Size>::operator[](const int index) noexcept
   {
-    destroy();
+    return ArrayTraits::getReference(arrayPointer, index);
   }
 
-  template<typename T>
-  inline const T* const CAGPUArray<T>::get() const
+  template<typename T, std::size_t Size>
+  GPU_HOST_DEVICE std::size_t CAGPUArray<T, Size>::size() const noexcept
   {
-    return mArrayPointer;
+    return Size;
   }
 
-  template<typename T>
-  inline T CAGPUArray<T>::operator[](const int index) const
-  {
-    return mArrayPointer[index];
-  }
-
-  template<typename T>
-  inline void CAGPUArray<T>::destroy() {
-
-    if (mArrayPointer != nullptr) {
-
-      CAGPUUtils::gpuFree(mArrayPointer);
-    }
-
-    if (mSize != nullptr) {
-
-      CAGPUUtils::gpuFree(mSize);
-    }
-  }
-
-#endif /* TRAKINGITSU_INCLUDE_GPU_CAGPUARRAY_H_ */
+#endif /* TRAKINGITSU_INCLUDE_GPU_CAGPUVECTOR_H_ */

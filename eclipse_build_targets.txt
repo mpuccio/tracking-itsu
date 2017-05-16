@@ -9,6 +9,10 @@ cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$
 
 > cmake-clang-cuda
 cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=${ConfigName} -DCMAKE_CXX_COMPILER=clang++ -DTRACKINGITSU_TARGET_DEVICE=GPU_CUDA
+
+> cmake-clang-gcc
+cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=${ConfigName} -DCMAKE_CXX_COMPILER=g++ -DTRACKINGITSU_TARGET_DEVICE=GPU_CUDA
+
 ############
 #   ROOT   #
 ############

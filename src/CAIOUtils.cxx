@@ -29,18 +29,18 @@
 
 namespace {
 
-constexpr int PrimaryVertexLayerId{ -1 };
-constexpr int EventLabelsSeparator{ -1 };
+constexpr int PrimaryVertexLayerId { -1 };
+constexpr int EventLabelsSeparator { -1 };
 }
 
 std::vector<CAEvent> CAIOUtils::loadEventData(const std::string& fileName)
 {
-  std::vector<CAEvent> events{};
-  std::ifstream inputStream{};
-  std::string line{}, unusedVariable{};
-  int layerId{}, monteCarlo{};
+  std::vector<CAEvent> events { };
+  std::ifstream inputStream { };
+  std::string line { }, unusedVariable { };
+  int layerId { }, monteCarlo { };
   int clusterId { EventLabelsSeparator };
-  float xCoordinate{}, yCoordinate{}, zCoordinate{}, alphaAngle{};
+  float xCoordinate { }, yCoordinate { }, zCoordinate { }, alphaAngle { };
 
   inputStream.open(fileName);
 
@@ -77,12 +77,12 @@ std::vector<CAEvent> CAIOUtils::loadEventData(const std::string& fileName)
 
 std::vector<std::unordered_map<int, CALabel>> CAIOUtils::loadLabels(const int eventsNum, const std::string& fileName)
 {
-  std::vector<std::unordered_map<int, CALabel>> labelsMap{};
-  std::unordered_map<int, CALabel> currentEventLabelsMap{};
-  std::ifstream inputStream{};
-  std::string line{};
-  int monteCarloId{}, pdgCode{}, numberOfClusters{};
-  float transverseMomentum{}, phiCoordinate{}, pseudorapidity{};
+  std::vector<std::unordered_map<int, CALabel>> labelsMap { };
+  std::unordered_map<int, CALabel> currentEventLabelsMap { };
+  std::ifstream inputStream { };
+  std::string line { };
+  int monteCarloId { }, pdgCode { }, numberOfClusters { };
+  float transverseMomentum { }, phiCoordinate { }, pseudorapidity { };
 
   labelsMap.reserve(eventsNum);
 
@@ -125,7 +125,7 @@ void CAIOUtils::writeRoadsReport(std::ofstream& correctRoadsOutputStream, std::o
     const std::unordered_map<int, CALabel>& labelsMap)
 {
   const int numVertices { static_cast<int>(roads.size()) };
-  std::unordered_set<int> foundMonteCarloIds{};
+  std::unordered_set<int> foundMonteCarloIds { };
 
   correctRoadsOutputStream << EventLabelsSeparator << std::endl;
   fakeRoadsOutputStream << EventLabelsSeparator << std::endl;

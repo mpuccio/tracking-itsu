@@ -31,16 +31,22 @@
 #include "CALayer.h"
 #include "CAMathUtils.h"
 #include "CAPrimaryVertexContext.h"
+#include "CATrackingUtils.h"
 #include "CATracklet.h"
 
+#if defined(TRACKINGITSU_GPU_MODE)
+# include "CAGPUTrackingAPI.h"
+#endif
+
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 namespace {
 
 void evaluateTask(void (CATracker::*task)(CAPrimaryVertexContext&), CATracker* tracker, const char *taskName,
     CAPrimaryVertexContext& primaryVertexContext)
 {
 
-  clock_t t1{}, t2{};
-  float diff{};
+  clock_t t1 { }, t2 { };
+  float diff { };
 
   t1 = clock();
 
@@ -61,7 +67,7 @@ CATracker::CATracker(const CAEvent& event)
 std::vector<std::vector<CARoad>> CATracker::clustersToTracks()
 {
   const int verticesNum { mEvent.getPrimaryVerticesNum() };
-  std::vector<std::vector<CARoad>> roads{};
+  std::vector < std::vector < CARoad >> roads { };
   roads.reserve(verticesNum);
 
   for (int iVertex { 0 }; iVertex < verticesNum; ++iVertex) {
@@ -83,13 +89,13 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracks()
 std::vector<std::vector<CARoad>> CATracker::clustersToTracksVerbose()
 {
   const int verticesNum { mEvent.getPrimaryVerticesNum() };
-  std::vector<std::vector<CARoad>> roads{};
+  std::vector < std::vector < CARoad >> roads { };
   roads.reserve(verticesNum);
 
   for (int iVertex { 0 }; iVertex < verticesNum; ++iVertex) {
 
-    clock_t t1{}, t2{};
-    float diff{};
+    clock_t t1 { }, t2 { };
+    float diff { };
 
     t1 = clock();
 
@@ -116,7 +122,7 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracksVerbose()
 std::vector<std::vector<CARoad>> CATracker::clustersToTracksMemoryBenchmark(std::ofstream& memoryBenchmarkOutputStream)
 {
   const int verticesNum { mEvent.getPrimaryVerticesNum() };
-  std::vector<std::vector<CARoad>> roads{};
+  std::vector < std::vector < CARoad >> roads { };
   roads.reserve(verticesNum);
 
   for (int iVertex { 0 }; iVertex < verticesNum; ++iVertex) {
@@ -207,62 +213,54 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
           - mEvent.getPrimaryVertex(primaryVertexContext.primaryVertexIndex)[2]) / currentCluster.rCoordinate };
       const float directionZIntersection { tanLambda
           * (CAConstants::ITS::LayersRCoordinate[iLayer + 1] - currentCluster.rCoordinate) + currentCluster.zCoordinate };
+      const float zRangeMin = directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut;
+      const float phiRangeMin = currentCluster.phiCoordinate - CAConstants::Thresholds::PhiCoordinateCut;
+      const float zRangeMax = directionZIntersection + 2 * CAConstants::Thresholds::ZCoordinateCut;
+      const float phiRangeMax = currentCluster.phiCoordinate + CAConstants::Thresholds::PhiCoordinateCut;
 
-      const std::vector<std::pair<int, int>> nextLayerClustersSubset {
-          primaryVertexContext.indexTables[iLayer].selectClusters(
-              directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut,
-              directionZIntersection + 2 * CAConstants::Thresholds::ZCoordinateCut,
-              currentCluster.phiCoordinate - CAConstants::Thresholds::PhiCoordinateCut,
-              currentCluster.phiCoordinate + CAConstants::Thresholds::PhiCoordinateCut) };
-
-      if (nextLayerClustersSubset.empty()) {
+      if (zRangeMax < -CAConstants::ITS::LayersZCoordinate[iLayer + 1]
+          || zRangeMin > CAConstants::ITS::LayersZCoordinate[iLayer + 1] || zRangeMin > zRangeMax) {
 
         continue;
       }
 
+      const std::array<int, 4> selectedBinsRect { primaryVertexContext.indexTables[iLayer].getSelectedBinsRect(
+          zRangeMin, zRangeMax, phiRangeMin, phiRangeMax) };
+      const std::vector<std::pair<int, int>> nextLayerClustersSubset {
+          primaryVertexContext.indexTables[iLayer].selectClusters(selectedBinsRect) };
+
+#if defined(TRACKINGITSU_GPU_MODE)
+      /*CAGPUTrackingAPI::getTrackletsFromCluster(primaryVertexContext, iLayer, iCluster, tanLambda,
+          directionZIntersection, selectedBinsRect, nextLayerClustersSubset);*/
+#else
+
       const int rowsNum { static_cast<int>(nextLayerClustersSubset.size()) };
 
-      for (int iRow { 0 }; iRow < rowsNum; ++iRow) {
+      for (int iRow {0}; iRow < rowsNum; ++iRow) {
 
-        const int firstRowClusterIndex { nextLayerClustersSubset[iRow].first };
-        const int lastRowClusterIndex { firstRowClusterIndex + nextLayerClustersSubset[iRow].second - 1 };
+        const int firstRowClusterIndex {nextLayerClustersSubset[iRow].first};
+        const int lastRowClusterIndex {firstRowClusterIndex + nextLayerClustersSubset[iRow].second - 1};
 
-        for (int iNextLayerCluster { firstRowClusterIndex }; iNextLayerCluster <= lastRowClusterIndex;
+        for (int iNextLayerCluster {firstRowClusterIndex}; iNextLayerCluster <= lastRowClusterIndex;
             ++iNextLayerCluster) {
 
-          const CACluster& nextCluster { primaryVertexContext.clusters[iLayer + 1][iNextLayerCluster] };
+          const CACluster& nextCluster {primaryVertexContext.clusters[iLayer + 1][iNextLayerCluster]};
 
-          if (mUsedClustersTable[nextCluster.clusterId] != CAConstants::ITS::UnusedIndex) {
-
-            continue;
-          }
-
-          const float deltaZ { std::abs(
-              tanLambda * (nextCluster.rCoordinate - currentCluster.rCoordinate) + currentCluster.zCoordinate
-                  - nextCluster.zCoordinate) };
-          const float deltaPhi { std::abs(currentCluster.phiCoordinate - nextCluster.phiCoordinate) };
-
-          if (deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold[iLayer]
-              && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut
-                  || std::abs(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut)) {
+          if (CATrackingUtils::isValidTracklet(currentCluster, nextCluster, tanLambda, directionZIntersection)) {
 
             if (iLayer > 0
                 && primaryVertexContext.trackletsLookupTable[iLayer - 1][iCluster] == CAConstants::ITS::UnusedIndex) {
 
               primaryVertexContext.trackletsLookupTable[iLayer - 1][iCluster] =
-                  primaryVertexContext.tracklets[iLayer].size();
+              primaryVertexContext.tracklets[iLayer].size();
             }
 
-            const float trackletTanLambda { (currentCluster.zCoordinate - nextCluster.zCoordinate)
-                / (currentCluster.rCoordinate - nextCluster.rCoordinate) };
-            const float trackletPhi { std::atan2(currentCluster.yCoordinate - nextCluster.yCoordinate,
-                currentCluster.xCoordinate - nextCluster.xCoordinate) };
-
-            primaryVertexContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, trackletTanLambda,
-                trackletPhi);
+            primaryVertexContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, currentCluster,
+                nextCluster);
           }
         }
       }
+#endif
     }
   }
 }
@@ -582,4 +580,5 @@ void CATracker::computeMontecarloLabels(CAPrimaryVertexContext& primaryVertexCon
     currentRoad.setLabel(maxOccurrencesValue);
     currentRoad.setFakeRoad(isFakeRoad);
   }
+}
 }
