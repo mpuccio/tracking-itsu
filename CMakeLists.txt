@@ -6,8 +6,8 @@ include(CheckIncludeFileCXX)
 set(TRACKINGITSU_TARGET_DEVICE CPU CACHE STRING "Target device where code must be run. Options are: CPU (default), GPU_CUDA")
 set_property(CACHE TRACKINGITSU_TARGET_DEVICE PROPERTY STRINGS CPU GPU_CUDA)
 
-set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -O3")
-set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g -O0")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O3")
+set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g -O2")
 set(CMAKE_CXX_FLAGS_PROFILE "-pg" CACHE STRING "Flags used by the C++ compiler during profiling builds.")
 set(CMAKE_CXX_FLAGS_MEMORYBENCHMARK -DMEMORY_BENCHMARK CACHE STRING "Flags used by the C++ compiler during memory benchmark builds.")
 
