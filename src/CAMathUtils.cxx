@@ -46,3 +46,20 @@ int CAMathUtils::roundUp(const int numToRound, const int multiple)
 
   return numToRound + multiple - remainder;
 }
+
+int CAMathUtils::findNearestDivisor(const int numToRound, const int divisor) {
+
+  if(numToRound > divisor) {
+
+    return divisor;
+  }
+
+  int result = numToRound;
+
+  while(divisor % result != 0) {
+
+    ++result;
+  }
+
+  return result;
+}

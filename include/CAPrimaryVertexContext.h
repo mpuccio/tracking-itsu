@@ -33,11 +33,13 @@
 # include "CAGPUVector.h"
 #endif
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
+using namespace TRACKINGITSU_TARGET_NAMESPACE;
+
 struct CAPrimaryVertexContext
     final
     {
       explicit CAPrimaryVertexContext(const CAEvent&, const int);
+      ~CAPrimaryVertexContext();
 
       CAPrimaryVertexContext(const CAPrimaryVertexContext&) = delete;
       CAPrimaryVertexContext &operator=(const CAPrimaryVertexContext&) = delete;
@@ -54,12 +56,11 @@ struct CAPrimaryVertexContext
 
 #if defined(TRACKINGITSU_GPU_MODE)
       std::array<CAGPUVector<CACluster>, CAConstants::ITS::LayersNumber> dClusters;
-      CAGPUVector<CAIndexTable> dIndexTables;
+      std::array<CAGPUVector<int>, CAConstants::ITS::TrackletsPerRoad> dIndexTables;
       std::array<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> dTracklets;
       std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad> dTrackletsLookupTable;
 #endif
 
   };
-}
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_ */

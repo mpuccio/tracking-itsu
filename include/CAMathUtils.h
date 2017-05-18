@@ -27,6 +27,7 @@ namespace CAMathUtils {
 float calculatePhiCoordinate(const float, const float);
 float calculateRCoordinate(const float, const float);
 int roundUp(const int, const int);
+int findNearestDivisor(const int, const int);
 constexpr float getNormalizedPhiCoordinate(const float);
 constexpr std::array<float, 3> crossProduct(const std::array<float, 3>&, const std::array<float, 3>&);
 }

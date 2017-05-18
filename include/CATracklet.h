@@ -26,6 +26,7 @@ namespace TRACKINGITSU_TARGET_NAMESPACE {
 struct CATracklet
     final
     {
+      CATracklet();
       GPU_DEVICE CATracklet(const int, const int, const CACluster&, const CACluster&);
 
       const int firstClusterIndex;

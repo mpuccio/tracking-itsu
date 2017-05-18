@@ -19,6 +19,8 @@
 #ifndef TRACKINGITSU_INCLUDE_CACONSTANTS_H_
 #define TRACKINGITSU_INCLUDE_CACONSTANTS_H_
 
+#include <climits>
+
 #include "CADefinitions.h"
 
 namespace CAConstants {
@@ -33,7 +35,7 @@ namespace ITS {
 constexpr int LayersNumber { 7 };
 constexpr int TrackletsPerRoad { 6 };
 constexpr int CellsPerRoad { LayersNumber - 2 };
-constexpr int UnusedIndex { -1 };
+constexpr int UnusedIndex { INT_MAX };
 
 constexpr GPU_ARRAY<float, LayersNumber> LayersZCoordinate { { 16.333f, 16.333f, 16.333f, 42.140f, 42.140f, 73.745f,
     73.745f } };

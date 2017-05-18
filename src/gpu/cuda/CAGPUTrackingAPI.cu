@@ -19,6 +19,9 @@
 #include "CAGPUTrackingAPI.h"
 
 #include <array>
+#include <sstream>
+#include <iostream>
+
 #include <cuda_runtime.h>
 
 #include "CAConstants.h"
@@ -30,20 +33,33 @@
 namespace {
 //TODO: this must be refined with runtime device queries or with careful planning
 constexpr int WarpSize { 32 };
-constexpr int MaxXThreads { 1024 };
-constexpr int MaxThreadsPerBlock { 1024 };
+constexpr int MaxXThreads { 128 };
+constexpr int MaxYThreads { 128 };
+constexpr int MaxThreadsPerBlock { 128 };
 
 dim3 getBlockSize(const int colsNum, const int rowsNum)
 {
-  const int xThreads { min(CAMathUtils::roundUp(rowsNum, WarpSize), MaxXThreads) };
-  const int yThreads { colsNum * xThreads <= MaxThreadsPerBlock ? colsNum : MaxThreadsPerBlock / xThreads };
+  int xThreads = min(colsNum, MaxXThreads);
+  int yThreads = min(rowsNum, MaxYThreads);
+  const int totalThreads = min(CAMathUtils::roundUp(xThreads * yThreads, WarpSize), MaxThreadsPerBlock);
+
+  if (xThreads > yThreads) {
+
+    xThreads = CAMathUtils::findNearestDivisor(xThreads, totalThreads);
+    yThreads = totalThreads / xThreads;
+
+  } else {
+
+    yThreads = CAMathUtils::findNearestDivisor(yThreads, totalThreads);
+    xThreads = totalThreads / yThreads;
+  }
 
   return dim3 { static_cast<unsigned int>(xThreads), static_cast<unsigned int>(yThreads) };
 }
 
-__device__ int getWarpIndex()
+__device__ int getLaneIndex()
 {
-  return (threadIdx.x + threadIdx.y * blockDim.x) / WarpSize;
+  return (threadIdx.x + threadIdx.y * blockDim.x) % WarpSize;
 }
 
 __device__ int shareToWarp(int value, int leaderIndex)
@@ -52,56 +68,55 @@ __device__ int shareToWarp(int value, int leaderIndex)
 }
 
 __global__ void trackletsKernel(CAGPUVector<CACluster> currentLayerClusters, CAGPUVector<CACluster> nextLayerClusters,
-    CAGPUVector<CATracklet> tracklets, CAGPUVector<CAIndexTable> indexTables, CAGPUVector<int> trackletsLookupTable,
-    const int firstClusterIndex, const float tanLambda, const float directionZIntersection, const int minZBinIndex,
-    const int minPhiBinIndex, const int maxZBinIndex, const int maxPhiBinIndex)
+    CAGPUVector<CATracklet> tracklets, CAGPUVector<int> indexTable, CAGPUVector<int> trackletsLookupTable,
+    const int currentClusterIndex, const float tanLambda, const float directionZIntersection, const int minZBinIndex,
+    const int minPhiBinIndex, const int maxZBinIndex, const int phiBinsNum)
 {
-  const CACluster& currentCluster { currentLayerClusters[firstClusterIndex] };
-  const CAIndexTable& indexTable { indexTables[currentCluster.layerIndex] };
-  const int phiBinIndex { (minPhiBinIndex + static_cast<int>(blockDim.y * blockIdx.y + threadIdx.y))
-      % CAConstants::IndexTable::PhiBins };
+  int currentXIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
+  int currentYIndex = static_cast<int>(blockDim.y * blockIdx.y + threadIdx.y);
 
-  if (phiBinIndex >= minPhiBinIndex && phiBinIndex <= maxPhiBinIndex) {
+  if (currentYIndex < phiBinsNum) {
 
-    const int nextClusterIndex { indexTable.getBinFirstClusterIndex(
-        CAIndexTableUtils::getBinIndex(minZBinIndex, phiBinIndex))
-        + static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
-    const int maxClusterIndex { indexTable.getBinFirstClusterIndex(
-        CAIndexTableUtils::getBinIndex(maxZBinIndex + 1, phiBinIndex)) };
+    const int phiBinIndex { (minPhiBinIndex + currentYIndex) % CAConstants::IndexTable::PhiBins };
+    const int nextClusterIndex { indexTable[CAIndexTableUtils::getBinIndex(minZBinIndex, phiBinIndex)] + currentXIndex };
+    const int maxClusterIndex { indexTable[CAIndexTableUtils::getBinIndex(maxZBinIndex + 1, phiBinIndex)] };
 
-    if (nextClusterIndex <= maxClusterIndex) {
+    if(nextClusterIndex <= maxClusterIndex) {
 
+      const CACluster& currentCluster { currentLayerClusters[currentClusterIndex] };
       const CACluster& nextCluster { nextLayerClusters[nextClusterIndex] };
 
-      CATrackingUtils::isValidTracklet(currentCluster, nextCluster, tanLambda, directionZIntersection);
+      if (CATrackingUtils::isValidTracklet(currentCluster, nextCluster, tanLambda, directionZIntersection)) {
 
-      const int warpIndex { getWarpIndex() };
-      const unsigned int mask { __ballot(1) };
-      const int leaderIndex { __ffs(mask) - 1 };
-      int startIndex { };
+        const int laneIndex { getLaneIndex() };
+        const unsigned int mask { __ballot(1) };
+        const int leaderIndex { __ffs(mask) - 1 };
+        int startIndex { };
 
-      if (warpIndex == leaderIndex) {
+        if (laneIndex == leaderIndex) {
 
-        startIndex = tracklets.extend(__popc(mask));
+          startIndex = tracklets.extend(__popc(mask));
 
-        if (currentCluster.layerIndex > 0) {
+          if (currentCluster.layerIndex > 0) {
 
-          atomicCAS(trackletsLookupTable.get() + firstClusterIndex, CAConstants::ITS::UnusedIndex, startIndex);
+            atomicMin(&trackletsLookupTable[currentClusterIndex], startIndex);
+          }
         }
+
+        startIndex = shareToWarp(startIndex, leaderIndex);
+
+        tracklets.insert(startIndex + __popc(mask & ((1 << laneIndex) - 1)), currentClusterIndex, nextClusterIndex,
+            currentCluster, nextCluster);
       }
-
-      startIndex = shareToWarp(startIndex, leaderIndex);
-
-      tracklets.insert(startIndex + __popc(mask & ((1 << warpIndex) - 1)), firstClusterIndex, nextClusterIndex,
-          currentCluster, nextCluster);
     }
   }
 }
 }
 
 void CAGPUTrackingAPI::getTrackletsFromCluster(CAPrimaryVertexContext& primaryVertexContext,
-    const int currentLayerIndex, const int firstClusterIndex, const float tanLambda, const float directionZIntersection,
-    const std::array<int, 4>& selectedBinsRect, const std::vector<std::pair<int, int>> &selectedClusters)
+    const int currentLayerIndex, const int currentClusterIndex, const float tanLambda,
+    const float directionZIntersection, const std::array<int, 4>& selectedBinsRect,
+    const std::vector<std::pair<int, int>> &selectedClusters)
 {
   const int rowsNum { static_cast<int>(selectedClusters.size()) };
   int maxClustersPerRow = 0;
@@ -114,10 +129,26 @@ void CAGPUTrackingAPI::getTrackletsFromCluster(CAPrimaryVertexContext& primaryVe
     }
   }
 
+  int phiBinsNum { selectedBinsRect[3] - selectedBinsRect[1] + 1 };
+  if (phiBinsNum < 0) {
+
+    phiBinsNum += CAConstants::IndexTable::PhiBins;
+  }
+
   dim3 threadsPerBlock { getBlockSize(maxClustersPerRow, rowsNum) };
-  dim3 blocksGrid { maxClustersPerRow / threadsPerBlock.x, rowsNum / threadsPerBlock.y };
+  dim3 blocksGrid { 1 + maxClustersPerRow / threadsPerBlock.x, 1 + rowsNum / threadsPerBlock.y };
 
   trackletsKernel<<< blocksGrid, threadsPerBlock >>>(primaryVertexContext.dClusters[currentLayerIndex],
-      primaryVertexContext.dClusters[currentLayerIndex + 1], primaryVertexContext.dTracklets[currentLayerIndex], primaryVertexContext.dIndexTables,
-      primaryVertexContext.dTrackletsLookupTable[currentLayerIndex], firstClusterIndex, tanLambda, directionZIntersection, selectedBinsRect[0], selectedBinsRect[1], selectedBinsRect[2], selectedBinsRect[3]);
+      primaryVertexContext.dClusters[currentLayerIndex + 1], primaryVertexContext.dTracklets[currentLayerIndex], primaryVertexContext.dIndexTables[currentLayerIndex],
+      primaryVertexContext.dTrackletsLookupTable[currentLayerIndex - 1], currentClusterIndex, tanLambda, directionZIntersection, selectedBinsRect[0], selectedBinsRect[1], selectedBinsRect[2], phiBinsNum);
+
+  cudaError_t error = cudaGetLastError();
+
+  if (error != cudaSuccess) {
+
+    std::ostringstream errorString { };
+    errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")" << std::endl;
+
+    throw std::runtime_error { errorString.str() };
+  }
 }

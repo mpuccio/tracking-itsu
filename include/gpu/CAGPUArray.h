@@ -28,8 +28,8 @@ struct CAGPUArrayTraits
     typedef T InternalArray[Size];
 
     GPU_HOST_DEVICE static constexpr T&
-    getReference(const InternalArray& internalArray, std::size_t size) noexcept
-    { return const_cast<T&>(internalArray[size]); }
+    getReference(const InternalArray& internalArray, std::size_t index) noexcept
+    { return const_cast<T&>(internalArray[index]); }
 
     GPU_HOST_DEVICE static constexpr T*
     getPointer(const InternalArray& internalArray) noexcept

@@ -21,6 +21,12 @@
 #include "CATracklet.h"
 
 namespace TRACKINGITSU_TARGET_NAMESPACE {
+CATracklet::CATracklet()
+    : firstClusterIndex { 0 }, secondClusterIndex { 0 }, tanLambda { 0.0f }, phiCoordinate { 0.0f }
+{
+  // Nothing to do
+}
+
 GPU_DEVICE CATracklet::CATracklet(const int firstClusterIndex, const int secondClusterIndex,
     const CACluster& firstCluster, const CACluster& secondCluster)
     : firstClusterIndex { firstClusterIndex }, secondClusterIndex { secondClusterIndex }, tanLambda {

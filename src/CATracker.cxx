@@ -24,6 +24,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 
 #include "CACell.h"
 #include "CAConstants.h"
@@ -35,10 +36,10 @@
 #include "CATracklet.h"
 
 #if defined(TRACKINGITSU_GPU_MODE)
+# include "CAGPUUtils.h"
 # include "CAGPUTrackingAPI.h"
 #endif
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
 namespace {
 
 void evaluateTask(void (CATracker::*task)(CAPrimaryVertexContext&), CATracker* tracker, const char *taskName,
@@ -67,7 +68,7 @@ CATracker::CATracker(const CAEvent& event)
 std::vector<std::vector<CARoad>> CATracker::clustersToTracks()
 {
   const int verticesNum { mEvent.getPrimaryVerticesNum() };
-  std::vector < std::vector < CARoad >> roads { };
+  std::vector<std::vector<CARoad>> roads { };
   roads.reserve(verticesNum);
 
   for (int iVertex { 0 }; iVertex < verticesNum; ++iVertex) {
@@ -89,7 +90,7 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracks()
 std::vector<std::vector<CARoad>> CATracker::clustersToTracksVerbose()
 {
   const int verticesNum { mEvent.getPrimaryVerticesNum() };
-  std::vector < std::vector < CARoad >> roads { };
+  std::vector<std::vector<CARoad>> roads { };
   roads.reserve(verticesNum);
 
   for (int iVertex { 0 }; iVertex < verticesNum; ++iVertex) {
@@ -122,7 +123,7 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracksVerbose()
 std::vector<std::vector<CARoad>> CATracker::clustersToTracksMemoryBenchmark(std::ofstream& memoryBenchmarkOutputStream)
 {
   const int verticesNum { mEvent.getPrimaryVerticesNum() };
-  std::vector < std::vector < CARoad >> roads { };
+  std::vector<std::vector<CARoad>> roads { };
   roads.reserve(verticesNum);
 
   for (int iVertex { 0 }; iVertex < verticesNum; ++iVertex) {
@@ -194,12 +195,6 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
 
     const int currentLayerClustersNum { currentLayer.getClustersSize() };
 
-    if (iLayer < CAConstants::ITS::CellsPerRoad) {
-
-      primaryVertexContext.trackletsLookupTable[iLayer].resize(nextLayer.getClustersSize(),
-          CAConstants::ITS::UnusedIndex);
-    }
-
     for (int iCluster { 0 }; iCluster < currentLayerClustersNum; ++iCluster) {
 
       const CACluster& currentCluster { primaryVertexContext.clusters[iLayer][iCluster] };
@@ -225,26 +220,26 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
       }
 
       const std::array<int, 4> selectedBinsRect { primaryVertexContext.indexTables[iLayer].getSelectedBinsRect(
-          zRangeMin, zRangeMax, phiRangeMin, phiRangeMax) };
+          zRangeMin, phiRangeMin, zRangeMax, phiRangeMax) };
       const std::vector<std::pair<int, int>> nextLayerClustersSubset {
           primaryVertexContext.indexTables[iLayer].selectClusters(selectedBinsRect) };
 
 #if defined(TRACKINGITSU_GPU_MODE)
-      /*CAGPUTrackingAPI::getTrackletsFromCluster(primaryVertexContext, iLayer, iCluster, tanLambda,
-          directionZIntersection, selectedBinsRect, nextLayerClustersSubset);*/
+      CAGPUTrackingAPI::getTrackletsFromCluster(primaryVertexContext, iLayer, iCluster, tanLambda,
+          directionZIntersection, selectedBinsRect, nextLayerClustersSubset);
 #else
 
       const int rowsNum { static_cast<int>(nextLayerClustersSubset.size()) };
 
-      for (int iRow {0}; iRow < rowsNum; ++iRow) {
+      for (int iRow { 0 }; iRow < rowsNum; ++iRow) {
 
-        const int firstRowClusterIndex {nextLayerClustersSubset[iRow].first};
-        const int lastRowClusterIndex {firstRowClusterIndex + nextLayerClustersSubset[iRow].second - 1};
+        const int firstRowClusterIndex { nextLayerClustersSubset[iRow].first };
+        const int lastRowClusterIndex { firstRowClusterIndex + nextLayerClustersSubset[iRow].second - 1 };
 
-        for (int iNextLayerCluster {firstRowClusterIndex}; iNextLayerCluster <= lastRowClusterIndex;
+        for (int iNextLayerCluster { firstRowClusterIndex }; iNextLayerCluster <= lastRowClusterIndex;
             ++iNextLayerCluster) {
 
-          const CACluster& nextCluster {primaryVertexContext.clusters[iLayer + 1][iNextLayerCluster]};
+          const CACluster& nextCluster { primaryVertexContext.clusters[iLayer + 1][iNextLayerCluster] };
 
           if (CATrackingUtils::isValidTracklet(currentCluster, nextCluster, tanLambda, directionZIntersection)) {
 
@@ -252,7 +247,7 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
                 && primaryVertexContext.trackletsLookupTable[iLayer - 1][iCluster] == CAConstants::ITS::UnusedIndex) {
 
               primaryVertexContext.trackletsLookupTable[iLayer - 1][iCluster] =
-              primaryVertexContext.tracklets[iLayer].size();
+                  primaryVertexContext.tracklets[iLayer].size();
             }
 
             primaryVertexContext.tracklets[iLayer].emplace_back(iCluster, iNextLayerCluster, currentCluster,
@@ -263,6 +258,21 @@ void CATracker::computeTracklets(CAPrimaryVertexContext& primaryVertexContext)
 #endif
     }
   }
+
+#if defined(TRACKINGITSU_GPU_MODE)
+  for (int iLayer {0}; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
+
+    std::unique_ptr<int, void (*)(void*)> sizeUniquePointer =
+    primaryVertexContext.dTracklets[iLayer].getSizeFromDevice();
+    primaryVertexContext.dTracklets[iLayer].copyIntoVector(primaryVertexContext.tracklets[iLayer], *sizeUniquePointer);
+
+    if (iLayer < CAConstants::ITS::CellsPerRoad) {
+
+      primaryVertexContext.dTrackletsLookupTable[iLayer].copyIntoVector(
+          primaryVertexContext.trackletsLookupTable[iLayer], mEvent.getLayer(iLayer + 1).getClustersSize());
+    }
+  }
+#endif
 }
 
 void CATracker::computeCells(CAPrimaryVertexContext& primaryVertexContext)
@@ -580,5 +590,4 @@ void CATracker::computeMontecarloLabels(CAPrimaryVertexContext& primaryVertexCon
     currentRoad.setLabel(maxOccurrencesValue);
     currentRoad.setFakeRoad(isFakeRoad);
   }
-}
 }

@@ -22,8 +22,6 @@ std::string getDirectory(const std::string& fname)
   return (std::string::npos == pos) ? "" : fname.substr(0, pos + 1);
 }
 
-typedef TRACKINGITSU_TARGET_NAMESPACE::CATracker CATracker;
-
 int main(int argc, char** argv)
 {
   if (argv[1] == NULL) {
@@ -83,34 +81,40 @@ int main(int argc, char** argv)
     CALLGRIND_TOGGLE_COLLECT;
 #endif
 
+    try {
 #if defined MEMORY_BENCHMARK
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
+      std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
 #elif defined DEBUG
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksVerbose();
+      std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksVerbose();
 #else
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
+      std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
 #endif
 
 #if defined HAVE_VALGRIND
-    CALLGRIND_TOGGLE_COLLECT;
+      CALLGRIND_TOGGLE_COLLECT;
 #endif
 
-    t2 = clock();
-    const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
+      t2 = clock();
+      const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
 
-    totalTime += diff;
+      totalTime += diff;
 
-    if (minTime > diff)
-      minTime = diff;
-    if (maxTime < diff)
-      maxTime = diff;
+      if (minTime > diff)
+        minTime = diff;
+      if (maxTime < diff)
+        maxTime = diff;
 
-    std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
+      std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
 
-    if (createBenchmarkData) {
+      if (createBenchmarkData) {
 
-      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
-          labelsMap[iEvent]);
+        CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
+            labelsMap[iEvent]);
+      }
+
+    } catch (std::exception& e) {
+
+      std::cout << e.what() << std::endl;
     }
   }
 

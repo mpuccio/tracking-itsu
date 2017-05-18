@@ -25,7 +25,6 @@
 #include "CAEvent.h"
 #include "CALayer.h"
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
 CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
     : primaryVertexIndex { primaryVertexIndex }
 {
@@ -52,6 +51,11 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
     if (iLayer > 0) {
 
       indexTables[iLayer - 1] = CAIndexTable(iLayer, clusters[iLayer]);
+
+#if defined(TRACKINGITSU_GPU_MODE)
+      dIndexTables[iLayer - 1] = CAGPUVector<int> {indexTables[iLayer - 1].getTable().data(),
+        CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1};
+#endif
     }
 
     if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
@@ -72,7 +76,7 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
 
 #if defined(TRACKINGITSU_GPU_MODE)
       dTrackletsLookupTable[iLayer] = CAGPUVector<int> {&trackletsLookupTable[iLayer][0],
-        static_cast<int>(clusters[iLayer].size())};
+        event.getLayer(iLayer + 1).getClustersSize()};
 #endif
 
       cells[iLayer].reserve(
@@ -81,9 +85,25 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
                   * event.getLayer(iLayer + 1).getClustersSize()) * event.getLayer(iLayer + 2).getClustersSize()));
     }
   }
-
-#if defined(TRACKINGITSU_GPU_MODE)
-  dIndexTables = CAGPUVector<CAIndexTable> {indexTables.data(), CAConstants::ITS::TrackletsPerRoad};
-#endif
 }
+
+CAPrimaryVertexContext::~CAPrimaryVertexContext()
+{
+#if defined(TRACKINGITSU_GPU_MODE)
+  for (int iLayer {0}; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+
+    dClusters[iLayer].destroy();
+
+    if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
+
+      dIndexTables[iLayer].destroy();
+      dTracklets[iLayer].destroy();
+    }
+
+    if (iLayer < CAConstants::ITS::CellsPerRoad) {
+
+      dTrackletsLookupTable[iLayer].destroy();
+    }
+  }
+#endif
 }

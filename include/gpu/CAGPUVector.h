@@ -19,8 +19,10 @@
 #ifndef TRAKINGITSU_INCLUDE_GPU_CAGPUVECTOR_H_
 #define TRAKINGITSU_INCLUDE_GPU_CAGPUVECTOR_H_
 
+#include <memory>
 #include <new>
 #include <type_traits>
+#include <vector>
 
 #include "CADefinitions.h"
 #include "CAGPUUtils.h"
@@ -34,29 +36,28 @@ class CAGPUVector
 
     public:
       CAGPUVector();
-      CAGPUVector(const int);
+      explicit CAGPUVector(const int);
       CAGPUVector(const T* const, const int);
-      ~CAGPUVector();
 
-      GPU_DEVICE T* get() const;
-      GPU_DEVICE T operator[](const int) const;
+      std::unique_ptr<int, void (*)(void*)> getSizeFromDevice() const;
+      void copyIntoVector(std::vector<T>&, const int);
+      void destroy();
+      GPU_HOST_DEVICE T* get() const;
+      GPU_DEVICE T& operator[](const int) const;
       GPU_DEVICE int size() const;
       GPU_DEVICE int extend(const int) const;
       template<typename ...Args>
       GPU_DEVICE void insert(const int, Args&&...);
 
-    protected:
-      void destroy();
-
     private:
       T *mArrayPointer;
-      int *mSize;
+      int *mDeviceSize;
       int mCapacity;
   };
 
   template<typename T>
   CAGPUVector<T>::CAGPUVector()
-      : mArrayPointer { nullptr }, mSize { nullptr }, mCapacity { 0 }
+      : mArrayPointer { nullptr }, mDeviceSize { nullptr }, mCapacity { 0 }
   {
     // Nothing to do
   }
@@ -75,16 +76,16 @@ class CAGPUVector
     try {
 
       CAGPUUtils::Host::gpuMalloc(reinterpret_cast<void **>(&mArrayPointer), size * sizeof(T));
-      CAGPUUtils::Host::gpuMalloc(reinterpret_cast<void **>(&mSize), sizeof(int));
+      CAGPUUtils::Host::gpuMalloc(reinterpret_cast<void **>(&mDeviceSize), sizeof(int));
 
       if (source != nullptr) {
 
-        CAGPUUtils::Host::gpuMemcpyHostToDevice(mArrayPointer, source, size);
-        CAGPUUtils::Host::gpuMemcpyHostToDevice(mSize, &size, sizeof(int));
+        CAGPUUtils::Host::gpuMemcpyHostToDevice(mArrayPointer, source, size * sizeof(T));
+        CAGPUUtils::Host::gpuMemcpyHostToDevice(mDeviceSize, &size, sizeof(int));
 
       } else {
 
-        CAGPUUtils::Host::gpuMemset(mSize, 0, sizeof(int));
+        CAGPUUtils::Host::gpuMemset(mDeviceSize, 0, sizeof(int));
       }
 
     } catch (...) {
@@ -96,19 +97,72 @@ class CAGPUVector
   }
 
   template<typename T>
-  CAGPUVector<T>::~CAGPUVector()
+  std::unique_ptr<int, void (*)(void*)> CAGPUVector<T>::getSizeFromDevice() const
   {
-    destroy();
+    int *primitiveHostSizePointer = nullptr;
+
+    try {
+
+      primitiveHostSizePointer = static_cast<int *>(malloc(sizeof(int)));
+      CAGPUUtils::Host::gpuMemcpyDeviceToHost(primitiveHostSizePointer, mDeviceSize, sizeof(int));
+
+      return std::unique_ptr<int, void (*)(void*)> {
+        primitiveHostSizePointer, free };
+
+    } catch(...) {
+
+      free(primitiveHostSizePointer);
+
+      throw;
+    }
   }
 
   template<typename T>
-  GPU_DEVICE inline T* CAGPUVector<T>::get() const
+  void CAGPUVector<T>::copyIntoVector(std::vector<T> &destinationArray, const int size)
+  {
+
+    T *hostPrimitivePointer = nullptr;
+
+    try {
+
+      hostPrimitivePointer = static_cast<T *>(malloc(size * sizeof(T)));
+      CAGPUUtils::Host::gpuMemcpyDeviceToHost(hostPrimitivePointer, mArrayPointer, size * sizeof(T));
+
+      destinationArray = std::move(std::vector<T>(hostPrimitivePointer, hostPrimitivePointer + size));
+
+    } catch (...) {
+
+      if (hostPrimitivePointer != nullptr) {
+
+        free(hostPrimitivePointer);
+      }
+
+      throw;
+    }
+  }
+
+  template<typename T>
+  inline void CAGPUVector<T>::destroy()
+  {
+    if (mArrayPointer != nullptr) {
+
+      CAGPUUtils::Host::gpuFree(mArrayPointer);
+    }
+
+    if (mDeviceSize != nullptr) {
+
+      CAGPUUtils::Host::gpuFree(mDeviceSize);
+    }
+  }
+
+  template<typename T>
+  GPU_HOST_DEVICE inline T* CAGPUVector<T>::get() const
   {
     return mArrayPointer;
   }
 
   template<typename T>
-  GPU_DEVICE inline T CAGPUVector<T>::operator[](const int index) const
+  GPU_DEVICE inline T& CAGPUVector<T>::operator[](const int index) const
   {
     return mArrayPointer[index];
   }
@@ -116,13 +170,13 @@ class CAGPUVector
   template<typename T>
   GPU_DEVICE inline int CAGPUVector<T>::size() const
   {
-    return *mSize;
+    return *mDeviceSize;
   }
 
   template<typename T>
   GPU_DEVICE int CAGPUVector<T>::extend(const int sizeIncrement) const
   {
-    const int startIndex = CAGPUUtils::Device::gpuAtomicAdd(mSize, sizeIncrement * sizeof(T));
+    const int startIndex = CAGPUUtils::Device::gpuAtomicAdd(mDeviceSize, sizeIncrement);
 
     if (size() > mCapacity) {
 
@@ -131,21 +185,6 @@ class CAGPUVector
     } else {
 
       return startIndex;
-    }
-  }
-
-  template<typename T>
-  inline void CAGPUVector<T>::destroy()
-  {
-
-    if (mArrayPointer != nullptr) {
-
-      CAGPUUtils::Host::gpuFree(mArrayPointer);
-    }
-
-    if (mSize != nullptr) {
-
-      CAGPUUtils::Host::gpuFree(mSize);
     }
   }
 

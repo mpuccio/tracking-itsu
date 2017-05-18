@@ -23,7 +23,6 @@
 #include "CAIndexTableUtils.h"
 #include "CAMathUtils.h"
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
 CAIndexTable::CAIndexTable()
     : mLayerIndex { CAConstants::ITS::UnusedIndex }
 {
@@ -60,8 +59,8 @@ CAIndexTable::CAIndexTable(const int layerIndex, const std::vector<CACluster>& c
 
 }
 
-const std::array<int, 4> CAIndexTable::getSelectedBinsRect(const float zRangeMin, const float zRangeMax,
-    const float phiRangeMin, const float phiRangeMax) const
+const std::array<int, 4> CAIndexTable::getSelectedBinsRect(const float zRangeMin, const float phiRangeMin,
+    const float zRangeMax, const float phiRangeMax) const
 {
   return std::array<int, 4> { { std::max(0, CAIndexTableUtils::getZBinIndex(mLayerIndex, zRangeMin)),
       CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin)), std::min(
@@ -93,5 +92,4 @@ const std::vector<std::pair<int, int>> CAIndexTable::selectClusters(const std::a
   }
 
   return filteredBins;
-}
 }

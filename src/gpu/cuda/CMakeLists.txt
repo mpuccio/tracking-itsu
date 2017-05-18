@@ -6,7 +6,15 @@ set(CUDA_ARCH -gencode arch=compute_52,code=sm_52 CACHE STRING "CUDA target arch
 set(CUDA_HOST_COMPILER_FLAGS -fPIC CACHE STRING "CUDA -Xcompiler flags.")
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; -std=c++11; -gencode arch=compute_52,code=sm_52;)
-set(CUDA_NVCC_FLAGS_DEBUG -G; -g; -O0;)
+
+# Cannot use CUDA_NVCC_FLAGS_<CONFIG> due to issue 16411
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G; -g; -O2; -DDEBUG;)
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O3; --use_fast_math;)
+endif(CMAKE_BUILD_TYPE STREQUAL "Release")    
 
 set(CUDA_SEPARABLE_COMPILATION ON)
 set(CUDA_VERBOSE_BUILD ON)
@@ -25,8 +33,6 @@ set(CUDA_SRCS
 )
 
 set(DEPENDENT_HOST_SRCS
-   CAIndexTable.cxx
-   CAPrimaryVertexContext.cxx
    CATrackingUtils.cxx
    CATracklet.cxx
 )
