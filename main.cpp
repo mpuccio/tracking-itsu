@@ -82,12 +82,12 @@ int main(int argc, char** argv)
 #endif
 
     try {
-#if defined MEMORY_BENCHMARK
-      std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
-#elif defined DEBUG
-      std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksVerbose();
+#if defined(MEMORY_BENCHMARK)
+      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
+#elif defined(DEBUG)
+      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
 #else
-      std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
+      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracks();
 #endif
 
 #if defined HAVE_VALGRIND

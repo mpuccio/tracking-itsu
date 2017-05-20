@@ -5,16 +5,16 @@ include(FindCUDA)
 set(CUDA_ARCH -gencode arch=compute_52,code=sm_52 CACHE STRING "CUDA target architecture.")
 set(CUDA_HOST_COMPILER_FLAGS -fPIC CACHE STRING "CUDA -Xcompiler flags.")
 
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; -std=c++11; -gencode arch=compute_52,code=sm_52;)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; -std=c++11; --maxrregcount=64; -gencode arch=compute_52,code=sm_52;)
 
 # Cannot use CUDA_NVCC_FLAGS_<CONFIG> due to issue 16411
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G; -g; -O2; -DDEBUG;)
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "Profile")
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O3; --use_fast_math;)
-endif(CMAKE_BUILD_TYPE STREQUAL "Release")    
+endif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "Profile")    
 
 set(CUDA_SEPARABLE_COMPILATION ON)
 set(CUDA_VERBOSE_BUILD ON)

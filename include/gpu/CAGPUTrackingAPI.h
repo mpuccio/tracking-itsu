@@ -28,7 +28,7 @@
 using namespace TRACKINGITSU_TARGET_NAMESPACE;
 
 namespace CAGPUTrackingAPI {
-void getTrackletsFromCluster(CAPrimaryVertexContext&, const int, const int, const float, const float,
+void getTrackletsFromCluster(CAPrimaryVertexContext<TRACKINGITSU_GPU_MODE>&, const int, const int, const float, const float,
     const std::array<int, 4>&, const std::vector<std::pair<int, int>>&);
 }
 

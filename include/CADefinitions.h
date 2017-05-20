@@ -20,7 +20,9 @@
 #define TRACKINGITSU_INCLUDE_CADEFINITIONS_H_
 
 #if defined(TRACKINGITSU_CUDA_COMPILE)
-# define TRACKINGITSU_GPU_MODE
+# define TRACKINGITSU_GPU_MODE true
+#else
+# define TRACKINGITSU_GPU_MODE false
 #endif
 
 #if defined(__CUDACC__)

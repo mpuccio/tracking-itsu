@@ -25,7 +25,8 @@
 #include "CAEvent.h"
 #include "CALayer.h"
 
-CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
+namespace {
+CAPrimaryVertexContextTraits::CAPrimaryVertexContextTraits(const CAEvent& event, const int primaryVertexIndex)
     : primaryVertexIndex { primaryVertexIndex }
 {
   for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
@@ -44,18 +45,9 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
       return cluster1.indexTableBinIndex < cluster2.indexTableBinIndex;
     });
 
-#if defined(TRACKINGITSU_GPU_MODE)
-    dClusters[iLayer] = CAGPUVector<CACluster> {&clusters[iLayer][0], static_cast<int>(clusters[iLayer].size())};
-#endif
-
     if (iLayer > 0) {
 
       indexTables[iLayer - 1] = CAIndexTable(iLayer, clusters[iLayer]);
-
-#if defined(TRACKINGITSU_GPU_MODE)
-      dIndexTables[iLayer - 1] = CAGPUVector<int> {indexTables[iLayer - 1].getTable().data(),
-        CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1};
-#endif
     }
 
     if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
@@ -64,20 +56,11 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
           std::ceil(
               (CAConstants::Memory::TrackletsMemoryCoefficients[iLayer] * clustersNum)
                   * event.getLayer(iLayer + 1).getClustersSize()));
-
-#if defined(TRACKINGITSU_GPU_MODE)
-      dTracklets[iLayer] = CAGPUVector<CATracklet> {static_cast<int>(tracklets[iLayer].capacity())};
-#endif
     }
 
     if (iLayer < CAConstants::ITS::CellsPerRoad) {
 
       trackletsLookupTable[iLayer].resize(event.getLayer(iLayer + 1).getClustersSize(), CAConstants::ITS::UnusedIndex);
-
-#if defined(TRACKINGITSU_GPU_MODE)
-      dTrackletsLookupTable[iLayer] = CAGPUVector<int> {&trackletsLookupTable[iLayer][0],
-        event.getLayer(iLayer + 1).getClustersSize()};
-#endif
 
       cells[iLayer].reserve(
           std::ceil(
@@ -86,24 +69,69 @@ CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int p
     }
   }
 }
+}
 
-CAPrimaryVertexContext::~CAPrimaryVertexContext()
+CAGPUPrimaryVertexContext::CAGPUPrimaryVertexContext(const CAPrimaryVertexContextTraits& primaryVertexContextTraits)
 {
-#if defined(TRACKINGITSU_GPU_MODE)
-  for (int iLayer {0}; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
-    dClusters[iLayer].destroy();
+    clusters[iLayer] = CAGPUVector<CACluster> { &primaryVertexContextTraits.clusters[iLayer][0],
+        static_cast<int>(primaryVertexContextTraits.clusters[iLayer].size()) };
+
+    if (iLayer > 0) {
+
+      indexTables[iLayer - 1] = CAGPUVector<int> { primaryVertexContextTraits.indexTables[iLayer - 1].getTable().data(),
+          CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1 };
+    }
 
     if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
 
-      dIndexTables[iLayer].destroy();
-      dTracklets[iLayer].destroy();
+      tracklets[iLayer] = CAGPUVector<CATracklet> {
+          static_cast<int>(primaryVertexContextTraits.tracklets[iLayer].capacity()) };
     }
 
     if (iLayer < CAConstants::ITS::CellsPerRoad) {
 
-      dTrackletsLookupTable[iLayer].destroy();
+      trackletsLookupTable[iLayer] = CAGPUVector<int> { &primaryVertexContextTraits.trackletsLookupTable[iLayer][0],
+          static_cast<int>(primaryVertexContextTraits.trackletsLookupTable[iLayer].size()) };
     }
   }
-#endif
+}
+
+CAGPUPrimaryVertexContext::~CAGPUPrimaryVertexContext()
+{
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+
+    clusters[iLayer].destroy();
+
+    if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
+
+      indexTables[iLayer].destroy();
+      tracklets[iLayer].destroy();
+    }
+
+    if (iLayer < CAConstants::ITS::CellsPerRoad) {
+
+      trackletsLookupTable[iLayer].destroy();
+    }
+  }
+}
+
+CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent &event, const int primaryVertexContext)
+    : CAPrimaryVertexContextTraits { event, primaryVertexContext }, gpuContext { *this }
+{
+  try {
+
+    CAGPUUtils::Host::gpuMalloc(reinterpret_cast<void**>(&gpuContextDevicePointer), sizeof(CAGPUPrimaryVertexContext));
+    CAGPUUtils::Host::gpuMemcpyHostToDevice(gpuContextDevicePointer, &gpuContext, sizeof(CAGPUPrimaryVertexContext));
+
+  } catch(...) {
+
+    CAGPUUtils::Host::gpuFree(gpuContextDevicePointer);
+  }
+}
+
+CAPrimaryVertexContext<true>::~CAPrimaryVertexContext()
+{
+  CAGPUUtils::Host::gpuFree(gpuContextDevicePointer);
 }

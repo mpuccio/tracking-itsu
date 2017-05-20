@@ -25,42 +25,67 @@
 #include "CAConstants.h"
 #include "CADefinitions.h"
 #include "CAEvent.h"
+#include "CAGPUArray.h"
+#include "CAGPUVector.h"
 #include "CAIndexTable.h"
 #include "CARoad.h"
 #include "CATracklet.h"
 
-#if defined(TRACKINGITSU_GPU_MODE)
-# include "CAGPUVector.h"
-#endif
-
 using namespace TRACKINGITSU_TARGET_NAMESPACE;
 
-struct CAPrimaryVertexContext
-    final
-    {
-      explicit CAPrimaryVertexContext(const CAEvent&, const int);
-      ~CAPrimaryVertexContext();
+namespace {
+struct CAPrimaryVertexContextTraits
+{
+    explicit CAPrimaryVertexContextTraits(const CAEvent&, const int);
 
-      CAPrimaryVertexContext(const CAPrimaryVertexContext&) = delete;
-      CAPrimaryVertexContext &operator=(const CAPrimaryVertexContext&) = delete;
+    CAPrimaryVertexContextTraits(const CAPrimaryVertexContextTraits&) = delete;
+    CAPrimaryVertexContextTraits &operator=(const CAPrimaryVertexContextTraits&) = delete;
 
-      const int primaryVertexIndex;
+    const int primaryVertexIndex;
+    std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> clusters;
+    std::array<CAIndexTable, CAConstants::ITS::TrackletsPerRoad> indexTables;
+    std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
+    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
+    std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> cells;
+    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> cellsLookupTable;
+    std::vector<CARoad> roads;
+};
+}
 
-      std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> clusters;
-      std::array<CAIndexTable, CAConstants::ITS::TrackletsPerRoad> indexTables;
-      std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
-      std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
-      std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> cells;
-      std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> cellsLookupTable;
-      std::vector<CARoad> roads;
+struct CAGPUPrimaryVertexContext {
+    explicit CAGPUPrimaryVertexContext(const CAPrimaryVertexContextTraits&);
+    ~CAGPUPrimaryVertexContext();
 
-#if defined(TRACKINGITSU_GPU_MODE)
-      std::array<CAGPUVector<CACluster>, CAConstants::ITS::LayersNumber> dClusters;
-      std::array<CAGPUVector<int>, CAConstants::ITS::TrackletsPerRoad> dIndexTables;
-      std::array<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> dTracklets;
-      std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad> dTrackletsLookupTable;
-#endif
+    CAGPUPrimaryVertexContext(const CAGPUPrimaryVertexContext&) = delete;
+    CAGPUPrimaryVertexContext &operator=(const CAGPUPrimaryVertexContext&) = delete;
 
-  };
+    CAGPUArray<CAGPUVector<CACluster>, CAConstants::ITS::LayersNumber> clusters;
+    CAGPUArray<CAGPUVector<int>, CAConstants::ITS::TrackletsPerRoad> indexTables;
+    CAGPUArray<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
+    CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
+};
+
+template<bool IsGPU>
+struct CAPrimaryVertexContext : CAPrimaryVertexContextTraits
+{
+    explicit CAPrimaryVertexContext(const CAEvent&, const int);
+};
+
+template<bool IsGPU>
+CAPrimaryVertexContext<IsGPU>::CAPrimaryVertexContext(const CAEvent &event, const int primaryVertexIndex)
+    : CAPrimaryVertexContextTraits { event, primaryVertexIndex }
+{
+  // Nothing to do
+}
+
+template<>
+struct CAPrimaryVertexContext<true> : CAPrimaryVertexContextTraits {
+
+    explicit CAPrimaryVertexContext(const CAEvent&, const int);
+    ~CAPrimaryVertexContext();
+
+    CAGPUPrimaryVertexContext gpuContext;
+    CAGPUPrimaryVertexContext *gpuContextDevicePointer;
+};
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKERCONTEXT_H_ */
