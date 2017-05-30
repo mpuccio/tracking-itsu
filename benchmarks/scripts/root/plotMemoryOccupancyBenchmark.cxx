@@ -156,6 +156,11 @@ void plotMemoryOccupancyBenchmark(const std::string& inputFolder, const std::str
 
     TH1F trackletsMemoryOccupancyHistogram(histogramId.c_str(), histogramTitle.c_str(), BinNumber, binsEdges.data());
     fillMemoryOccupancyHistogram(trackletsMemoryOccupancyHistogram, dataReport, TrackletsDataType, iLayer);
+
+    trackletsMemoryOccupancyHistogram.GetXaxis()->SetTitle("Actual/theoretical tracklets occupancy");
+    trackletsMemoryOccupancyHistogram.GetXaxis()->SetTitleOffset(1.4);
+    trackletsMemoryOccupancyHistogram.GetYaxis()->SetTitle("%");
+
     plotHistogram(trackletsMemoryOccupancyHistogram, outputFileName);
   }
 
@@ -174,6 +179,11 @@ void plotMemoryOccupancyBenchmark(const std::string& inputFolder, const std::str
 
     TH1F cellsMemoryOccupancyHistogram(histogramId.c_str(), histogramTitle.c_str(), BinNumber, binsEdges.data());
     fillMemoryOccupancyHistogram(cellsMemoryOccupancyHistogram, dataReport, CellsDataType, iLayer);
+
+    cellsMemoryOccupancyHistogram.GetXaxis()->SetTitle("Actual/theoretical cells occupancy");
+    cellsMemoryOccupancyHistogram.GetXaxis()->SetTitleOffset(1.4);
+    cellsMemoryOccupancyHistogram.GetYaxis()->SetTitle("%");
+
     plotHistogram(cellsMemoryOccupancyHistogram, outputFileName);
   }
 
@@ -189,6 +199,11 @@ void plotMemoryOccupancyBenchmark(const std::string& inputFolder, const std::str
   outputFileName = std::string(outputFolder + "RoadsHistogram.pdf");
 
   TH1F roadsMemoryOccupancyHistogram(histogramId.c_str(), histogramTitle.c_str(), BinNumber, binsEdges.data());
+
+  roadsMemoryOccupancyHistogram.GetXaxis()->SetTitle("Actual/theoretical roads occupancy");
+  roadsMemoryOccupancyHistogram.GetXaxis()->SetTitleOffset(1.4);
+  roadsMemoryOccupancyHistogram.GetYaxis()->SetTitle("%");
+
   fillMemoryOccupancyHistogram(roadsMemoryOccupancyHistogram, dataReport, RoadsDataType, 0);
   plotHistogram(roadsMemoryOccupancyHistogram, outputFileName);
 
@@ -205,6 +220,11 @@ void plotMemoryOccupancyBenchmark(const std::string& inputFolder, const std::str
 
   TH1F trackletsFillFactorHistogram(histogramId.c_str(), histogramTitle.c_str(), BinNumber, binsEdges.data());
   fillFillFactorHistogram(trackletsFillFactorHistogram, dataReport, TrackletsDataType);
+
+  trackletsFillFactorHistogram.GetXaxis()->SetTitle("Used / reserved memory (%)");
+  trackletsFillFactorHistogram.GetXaxis()->SetTitleOffset(1.4);
+  trackletsFillFactorHistogram.GetYaxis()->SetTitle("# samples");
+
   plotHistogram(trackletsFillFactorHistogram, outputFileName);
 
   // Cells Fill Factor Histograms
@@ -220,6 +240,11 @@ void plotMemoryOccupancyBenchmark(const std::string& inputFolder, const std::str
 
   TH1F cellsFillFactorHistogram(histogramId.c_str(), histogramTitle.c_str(), BinNumber, binsEdges.data());
   fillFillFactorHistogram(cellsFillFactorHistogram, dataReport, CellsDataType);
+
+  cellsFillFactorHistogram.GetXaxis()->SetTitle("Used / reserved memory (%)");
+  cellsFillFactorHistogram.GetXaxis()->SetTitleOffset(1.4);
+  cellsFillFactorHistogram.GetYaxis()->SetTitle("# samples");
+
   plotHistogram(cellsFillFactorHistogram, outputFileName);
 }
 

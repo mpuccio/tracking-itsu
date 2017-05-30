@@ -117,20 +117,20 @@ void plotTransverseMomentumBenchmark(const std::string& inputFolder, const std::
   loadData(inputFolder + "DuplicateRoads.txt", duplicatedHistogram);
 
   plotHistogramsRatio(duplicatedHistogram, generatedHistogram, binsEdges, outputFolder + "DuplicatedRoadsBenchmark.pdf",
-      "Duplicated Roads Histogram", "Duplicated over generated ratio");
+      "Duplicated Roads Histogram", "Duplicated to generated ratio");
 
   TH1F fakeHistogram((histogramPrefix + ".fake-histogram").c_str(), "Fake Histogram", BinNumber, binsEdges.data());
   loadData(inputFolder + "FakeRoads.txt", fakeHistogram);
 
   plotHistogramsRatio(fakeHistogram, generatedHistogram, binsEdges, outputFolder + "FakeRoadsBenchmark.pdf",
-      "Fake Roads Histogram", "Fake over generated ratio");
+      "Fake Roads Histogram", "Fake to generated ratio");
 
   TH1F duplicatedAndCorrectHistogram((histogramPrefix + ".duplicate-and-correct-histogram").c_str(),
       "Duplicate And Correct Histogram", BinNumber, binsEdges.data());
   duplicatedAndCorrectHistogram.Add(&correctHistogram, &duplicatedHistogram);
 
   plotHistogramsRatio(duplicatedHistogram, duplicatedAndCorrectHistogram, binsEdges,
-      outputFolder + "DuplicatedOverCorrectRoadsBenchmark.pdf", "Duplicated Over Correct Roads Histogram", "Duplicated over correct ratio");
+      outputFolder + "DuplicatedToCorrectRoadsBenchmark.pdf", "Duplicated To Correct Roads Histogram", "Duplicated to correct ratio");
 }
 
 int main(int argc, char** argv)
