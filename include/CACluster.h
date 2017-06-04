@@ -21,6 +21,8 @@
 
 #include <array>
 
+#include "CADefinitions.h"
+
 struct CACluster
     final
     {

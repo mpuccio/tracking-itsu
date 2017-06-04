@@ -20,6 +20,7 @@
 
 #include <cmath>
 
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 float CAMathUtils::calculatePhiCoordinate(const float xCoordinate, const float yCoordinate)
 {
   return std::atan2(-yCoordinate, -xCoordinate) + CAConstants::Math::Pi;
@@ -30,7 +31,7 @@ float CAMathUtils::calculateRCoordinate(const float xCoordinate, const float yCo
   return std::sqrt(xCoordinate * xCoordinate + yCoordinate * yCoordinate);
 }
 
-int CAMathUtils::roundUp(const int numToRound, const int multiple)
+GPU_HOST_DEVICE int CAMathUtils::roundUp(const int numToRound, const int multiple)
 {
   if (multiple == 0) {
 
@@ -47,7 +48,7 @@ int CAMathUtils::roundUp(const int numToRound, const int multiple)
   return numToRound + multiple - remainder;
 }
 
-int CAMathUtils::findNearestDivisor(const int numToRound, const int divisor)
+GPU_HOST_DEVICE int CAMathUtils::findNearestDivisor(const int numToRound, const int divisor)
 {
 
   if (numToRound > divisor) {
@@ -64,3 +65,5 @@ int CAMathUtils::findNearestDivisor(const int numToRound, const int divisor)
 
   return result;
 }
+}
+

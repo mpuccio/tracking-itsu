@@ -5,7 +5,7 @@ include(FindCUDA)
 set(CUDA_ARCH -gencode arch=compute_52,code=sm_52 CACHE STRING "CUDA target architecture.")
 set(CUDA_HOST_COMPILER_FLAGS -fPIC CACHE STRING "CUDA -Xcompiler flags.")
 
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; -std=c++11; --maxrregcount=64; -gencode arch=compute_52,code=sm_52;)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; ${CUDA_ARCH}; -std=c++11; --maxrregcount=64;)
 
 # Cannot use CUDA_NVCC_FLAGS_<CONFIG> due to issue 16411
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -20,6 +20,10 @@ set(CUDA_SEPARABLE_COMPILATION ON)
 set(CUDA_VERBOSE_BUILD ON)
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
+# -lcudadevrt option
+find_library_local_first(CUDA_CUDADEVRT_LIBRARY cudadevrt "\"cudadevrt\" library")
+set(CUDA_LIBRARIES ${CUDA_LIBRARIES} ${CUDA_CUDADEVRT_LIBRARY})
+
 message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 
 include_directories(
@@ -28,11 +32,13 @@ include_directories(
 )
 
 set(CUDA_SRCS
+    CAGPUPrimaryVertexContext.cu
     CAGPUUtils.cu
-    CAGPUTrackingAPI.cu
+    CAGPUTracker.cu
 )
 
 set(DEPENDENT_HOST_SRCS
+   CAMathUtils.cxx
    CATrackingUtils.cxx
    CATracklet.cxx
 )

@@ -21,6 +21,8 @@
 #include <CAIndexTableUtils.h>
 #include <CAMathUtils.h>
 
+using namespace TRACKINGITSU_TARGET_NAMESPACE;
+
 CACluster::CACluster(const int clusterId, const int layerIndex, const float xCoordinate, const float yCoordinate,
     const float zCoordinate, const float alphaAngle, const int monteCarloId)
     : clusterId { clusterId }, layerIndex { layerIndex }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate {

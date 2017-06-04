@@ -7,8 +7,7 @@ set(SRCS
   CAIOUtils.cxx
   CALabel.cxx
   CALayer.cxx
-  CAIndexTable.cxx
-  CAPrimaryVertexContext.cxx
+  CAIndexTableUtils.cxx
   CARoad.cxx
   CATracker.cxx
   CATrackingUtils.cxx

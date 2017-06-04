@@ -12,7 +12,7 @@
 # include <valgrind/callgrind.h>
 #endif
 
-#if defined TRACKINGITSU_GPU_MODE
+#if TRACKINGITSU_GPU_MODE
 # include "CAGPUUtils.h"
 #endif
 
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 #elif defined(DEBUG)
       std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
 #else
-      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracks();
+      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
 #endif
 
 #if defined HAVE_VALGRIND
