@@ -38,17 +38,27 @@ class CAGPUVector
       CAGPUVector();
       explicit CAGPUVector(const int);
       CAGPUVector(const T* const, const int);
+      ~CAGPUVector();
+
+      CAGPUVector(const CAGPUVector&) = delete;
+      CAGPUVector &operator=(const CAGPUVector&) = delete;
+
+      CAGPUVector(CAGPUVector&&);
+      CAGPUVector &operator=(CAGPUVector&&);
 
       std::unique_ptr<int, void (*)(void*)> getSizeFromDevice() const;
       void copyIntoVector(std::vector<T>&, const int);
       void fill(const T&);
-      void destroy();
+
       GPU_HOST_DEVICE T* get() const;
       GPU_DEVICE T& operator[](const int) const;
       GPU_DEVICE int size() const;
       GPU_DEVICE int extend(const int) const;
       template<typename ...Args>
-      GPU_DEVICE void insert(const int, Args&&...);
+      GPU_DEVICE void emplace(const int, Args&&...);
+
+    protected:
+      void destroy();
 
     private:
       T *mArrayPointer;
@@ -95,6 +105,33 @@ class CAGPUVector
 
       throw;
     }
+  }
+
+  template<typename T>
+  CAGPUVector<T>::~CAGPUVector()
+  {
+    destroy();
+  }
+
+  template<typename T>
+  CAGPUVector<T>::CAGPUVector(CAGPUVector<T> &&other) : mArrayPointer{ other.mArrayPointer },
+    mDeviceSize{ other.mDeviceSize }, mCapacity{ other.mCapacity }
+  {
+    other.mArrayPointer = nullptr;
+    other.mDeviceSize = nullptr;
+  }
+
+  template<typename T>
+  CAGPUVector<T> &CAGPUVector<T>::operator=(CAGPUVector<T> &&other)
+  {
+    mArrayPointer = other.mArrayPointer;
+    mDeviceSize = other.mDeviceSize;
+    mCapacity = other.mCapacity;
+
+    other.mArrayPointer = nullptr;
+    other.mDeviceSize = nullptr;
+
+    return *this;
   }
 
   template<typename T>
@@ -198,7 +235,7 @@ class CAGPUVector
 
   template<typename T>
   template<typename ...Args>
-  GPU_DEVICE void CAGPUVector<T>::insert(const int index, Args&&... arguments)
+  GPU_DEVICE void CAGPUVector<T>::emplace(const int index, Args&&... arguments)
   {
 
     new (mArrayPointer + index) T(std::forward < Args > (arguments)...);

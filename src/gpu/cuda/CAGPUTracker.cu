@@ -68,15 +68,35 @@ __device__ int getLaneIndex()
   return (threadIdx.x + threadIdx.y * blockDim.x) % WarpSize;
 }
 
-__device__ int shareToWarp(int value, int leaderIndex)
+__device__ int shareToWarp(int value, int laneIndex)
 {
-  return __shfl(value, leaderIndex);
+  return __shfl(value, laneIndex);
 }
 
-__global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
-    float3 primaryVertex, bool dryRun)
+__device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
+    float3 primaryVertex, int &clusterTracklets, bool dryRun)
 {
   int currentClusterIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
+  int startIndex;
+  int currentIndex = 0;
+
+  if(!dryRun) {
+
+    int laneIndex = getLaneIndex();
+
+    if(laneIndex == WarpSize - 1) {
+
+      startIndex = primaryVertexContext.getTracklets()[layerIndex].extend(clusterTracklets);
+    }
+
+    startIndex = shareToWarp(startIndex, WarpSize - 1);
+    const int clustersOffset = __shfl_up(clusterTracklets, 1);
+
+    if(laneIndex != 0) {
+
+      startIndex += clustersOffset;
+    }
+  }
 
   if (currentClusterIndex < primaryVertexContext.getClusters()[layerIndex].size()) {
 
@@ -105,19 +125,7 @@ __global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexCon
         phiBinsNum += CAConstants::IndexTable::PhiBins;
       }
 
-      int startIndex;
-      int currentIndex = 0;
-
       if(!dryRun) {
-
-        const int currentClusterTracklets = primaryVertexContext.getTrackletsPerClusterTable()[layerIndex][currentClusterIndex];
-
-        if(currentClusterTracklets == 0) {
-
-          return;
-        }
-
-        startIndex = primaryVertexContext.getTracklets()[layerIndex].extend(currentClusterTracklets);
 
         if(layerIndex > 0) {
 
@@ -141,11 +149,11 @@ __global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexCon
 
             if(dryRun) {
 
-              ++primaryVertexContext.getTrackletsPerClusterTable()[layerIndex][currentClusterIndex];
+              ++clusterTracklets;
 
             } else {
 
-              primaryVertexContext.getTracklets()[layerIndex].insert(startIndex + currentIndex,
+              primaryVertexContext.getTracklets()[layerIndex].emplace(startIndex + currentIndex,
                   currentClusterIndex, iNextLayerCluster, currentCluster, nextCluster);
               ++currentIndex;
             }
@@ -154,6 +162,27 @@ __global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexCon
       }
     }
   }
+}
+
+__global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
+    float3 primaryVertex)
+{
+  int clusterTracklets = 0;
+  const int laneIndex = getLaneIndex();
+
+  computeLayerTracklets(primaryVertexContext, layerIndex, primaryVertex, clusterTracklets, true);
+
+  for(int iOffset = WarpSize / 2; iOffset > 0; iOffset /= 2) {
+
+    int clustersToSum = __shfl_up(clusterTracklets, iOffset);
+
+    if(laneIndex >= iOffset) {
+
+      clusterTracklets += clustersToSum;
+    }
+  }
+
+  computeLayerTracklets(primaryVertexContext, layerIndex, primaryVertex, clusterTracklets, false);
 }
 
 template<>
@@ -201,9 +230,7 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext,
   cudaStreamCreate(&currentStream);
 
   layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(primaryVertexContext.getDeviceContext(),
-      layerIndex, {primaryVertex[0], primaryVertex[1], primaryVertex[2]}, true);
-  layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(primaryVertexContext.getDeviceContext(),
-        layerIndex, {primaryVertex[0], primaryVertex[1], primaryVertex[2]}, false);
+      layerIndex, {primaryVertex[0], primaryVertex[1], primaryVertex[2]});
 
   cudaError_t error = cudaGetLastError();
 

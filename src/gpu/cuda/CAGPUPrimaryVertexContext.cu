@@ -64,33 +64,12 @@ CAGPUPrimaryVertexContext::CAGPUPrimaryVertexContext(
     if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
 
       this->mTracklets[iLayer] = CAGPUVector<CATracklet> { static_cast<int>(tracklets[iLayer].capacity()) };
-      this->mTrackletsPerClusterTable[iLayer] = CAGPUVector<int> { static_cast<int>(clusters[iLayer].size()) };
-      this->mTrackletsPerClusterTable[iLayer].fill(0);
     }
 
     if (iLayer < CAConstants::ITS::CellsPerRoad) {
 
       this->mTrackletsLookupTable[iLayer] = CAGPUVector<int> { &trackletsLookupTable[iLayer][0],
           static_cast<int>(trackletsLookupTable[iLayer].size()) };
-    }
-  }
-}
-
-CAGPUPrimaryVertexContext::~CAGPUPrimaryVertexContext()
-{
-  for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
-
-    mClusters[iLayer].destroy();
-
-    if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
-
-      mTracklets[iLayer].destroy();
-      mTrackletsPerClusterTable[iLayer].destroy();
-    }
-
-    if (iLayer < CAConstants::ITS::CellsPerRoad) {
-
-      mTrackletsLookupTable[iLayer].destroy();
     }
   }
 }
@@ -114,11 +93,6 @@ GPU_HOST_DEVICE CAGPUArray<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsP
 GPU_HOST_DEVICE CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad>& CAGPUPrimaryVertexContext::getTrackletsLookupTable()
 {
   return mTrackletsLookupTable;
-}
-
-GPU_DEVICE CAGPUArray<CAGPUVector<int>, CAConstants::ITS::TrackletsPerRoad>& CAGPUPrimaryVertexContext::getTrackletsPerClusterTable()
-{
-  return mTrackletsPerClusterTable;
 }
 
 CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
