@@ -51,6 +51,7 @@
 # define MATH_ATAN2 atan2
 # define MATH_MAX max
 # define MATH_MIN min
+# define MATH_SQRT sqrt
 
 # include "CAGPUArray.h"
 # define GPU_ARRAY CAGPUArray
@@ -68,6 +69,7 @@
 # define MATH_ATAN2 std::atan2
 # define MATH_MAX std::max
 # define MATH_MIN std::min
+# define MATH_SQRT std::sqrt
 
 # include <array>
 # define GPU_ARRAY std::array

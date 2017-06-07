@@ -30,7 +30,7 @@ float calculateRCoordinate(const float, const float);
 GPU_HOST_DEVICE int roundUp(const int, const int);
 GPU_HOST_DEVICE int findNearestDivisor(const int, const int);
 GPU_DEVICE constexpr float getNormalizedPhiCoordinate(const float);
-constexpr std::array<float, 3> crossProduct(const std::array<float, 3>&, const std::array<float, 3>&);
+GPU_DEVICE constexpr GPU_ARRAY<float, 3> crossProduct(const GPU_ARRAY<float, 3>&, const GPU_ARRAY<float, 3>&);
 }
 
 GPU_DEVICE constexpr float CAMathUtils::getNormalizedPhiCoordinate(const float phiCoordinate)
@@ -39,11 +39,11 @@ GPU_DEVICE constexpr float CAMathUtils::getNormalizedPhiCoordinate(const float p
          (phiCoordinate > CAConstants::Math::TwoPi) ? phiCoordinate - CAConstants::Math::TwoPi : phiCoordinate;
 }
 
-constexpr std::array<float, 3> CAMathUtils::crossProduct(const std::array<float, 3>& firstVector,
-    const std::array<float, 3>& secondVector)
+GPU_DEVICE constexpr GPU_ARRAY<float, 3> CAMathUtils::crossProduct(const GPU_ARRAY<float, 3>& firstVector,
+    const GPU_ARRAY<float, 3>& secondVector)
 {
 
-  return std::array<float, 3> { { (firstVector[1] * secondVector[2]) - (firstVector[2] * secondVector[1]),
+  return GPU_ARRAY<float, 3> { { (firstVector[1] * secondVector[2]) - (firstVector[2] * secondVector[1]),
       (firstVector[2] * secondVector[0]) - (firstVector[0] * secondVector[2]), (firstVector[0] * secondVector[1])
           - (firstVector[1] * secondVector[0]) } };
 }

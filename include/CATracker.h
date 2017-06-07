@@ -41,6 +41,8 @@ class CATrackerTraits
   public:
     void computeLayerTracklets(Context&, const int, const std::array<float, 3>&);
     void postProcessTracklets(Context&);
+    void computeLayerCells(Context&, const int, const std::array<float, 3>&);
+    void postProcessCells(Context&);
 
   protected:
     ~CATrackerTraits() = default;

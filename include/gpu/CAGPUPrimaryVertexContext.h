@@ -31,13 +31,17 @@ class CAGPUPrimaryVertexContext final
   public:
     CAGPUPrimaryVertexContext(const std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber>&,
         const std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad>&,
-        const std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad>&);
+        const std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad>&,
+        const std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad>&,
+        const std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1>&);
 
     GPU_HOST_DEVICE CAGPUArray<CAGPUVector<CACluster>, CAConstants::ITS::LayersNumber>& getClusters();
     GPU_DEVICE CAGPUArray<CAGPUArray<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>,
       CAConstants::ITS::TrackletsPerRoad>& getIndexTables();
     GPU_HOST_DEVICE CAGPUArray<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsPerRoad>& getTracklets();
     GPU_HOST_DEVICE CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad>& getTrackletsLookupTable();
+    GPU_HOST_DEVICE CAGPUArray<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad>& getCells();
+    GPU_HOST_DEVICE CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& getCellsLookupTable();
 
   private:
     CAGPUArray<CAGPUVector<CACluster>, CAConstants::ITS::LayersNumber> mClusters;
@@ -45,6 +49,8 @@ class CAGPUPrimaryVertexContext final
         CAConstants::ITS::TrackletsPerRoad> mIndexTables;
     CAGPUArray<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> mTracklets;
     CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad> mTrackletsLookupTable;
+    CAGPUArray<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad> mCells;
+    CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1> mCellsLookupTable;
 };
 
 template<>
@@ -63,12 +69,15 @@ class CAPrimaryVertexContext<true>
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad>& getTrackletsLookupTable();
     std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad>& getCells();
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1>& getCellsLookupTable();
+    std::array<std::vector<std::vector<int>>, CAConstants::ITS::CellsPerRoad - 1>& getCellsNeighbours();
     std::vector<CARoad>& getRoads();
 
     CAGPUPrimaryVertexContext& getDeviceContext();
     CAGPUArray<CAGPUVector<CACluster>, CAConstants::ITS::LayersNumber>& getDeviceClusters();
     CAGPUArray<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsPerRoad>& getDeviceTracklets();
     CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad>& getDeviceTrackletsLookupTable();
+    CAGPUArray<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad>& getDeviceCells();
+    CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& getDeviceCellsLookupTable();
 
   private:
     const int mPrimaryVertexIndex;
@@ -77,6 +86,7 @@ class CAPrimaryVertexContext<true>
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> mTrackletsLookupTable;
     std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> mCells;
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> mCellsLookupTable;
+    std::array<std::vector<std::vector<int>>, CAConstants::ITS::CellsPerRoad - 1> mCellsNeighbours;
     std::vector<CARoad> mRoads;
 
     CAGPUPrimaryVertexContext mGPUContext;

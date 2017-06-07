@@ -18,8 +18,9 @@
 
 #include "CACell.h"
 
-CACell::CACell(const int firstClusterIndex, const int secondClusterIndex, const int thirdClusterIndex,
-    const int firstTrackletIndex, const int secondTrackletIndex, const std::array<float, 3>& normalVectorCoordinates,
+namespace TRACKINGITSU_TARGET_NAMESPACE {
+GPU_DEVICE CACell::CACell(const int firstClusterIndex, const int secondClusterIndex, const int thirdClusterIndex,
+    const int firstTrackletIndex, const int secondTrackletIndex, const GPU_ARRAY<float, 3>& normalVectorCoordinates,
     const float curvature)
     : mFirstClusterIndex { firstClusterIndex }, mSecondClusterIndex { secondClusterIndex }, mThirdClusterIndex {
         thirdClusterIndex }, mFirstTrackletIndex(firstTrackletIndex), mSecondTrackletIndex(secondTrackletIndex), mNormalVectorCoordinates(
@@ -27,25 +28,4 @@ CACell::CACell(const int firstClusterIndex, const int secondClusterIndex, const 
 {
   // Nothing to do
 }
-
-bool CACell::combineCells(const CACell& otherCell, int otherCellId)
-{
-  if (mSecondClusterIndex == otherCell.getThirdClusterIndex()
-      && mFirstClusterIndex == otherCell.getSecondClusterIndex()) {
-
-    mNeighbours.push_back(otherCellId);
-
-    const int otherCellLevel { otherCell.getLevel() };
-
-    if (otherCellLevel >= mLevel) {
-
-      setLevel(otherCellLevel + 1);
-    }
-
-    return true;
-
-  } else {
-
-    return false;
-  }
 }

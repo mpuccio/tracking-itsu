@@ -41,6 +41,7 @@ struct CAPrimaryVertexContextInitializer final
     static std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> initTracklets(const CAEvent&);
     static std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> initTrackletsLookupTable(const CAEvent&);
     static std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> initCells(const CAEvent&);
+    static std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> initCellsLookupTable(const std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad>&);
 };
 
 template<bool IsGPU>
@@ -60,6 +61,7 @@ class CAPrimaryVertexContext final
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad>& getTrackletsLookupTable();
     std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad>& getCells();
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1>& getCellsLookupTable();
+    std::array<std::vector<std::vector<int>>, CAConstants::ITS::CellsPerRoad - 1>& getCellsNeighbours();
     std::vector<CARoad>& getRoads();
 
   private:
@@ -71,6 +73,7 @@ class CAPrimaryVertexContext final
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> mTrackletsLookupTable;
     std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> mCells;
     std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> mCellsLookupTable;
+    std::array<std::vector<std::vector<int>>, CAConstants::ITS::CellsPerRoad - 1> mCellsNeighbours;
     std::vector<CARoad> mRoads;
 };
 
@@ -187,12 +190,26 @@ std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> CAPrimaryVertexC
 }
 
 template<bool IsGPU>
+std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> CAPrimaryVertexContextInitializer<IsGPU>::initCellsLookupTable(const std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> &tracklets)
+{
+  std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> cellsLookupTable;
+
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad - 1; ++iLayer) {
+
+    cellsLookupTable[iLayer].resize(tracklets[iLayer + 1].capacity(),
+        CAConstants::ITS::UnusedIndex);
+  }
+
+  return cellsLookupTable;
+}
+
+template<bool IsGPU>
 CAPrimaryVertexContext<IsGPU>::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
     : mPrimaryVertexIndex { primaryVertexIndex }, mClusters { CAPrimaryVertexContextInitializer<IsGPU>::initClusters(
         event, primaryVertexIndex) }, mIndexTables { CAPrimaryVertexContextInitializer<IsGPU>::initIndexTables(mClusters) }, mTracklets {
         CAPrimaryVertexContextInitializer<IsGPU>::initTracklets(event) }, mTrackletsLookupTable {
         CAPrimaryVertexContextInitializer<IsGPU>::initTrackletsLookupTable(event) }, mCells {
-        CAPrimaryVertexContextInitializer<IsGPU>::initCells(event) }
+        CAPrimaryVertexContextInitializer<IsGPU>::initCells(event) }, mCellsLookupTable { CAPrimaryVertexContextInitializer<IsGPU>::initCellsLookupTable(mTracklets) }
 {
   // Nothing to do
 }
@@ -239,6 +256,12 @@ template<bool IsGPU>
 std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1>& CAPrimaryVertexContext<IsGPU>::getCellsLookupTable()
 {
   return mCellsLookupTable;
+}
+
+template<bool IsGPU>
+std::array<std::vector<std::vector<int>>, CAConstants::ITS::CellsPerRoad - 1>& CAPrimaryVertexContext<IsGPU>::getCellsNeighbours()
+{
+  return mCellsNeighbours;
 }
 
 template<bool IsGPU>

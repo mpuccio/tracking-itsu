@@ -53,9 +53,14 @@ GPU_DEVICE constexpr GPU_ARRAY<float, ITS::TrackletsPerRoad> TrackletMaxDeltaZTh
   return GPU_ARRAY<float, ITS::TrackletsPerRoad> { { 0.1f, 0.1f, 0.3f, 0.3f, 0.3f, 0.3f } };
 }
 constexpr float CellMaxDeltaTanLambdaThreshold { 0.025f };
-constexpr GPU_ARRAY<float, ITS::CellsPerRoad> CellMaxDeltaZThreshold { { 0.2f, 0.4f, 0.5f, 0.6f, 3.0f } };
-constexpr GPU_ARRAY<float, ITS::CellsPerRoad> CellMaxDistanceOfClosestApproachThreshold { { 0.05f, 0.04f, 0.05f, 0.2f,
-    0.4f } };
+GPU_DEVICE constexpr GPU_ARRAY<float, ITS::CellsPerRoad> CellMaxDeltaZThreshold()
+{
+  return GPU_ARRAY<float, ITS::CellsPerRoad> { { 0.2f, 0.4f, 0.5f, 0.6f, 3.0f } };
+}
+GPU_DEVICE constexpr GPU_ARRAY<float, ITS::CellsPerRoad> CellMaxDistanceOfClosestApproachThreshold()
+{
+  return GPU_ARRAY<float, ITS::CellsPerRoad> { { 0.05f, 0.04f, 0.05f, 0.2f, 0.4f } };
+}
 constexpr float CellMaxDeltaPhiThreshold { 0.14f };
 constexpr float ZCoordinateCut { 0.5f };
 constexpr float PhiCoordinateCut { 0.3f };

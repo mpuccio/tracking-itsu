@@ -25,8 +25,8 @@
 #include "CAMathUtils.h"
 
 namespace TRACKINGITSU_TARGET_NAMESPACE {
-GPU_DEVICE bool CATrackingUtils::isValidTracklet(const CACluster &firstLayerCluster, const CACluster &secondLayerCluster,
-    const float tanLambda, const float directionZIntersection)
+GPU_DEVICE bool CATrackingUtils::isValidTracklet(const CACluster &firstLayerCluster,
+    const CACluster &secondLayerCluster, const float tanLambda, const float directionZIntersection)
 {
   const float deltaZ { MATH_ABS(
       tanLambda * (secondLayerCluster.rCoordinate - firstLayerCluster.rCoordinate) + firstLayerCluster.zCoordinate
