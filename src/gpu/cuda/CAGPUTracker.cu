@@ -444,10 +444,10 @@ void CATrackerTraits<true>::postProcessCells(Context& primaryVertexContext)
 
     if (iLayer < CAConstants::ITS::CellsPerRoad - 1) {
 
-      const std::unique_ptr<int, void (*)(void*)> trackletsSizeUniquePointer =
-          primaryVertexContext.getDeviceTracklets()[iLayer + 1].getSizeFromDevice();
+      const std::unique_ptr<int, void (*)(void*)> cellsLookupTableSizeUniquePointer =
+          primaryVertexContext.getDeviceCellsLookupTable()[iLayer].getSizeFromDevice();
       primaryVertexContext.getDeviceCellsLookupTable()[iLayer].copyIntoVector(
-          primaryVertexContext.getCellsLookupTable()[iLayer], *trackletsSizeUniquePointer);
+          primaryVertexContext.getCellsLookupTable()[iLayer], *cellsLookupTableSizeUniquePointer);
     }
   }
 }

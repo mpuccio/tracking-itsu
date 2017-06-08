@@ -20,6 +20,7 @@
 #include "CAConstants.h"
 #include "CADefinitions.h"
 #include "CAGPUArray.h"
+#include "CAGPUUniquePointer.h"
 #include "CAGPUVector.h"
 #include "CAPrimaryVertexContext.h"
 #include "CATracklet.h"
@@ -30,8 +31,6 @@ class CAGPUPrimaryVertexContext final
 {
   public:
     CAGPUPrimaryVertexContext(const std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber>&,
-        const std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad>&,
-        const std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad>&,
         const std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad>&,
         const std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1>&);
 
@@ -58,7 +57,6 @@ class CAPrimaryVertexContext<true>
 {
   public:
     explicit CAPrimaryVertexContext(const CAEvent&, const int);
-    ~CAPrimaryVertexContext();
 
     CAPrimaryVertexContext(const CAPrimaryVertexContext&) = delete;
     CAPrimaryVertexContext &operator=(const CAPrimaryVertexContext&) = delete;
@@ -90,5 +88,5 @@ class CAPrimaryVertexContext<true>
     std::vector<CARoad> mRoads;
 
     CAGPUPrimaryVertexContext mGPUContext;
-    CAGPUPrimaryVertexContext *mGPUContextDevicePointer;
+    CAGPUUniquePointer<CAGPUPrimaryVertexContext> mGPUContextDevicePointer;
 };

@@ -48,7 +48,6 @@ class CAGPUVector
 
       std::unique_ptr<int, void (*)(void*)> getSizeFromDevice() const;
       void copyIntoVector(std::vector<T>&, const int);
-      void fill(const T&);
 
       GPU_HOST_DEVICE T* get() const;
       GPU_DEVICE T& operator[](const int) const;
@@ -177,13 +176,6 @@ class CAGPUVector
 
       throw;
     }
-  }
-
-  template<typename T>
-  inline void CAGPUVector<T>::fill(const T &fillValue)
-  {
-    CAGPUUtils::Host::gpuMemset(mArrayPointer, fillValue, mCapacity * sizeof(T));
-    CAGPUUtils::Host::gpuMemset(mDeviceSize, mCapacity, sizeof(int));
   }
 
   template<typename T>
