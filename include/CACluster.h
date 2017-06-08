@@ -23,11 +23,12 @@
 
 #include "CADefinitions.h"
 
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 struct CACluster
     final
     {
       CACluster(const int, const int, const float, const float, const float, const float, const int);
-      CACluster(const int, const std::array<float, 3>&, const CACluster&);
+      CACluster(const int, const float3&, const CACluster&);
 
       int clusterId;
       int layerIndex;
@@ -40,5 +41,6 @@ struct CACluster
       float rCoordinate;
       int indexTableBinIndex;
   };
+}
 
 #endif /* TRACKINGITSU_INCLUDE_CACLUSTER_H_ */

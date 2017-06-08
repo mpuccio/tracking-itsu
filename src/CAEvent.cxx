@@ -31,7 +31,7 @@ CAEvent::CAEvent(const int eventId)
 
 void CAEvent::addPrimaryVertex(const float xCoordinate, const float yCoordinate, const float zCoordinate)
 {
-  mPrimaryVertices.emplace_back(std::array<float, 3> { { xCoordinate, yCoordinate, zCoordinate } });
+  mPrimaryVertices.emplace_back(float3 { xCoordinate, yCoordinate, zCoordinate });
 }
 
 void CAEvent::printPrimaryVertices() const
@@ -40,9 +40,9 @@ void CAEvent::printPrimaryVertices() const
 
   for (int iVertex { 0 }; iVertex < verticesNum; ++iVertex) {
 
-    const std::array<float, 3>& currentVertex { mPrimaryVertices[iVertex] };
+    const float3& currentVertex { mPrimaryVertices[iVertex] };
 
-    std::cout << "-1\t" << currentVertex[0] << "\t" << currentVertex[1] << "\t" << currentVertex[2] << std::endl;
+    std::cout << "-1\t" << currentVertex.x << "\t" << currentVertex.y << "\t" << currentVertex.z << std::endl;
   }
 }
 

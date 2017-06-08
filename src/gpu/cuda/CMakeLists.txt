@@ -39,6 +39,7 @@ set(CUDA_SRCS
 
 set(DEPENDENT_HOST_SRCS
    CACell.cxx
+   CACluster.cxx
    CAMathUtils.cxx
    CATrackingUtils.cxx
    CATracklet.cxx

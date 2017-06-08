@@ -56,17 +56,18 @@ __global__ void fillTrackletsLookupTables(CAGPUPrimaryVertexContext &primaryVert
   const int iLayer = threadIdx.x;
   const int tableSize = primaryVertexContext.getClusters()[iLayer + 1].size();
 
-  for(int iBin = 0; iBin < tableSize; ++iBin) {
+  for (int iBin = 0; iBin < tableSize; ++iBin) {
 
     primaryVertexContext.getTrackletsLookupTable()[iLayer][iBin] = CAConstants::ITS::UnusedIndex;
   }
 }
 }
 
-CAGPUPrimaryVertexContext::CAGPUPrimaryVertexContext(
+CAGPUPrimaryVertexContext::CAGPUPrimaryVertexContext(const float3 &primaryVertex,
     const std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> &clusters,
     const std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> &cells,
     const std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> &cellsLookupTable)
+    : mPrimaryVertex { primaryVertex }
 {
   for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
@@ -76,14 +77,13 @@ CAGPUPrimaryVertexContext::CAGPUPrimaryVertexContext(
     if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
 
       this->mTracklets[iLayer] = CAGPUVector<CATracklet> { static_cast<int>(std::ceil(
-        (CAConstants::Memory::TrackletsMemoryCoefficients[iLayer] * clusters[iLayer].size())
+          (CAConstants::Memory::TrackletsMemoryCoefficients[iLayer] * clusters[iLayer].size())
               * clusters[iLayer + 1].size())) };
     }
 
     if (iLayer < CAConstants::ITS::CellsPerRoad) {
 
-      this->mTrackletsLookupTable[iLayer] = CAGPUVector<int> {
-          static_cast<int>(clusters[iLayer + 1].size()) };
+      this->mTrackletsLookupTable[iLayer] = CAGPUVector<int> { static_cast<int>(clusters[iLayer + 1].size()) };
 
       this->mCells[iLayer] = CAGPUVector<CACell> { static_cast<int>(cells[iLayer].capacity()) };
     }
@@ -94,6 +94,11 @@ CAGPUPrimaryVertexContext::CAGPUPrimaryVertexContext(
           static_cast<int>(cellsLookupTable[iLayer].size()) };
     }
   }
+}
+
+GPU_DEVICE const float3& CAGPUPrimaryVertexContext::getPrimaryVertex()
+{
+  return *mPrimaryVertex;
 }
 
 GPU_HOST_DEVICE CAGPUArray<CAGPUVector<CACluster>, CAConstants::ITS::LayersNumber>& CAGPUPrimaryVertexContext::getClusters()
@@ -107,12 +112,12 @@ GPU_DEVICE CAGPUArray<CAGPUArray<int, CAConstants::IndexTable::ZBins * CAConstan
   return mIndexTables;
 }
 
-GPU_HOST_DEVICE CAGPUArray<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsPerRoad>& CAGPUPrimaryVertexContext::getTracklets()
+GPU_DEVICE CAGPUArray<CAGPUVector<CATracklet>, CAConstants::ITS::TrackletsPerRoad>& CAGPUPrimaryVertexContext::getTracklets()
 {
   return mTracklets;
 }
 
-GPU_HOST_DEVICE CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad>& CAGPUPrimaryVertexContext::getTrackletsLookupTable()
+GPU_DEVICE CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad>& CAGPUPrimaryVertexContext::getTrackletsLookupTable()
 {
   return mTrackletsLookupTable;
 }
@@ -128,19 +133,20 @@ GPU_HOST_DEVICE CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>
 }
 
 CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
-    : mPrimaryVertexIndex { primaryVertexIndex }, mClusters { CAPrimaryVertexContextInitializer<true>::initClusters(
-        event, primaryVertexIndex) }, mCells { CAPrimaryVertexContextInitializer<true>::initCells(event) },
-        mCellsLookupTable { CAPrimaryVertexContextInitializer<true>::initCellsLookupTable(event) },
-        mGPUContext { mClusters, mCells, mCellsLookupTable }, mGPUContextDevicePointer{ mGPUContext }
+    : mPrimaryVertex { event.getPrimaryVertex(primaryVertexIndex) }, mClusters {
+        CAPrimaryVertexContextInitializer<true>::initClusters(event, primaryVertexIndex) }, mCells {
+        CAPrimaryVertexContextInitializer<true>::initCells(event) }, mCellsLookupTable {
+        CAPrimaryVertexContextInitializer<true>::initCellsLookupTable(event) }, mGPUContext { mPrimaryVertex, mClusters, mCells,
+        mCellsLookupTable }, mGPUContextDevicePointer { mGPUContext }
 {
-  fillIndexTables<<< 1, dim3 { CAConstants::ITS::TrackletsPerRoad } >>>(*mGPUContextDevicePointer);
-  fillTrackletsLookupTables<<< 1, dim3 { CAConstants::ITS::CellsPerRoad } >>>(*mGPUContextDevicePointer);
+  fillIndexTables<<< 1, CAConstants::ITS::TrackletsPerRoad >>>(*mGPUContextDevicePointer);
+  fillTrackletsLookupTables<<< 1, CAConstants::ITS::CellsPerRoad >>>(*mGPUContextDevicePointer);
   cudaDeviceSynchronize();
 }
 
-int CAPrimaryVertexContext<true>::getPrimaryVertex()
+const float3& CAPrimaryVertexContext<true>::getPrimaryVertex()
 {
-  return mPrimaryVertexIndex;
+  return mPrimaryVertex;
 }
 
 std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber>& CAPrimaryVertexContext<true>::getClusters()

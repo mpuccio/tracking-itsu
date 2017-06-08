@@ -29,7 +29,7 @@ class CACell
   final
   {
     public:
-      GPU_DEVICE CACell(const int, const int, const int, const int, const int, const GPU_ARRAY<float, 3>&, const float);
+      GPU_DEVICE CACell(const int, const int, const int, const int, const int, const float3&, const float);
 
       int getFirstClusterIndex() const;
       int getSecondClusterIndex() const;
@@ -38,7 +38,7 @@ class CACell
       int getSecondTrackletIndex() const;
       int getLevel() const;
       float getCurvature() const;
-      const GPU_ARRAY<float, 3>& getNormalVectorCoordinates() const;
+      const float3& getNormalVectorCoordinates() const;
       void setLevel(const int level);
 
     private:
@@ -47,7 +47,7 @@ class CACell
       const int mThirdClusterIndex;
       const int mFirstTrackletIndex;
       const int mSecondTrackletIndex;
-      const GPU_ARRAY<float, 3> mNormalVectorCoordinates;
+      const float3 mNormalVectorCoordinates;
       const float mCurvature;
       int mLevel;
   };
@@ -87,7 +87,7 @@ class CACell
     return mCurvature;
   }
 
-  inline const GPU_ARRAY<float, 3>& CACell::getNormalVectorCoordinates() const
+  inline const float3& CACell::getNormalVectorCoordinates() const
   {
     return mNormalVectorCoordinates;
   }

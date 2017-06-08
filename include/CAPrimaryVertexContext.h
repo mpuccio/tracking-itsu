@@ -55,7 +55,7 @@ struct CAPrimaryVertexContextInitializer
         CAPrimaryVertexContext(const CAPrimaryVertexContext&) = delete;
         CAPrimaryVertexContext &operator=(const CAPrimaryVertexContext&) = delete;
 
-        int getPrimaryVertex();
+        const float3& getPrimaryVertex();
         std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber>& getClusters();
         std::array<std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>,
             CAConstants::ITS::TrackletsPerRoad>& getIndexTables();
@@ -67,7 +67,7 @@ struct CAPrimaryVertexContextInitializer
         std::vector<CARoad>& getRoads();
 
       private:
-        const int mPrimaryVertexIndex;
+        const float3 mPrimaryVertex;
         std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> mClusters;
         std::array<std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>,
             CAConstants::ITS::TrackletsPerRoad> mIndexTables;
@@ -214,7 +214,7 @@ struct CAPrimaryVertexContextInitializer
 
     template<bool IsGPU>
     CAPrimaryVertexContext<IsGPU>::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
-        : mPrimaryVertexIndex { primaryVertexIndex }, mClusters {
+        : mPrimaryVertex { event.getPrimaryVertex(primaryVertexIndex) }, mClusters {
             CAPrimaryVertexContextInitializer<IsGPU>::initClusters(event, primaryVertexIndex) }, mIndexTables {
             CAPrimaryVertexContextInitializer<IsGPU>::initIndexTables(mClusters) }, mTracklets {
             CAPrimaryVertexContextInitializer<IsGPU>::initTracklets(event) }, mTrackletsLookupTable {
@@ -226,9 +226,9 @@ struct CAPrimaryVertexContextInitializer
     }
 
     template<bool IsGPU>
-    int CAPrimaryVertexContext<IsGPU>::getPrimaryVertex()
+    const float3& CAPrimaryVertexContext<IsGPU>::getPrimaryVertex()
     {
-      return mPrimaryVertexIndex;
+      return mPrimaryVertex;
     }
 
     template<bool IsGPU>

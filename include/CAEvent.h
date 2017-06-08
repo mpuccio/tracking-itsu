@@ -32,7 +32,7 @@ class CAEvent
       explicit CAEvent(const int);
 
       int getEventId() const;
-      const std::array<float, 3>& getPrimaryVertex(const int) const;
+      const float3& getPrimaryVertex(const int) const;
       const CALayer& getLayer(const int) const;
       int getPrimaryVerticesNum() const;
       void addPrimaryVertex(const float, const float, const float);
@@ -42,7 +42,7 @@ class CAEvent
 
     private:
       const int mEventId;
-      std::vector<std::array<float, 3>> mPrimaryVertices;
+      std::vector<float3> mPrimaryVertices;
       std::array<CALayer, CAConstants::ITS::LayersNumber> mLayers;
   };
 
@@ -51,7 +51,7 @@ class CAEvent
     return mEventId;
   }
 
-  inline const std::array<float, 3>& CAEvent::getPrimaryVertex(const int vertexIndex) const
+  inline const float3& CAEvent::getPrimaryVertex(const int vertexIndex) const
   {
     return mPrimaryVertices[vertexIndex];
   }

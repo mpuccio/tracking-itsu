@@ -38,7 +38,7 @@ constexpr int MaxXThreads { 128 };
 constexpr int MaxYThreads { 128 };
 constexpr int MaxThreadsPerBlock { 128 };
 
-__host__        __device__ dim3 getBlockSize(const int colsNum, const int rowsNum)
+__host__  __device__ dim3 getBlockSize(const int colsNum, const int rowsNum)
 {
   int xThreads = min(colsNum, MaxXThreads);
   int yThreads = min(rowsNum, MaxYThreads);
@@ -58,7 +58,7 @@ __host__        __device__ dim3 getBlockSize(const int colsNum, const int rowsNu
   return dim3 { static_cast<unsigned int>(xThreads), static_cast<unsigned int>(yThreads) };
 }
 
-__host__        __device__ dim3 getBlockSize(const int colsNum)
+__host__  __device__ dim3 getBlockSize(const int colsNum)
 {
   return getBlockSize(colsNum, 1);
 }
@@ -74,9 +74,10 @@ __device__ int shareToWarp(int value, int laneIndex)
 }
 
 __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
-    float3 primaryVertex, int &clusterTracklets, bool dryRun)
+    int &clusterTracklets, bool dryRun)
 {
   const int currentClusterIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
+  const float3 &primaryVertex = primaryVertexContext.getPrimaryVertex();
   int startIndex;
   int currentIndex = 0;
 
@@ -163,9 +164,10 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
 }
 
 __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
-    float3 primaryVertex, int &trackletCells, bool dryRun)
+    int &trackletCells, bool dryRun)
 {
   const int currentTrackletIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
+  const float3 &primaryVertex = primaryVertexContext.getPrimaryVertex();
   int startIndex;
   int currentIndex = 0;
 
@@ -207,9 +209,9 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
         primaryVertexContext.getClusters()[layerIndex + 1][currentTracklet.secondClusterIndex] };
     const float firstCellClusterQuadraticRCoordinate { firstCellCluster.rCoordinate * firstCellCluster.rCoordinate };
     const float secondCellClusterQuadraticRCoordinate { secondCellCluster.rCoordinate * secondCellCluster.rCoordinate };
-    const GPU_ARRAY<float, 3> firstDeltaVector { { secondCellCluster.xCoordinate - firstCellCluster.xCoordinate,
+    const float3 firstDeltaVector { secondCellCluster.xCoordinate - firstCellCluster.xCoordinate,
         secondCellCluster.yCoordinate - firstCellCluster.yCoordinate, secondCellClusterQuadraticRCoordinate
-            - firstCellClusterQuadraticRCoordinate } };
+            - firstCellClusterQuadraticRCoordinate };
     const int nextLayerTrackletsNum { static_cast<int>(primaryVertexContext.getTracklets()[layerIndex + 1].size()) };
 
     if (!dryRun && layerIndex > 0) {
@@ -242,33 +244,33 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
 
           const float thirdCellClusterQuadraticRCoordinate { thirdCellCluster.rCoordinate * thirdCellCluster.rCoordinate };
 
-          const GPU_ARRAY<float, 3> secondDeltaVector { { thirdCellCluster.xCoordinate - firstCellCluster.xCoordinate,
+          const float3 secondDeltaVector { thirdCellCluster.xCoordinate - firstCellCluster.xCoordinate,
               thirdCellCluster.yCoordinate - firstCellCluster.yCoordinate, thirdCellClusterQuadraticRCoordinate
-                  - firstCellClusterQuadraticRCoordinate } };
+                  - firstCellClusterQuadraticRCoordinate };
 
-          GPU_ARRAY<float, 3> cellPlaneNormalVector { CAMathUtils::crossProduct(firstDeltaVector, secondDeltaVector) };
+          float3 cellPlaneNormalVector { CAMathUtils::crossProduct(firstDeltaVector, secondDeltaVector) };
 
           const float vectorNorm { std::sqrt(
-              cellPlaneNormalVector[0] * cellPlaneNormalVector[0] + cellPlaneNormalVector[1] * cellPlaneNormalVector[1]
-                  + cellPlaneNormalVector[2] * cellPlaneNormalVector[2]) };
+              cellPlaneNormalVector.x * cellPlaneNormalVector.x + cellPlaneNormalVector.y * cellPlaneNormalVector.y
+                  + cellPlaneNormalVector.z * cellPlaneNormalVector.z) };
 
           if (!(vectorNorm < CAConstants::Math::FloatMinThreshold
-              || MATH_ABS(cellPlaneNormalVector[2]) < CAConstants::Math::FloatMinThreshold)) {
+              || MATH_ABS(cellPlaneNormalVector.z) < CAConstants::Math::FloatMinThreshold)) {
 
             const float inverseVectorNorm { 1.0f / vectorNorm };
-            const GPU_ARRAY<float, 3> normalizedPlaneVector { { cellPlaneNormalVector[0] * inverseVectorNorm,
-                cellPlaneNormalVector[1] * inverseVectorNorm, cellPlaneNormalVector[2] * inverseVectorNorm } };
-            const float planeDistance { -normalizedPlaneVector[0] * (secondCellCluster.xCoordinate - primaryVertex.x)
-                - (normalizedPlaneVector[1] * secondCellCluster.yCoordinate - primaryVertex.y)
-                - normalizedPlaneVector[2] * secondCellClusterQuadraticRCoordinate };
-            const float normalizedPlaneVectorQuadraticZCoordinate { normalizedPlaneVector[2] * normalizedPlaneVector[2] };
+            const float3 normalizedPlaneVector { cellPlaneNormalVector.x * inverseVectorNorm, cellPlaneNormalVector.y
+                * inverseVectorNorm, cellPlaneNormalVector.z * inverseVectorNorm };
+            const float planeDistance { -normalizedPlaneVector.x * (secondCellCluster.xCoordinate - primaryVertex.x)
+                - (normalizedPlaneVector.y * secondCellCluster.yCoordinate - primaryVertex.y)
+                - normalizedPlaneVector.z * secondCellClusterQuadraticRCoordinate };
+            const float normalizedPlaneVectorQuadraticZCoordinate { normalizedPlaneVector.z * normalizedPlaneVector.z };
             const float cellTrajectoryRadius { MATH_SQRT(
-                (1.0f - normalizedPlaneVectorQuadraticZCoordinate - 4.0f * planeDistance * normalizedPlaneVector[2])
+                (1.0f - normalizedPlaneVectorQuadraticZCoordinate - 4.0f * planeDistance * normalizedPlaneVector.z)
                     / (4.0f * normalizedPlaneVectorQuadraticZCoordinate)) };
-            const GPU_ARRAY<float, 2> circleCenter { { -0.5f * normalizedPlaneVector[0] / normalizedPlaneVector[2], -0.5f
-                * normalizedPlaneVector[1] / normalizedPlaneVector[2] } };
+            const float2 circleCenter { -0.5f * normalizedPlaneVector.x / normalizedPlaneVector.z, -0.5f
+                * normalizedPlaneVector.y / normalizedPlaneVector.z };
             const float distanceOfClosestApproach { MATH_ABS(
-                cellTrajectoryRadius - MATH_SQRT(circleCenter[0] * circleCenter[0] + circleCenter[1] * circleCenter[1])) };
+                cellTrajectoryRadius - MATH_SQRT(circleCenter.x * circleCenter.x + circleCenter.y * circleCenter.y)) };
 
             if (distanceOfClosestApproach
                 <= CAConstants::Thresholds::CellMaxDistanceOfClosestApproachThreshold()[layerIndex]) {
@@ -294,13 +296,12 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
   }
 }
 
-__global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
-    float3 primaryVertex)
+__global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex)
 {
   int clusterTracklets = 0;
   const int laneIndex = getLaneIndex();
 
-  computeLayerTracklets(primaryVertexContext, layerIndex, primaryVertex, clusterTracklets, true);
+  computeLayerTracklets(primaryVertexContext, layerIndex, clusterTracklets, true);
 
   for (int iOffset = WarpSize / 2; iOffset > 0; iOffset /= 2) {
 
@@ -312,16 +313,15 @@ __global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexCon
     }
   }
 
-  computeLayerTracklets(primaryVertexContext, layerIndex, primaryVertex, clusterTracklets, false);
+  computeLayerTracklets(primaryVertexContext, layerIndex, clusterTracklets, false);
 }
 
-__global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
-    float3 primaryVertex)
+__global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex)
 {
   int trackletCells = 0;
   const int laneIndex = getLaneIndex();
 
-  computeLayerCells(primaryVertexContext, layerIndex, primaryVertex, trackletCells, true);
+  computeLayerCells(primaryVertexContext, layerIndex, trackletCells, true);
 
   for (int iOffset = WarpSize / 2; iOffset > 0; iOffset /= 2) {
 
@@ -333,47 +333,11 @@ __global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext
     }
   }
 
-  computeLayerCells(primaryVertexContext, layerIndex, primaryVertex, trackletCells, false);
+  computeLayerCells(primaryVertexContext, layerIndex, trackletCells, false);
 }
 
 template<>
-class CATrackerTraits<true>
-{
-  private:
-    typedef CAPrimaryVertexContext<true> Context;
-  public:
-    CATrackerTraits();
-
-    void computeLayerTracklets(Context& primaryVertexContext, const int layerIndex,
-        const std::array<float, 3> &primaryVertex);
-    void postProcessTracklets(Context&);
-    void computeLayerCells(Context&, const int, const std::array<float, 3>&);
-    void postProcessCells(Context&);
-
-  protected:
-    ~CATrackerTraits();
-  private:
-    CAGPUArray<cudaStream_t, CAConstants::ITS::LayersNumber> streams;
-};
-
-CATrackerTraits<true>::CATrackerTraits()
-{
-  for (int iStream = 0; iStream < CAConstants::ITS::LayersNumber; ++iStream) {
-
-    cudaStreamCreate(&streams[iStream]);
-  }
-}
-
-CATrackerTraits<true>::~CATrackerTraits()
-{
-  for (int iStream = 0; iStream < CAConstants::ITS::LayersNumber; ++iStream) {
-
-    cudaStreamDestroy(streams[iStream]);
-  }
-}
-
-void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext, const int layerIndex,
-    const std::array<float, 3> &primaryVertex)
+void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext, const int layerIndex)
 {
   const int clustersNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex].size()) };
   dim3 threadsPerBlock { getBlockSize(clustersNum) };
@@ -383,7 +347,7 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext,
   cudaStreamCreate(&currentStream);
 
   layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(primaryVertexContext.getDeviceContext(),
-      layerIndex, {primaryVertex[0], primaryVertex[1], primaryVertex[2]});
+      layerIndex);
 
   cudaError_t error = cudaGetLastError();
 
@@ -398,13 +362,14 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext,
   }
 }
 
+template<>
 void CATrackerTraits<true>::postProcessTracklets(Context& primaryVertexContext)
 {
   cudaDeviceSynchronize();
 }
 
-void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, const int layerIndex,
-    const std::array<float, 3> &primaryVertex)
+template<>
+void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, const int layerIndex)
 {
   const std::unique_ptr<int, void (*)(void*)> trackletsSizeUniquePointer =
       primaryVertexContext.getDeviceTracklets()[layerIndex].getSizeFromDevice();
@@ -416,11 +381,11 @@ void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, con
   cudaStreamCreate(&currentStream);
 
   layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(primaryVertexContext.getDeviceContext(),
-      layerIndex, {primaryVertex[0], primaryVertex[1], primaryVertex[2]});
-
-  cudaError_t error = cudaGetLastError();
+      layerIndex);
 
   cudaStreamDestroy(currentStream);
+
+  cudaError_t error = cudaGetLastError();
 
   if (error != cudaSuccess) {
 
@@ -431,6 +396,7 @@ void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, con
   }
 }
 
+template<>
 void CATrackerTraits<true>::postProcessCells(Context& primaryVertexContext)
 {
   cudaDeviceSynchronize();

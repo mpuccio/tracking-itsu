@@ -31,10 +31,10 @@
 
 namespace CAIndexTableUtils {
 float getInverseZBinSize(const int);
-GPU_DEVICE int getZBinIndex(const int, const float);
-GPU_DEVICE int getPhiBinIndex(const float);
-GPU_DEVICE int getBinIndex(const int, const int);
-GPU_DEVICE int countRowSelectedBins(
+GPU_HOST_DEVICE int getZBinIndex(const int, const float);
+GPU_HOST_DEVICE int getPhiBinIndex(const float);
+GPU_HOST_DEVICE int getBinIndex(const int, const int);
+GPU_HOST_DEVICE int countRowSelectedBins(
     const GPU_ARRAY<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>&, const int, const int,
     const int);
 const std::vector<std::pair<int, int>> selectClusters(
@@ -47,24 +47,24 @@ inline float getInverseZCoordinate(const int layerIndex)
   return 0.5f * CAConstants::IndexTable::ZBins / CAConstants::ITS::LayersZCoordinate()[layerIndex];
 }
 
-GPU_DEVICE inline int CAIndexTableUtils::getZBinIndex(const int layerIndex, const float zCoordinate)
+GPU_HOST_DEVICE inline int CAIndexTableUtils::getZBinIndex(const int layerIndex, const float zCoordinate)
 {
   return (zCoordinate + CAConstants::ITS::LayersZCoordinate()[layerIndex])
       * CAConstants::IndexTable::InverseZBinSize()[layerIndex];
 }
 
-GPU_DEVICE inline int CAIndexTableUtils::getPhiBinIndex(const float currentPhi)
+GPU_HOST_DEVICE inline int CAIndexTableUtils::getPhiBinIndex(const float currentPhi)
 {
   return (currentPhi * CAConstants::IndexTable::InversePhiBinSize);
 }
 
-GPU_DEVICE inline int CAIndexTableUtils::getBinIndex(const int zIndex, const int phiIndex)
+GPU_HOST_DEVICE inline int CAIndexTableUtils::getBinIndex(const int zIndex, const int phiIndex)
 {
   return MATH_MIN(phiIndex * CAConstants::IndexTable::PhiBins + zIndex,
       CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins);
 }
 
-GPU_DEVICE inline int CAIndexTableUtils::countRowSelectedBins(
+GPU_HOST_DEVICE inline int CAIndexTableUtils::countRowSelectedBins(
     const GPU_ARRAY<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> &indexTable,
     const int phiBinIndex, const int minZBinIndex, const int maxZBinIndex)
 {

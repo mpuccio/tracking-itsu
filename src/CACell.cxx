@@ -20,7 +20,7 @@
 
 namespace TRACKINGITSU_TARGET_NAMESPACE {
 GPU_DEVICE CACell::CACell(const int firstClusterIndex, const int secondClusterIndex, const int thirdClusterIndex,
-    const int firstTrackletIndex, const int secondTrackletIndex, const GPU_ARRAY<float, 3>& normalVectorCoordinates,
+    const int firstTrackletIndex, const int secondTrackletIndex, const float3& normalVectorCoordinates,
     const float curvature)
     : mFirstClusterIndex { firstClusterIndex }, mSecondClusterIndex { secondClusterIndex }, mThirdClusterIndex {
         thirdClusterIndex }, mFirstTrackletIndex(firstTrackletIndex), mSecondTrackletIndex(secondTrackletIndex), mNormalVectorCoordinates(

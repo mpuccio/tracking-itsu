@@ -24,7 +24,7 @@
 
 namespace {
 template<typename T, std::size_t Size>
-struct CAGPUArrayTraits
+struct CAGPUArrayTraits final
 {
     typedef T InternalArray[Size];
 

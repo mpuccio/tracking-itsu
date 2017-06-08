@@ -74,7 +74,7 @@ namespace IndexTable {
 constexpr int ZBins { 20 };
 constexpr int PhiBins { 20 };
 constexpr float InversePhiBinSize { CAConstants::IndexTable::PhiBins / CAConstants::Math::TwoPi };
-GPU_DEVICE constexpr GPU_ARRAY<float, ITS::LayersNumber> InverseZBinSize()
+GPU_HOST_DEVICE constexpr GPU_ARRAY<float, ITS::LayersNumber> InverseZBinSize()
 {
   return GPU_ARRAY<float, ITS::LayersNumber> { { 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f,
       0.5 * ZBins / 42.140f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 73.745f, 0.5 * ZBins / 73.745f } };

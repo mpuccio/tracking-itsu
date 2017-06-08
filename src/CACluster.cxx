@@ -21,8 +21,7 @@
 #include <CAIndexTableUtils.h>
 #include <CAMathUtils.h>
 
-using namespace TRACKINGITSU_TARGET_NAMESPACE;
-
+namespace TRACKINGITSU_TARGET_NAMESPACE {
 CACluster::CACluster(const int clusterId, const int layerIndex, const float xCoordinate, const float yCoordinate,
     const float zCoordinate, const float alphaAngle, const int monteCarloId)
     : clusterId { clusterId }, layerIndex { layerIndex }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate {
@@ -32,14 +31,15 @@ CACluster::CACluster(const int clusterId, const int layerIndex, const float xCoo
   // Nothing to do
 }
 
-CACluster::CACluster(const int layerIndex, const std::array<float, 3> &primaryVertex, const CACluster& other)
+CACluster::CACluster(const int layerIndex, const float3 &primaryVertex, const CACluster& other)
     : clusterId { other.clusterId }, layerIndex { other.layerIndex }, xCoordinate { other.xCoordinate }, yCoordinate {
         other.yCoordinate }, zCoordinate { other.zCoordinate }, alphaAngle { other.alphaAngle }, monteCarloId {
         other.monteCarloId }, phiCoordinate { CAMathUtils::getNormalizedPhiCoordinate(
-        CAMathUtils::calculatePhiCoordinate(xCoordinate - primaryVertex[0], yCoordinate - primaryVertex[1])) }, rCoordinate {
-        CAMathUtils::calculateRCoordinate(xCoordinate - primaryVertex[0], yCoordinate - primaryVertex[1]) }, indexTableBinIndex {
+        CAMathUtils::calculatePhiCoordinate(xCoordinate - primaryVertex.x, yCoordinate - primaryVertex.y)) }, rCoordinate {
+        CAMathUtils::calculateRCoordinate(xCoordinate - primaryVertex.x, yCoordinate - primaryVertex.y) }, indexTableBinIndex {
         CAIndexTableUtils::getBinIndex(CAIndexTableUtils::getZBinIndex(layerIndex, zCoordinate),
             CAIndexTableUtils::getPhiBinIndex(phiCoordinate)) }
 {
   // Nothing to do
+}
 }

@@ -21,12 +21,30 @@
 
 #include "CAGPUUtils.h"
 
+namespace {
 template<typename T>
-class CAGPUUniquePointer
+struct CAGPUUniquePointerTraits final
 {
+    typedef T* InternalPointer;
+
+    GPU_HOST_DEVICE static constexpr T&
+    getReference(const InternalPointer& internalPointer) noexcept
+    { return const_cast<T&>(*internalPointer); }
+
+    GPU_HOST_DEVICE static constexpr T*
+    getPointer(const InternalPointer& internalPointer) noexcept
+    { return const_cast<T*>(internalPointer); }
+};
+}
+
+template<typename T>
+class CAGPUUniquePointer final
+{
+  typedef CAGPUUniquePointerTraits<T> PointerTraits;
+
   public:
     CAGPUUniquePointer();
-    explicit CAGPUUniquePointer(T&);
+    explicit CAGPUUniquePointer(const T&);
     ~CAGPUUniquePointer();
 
     CAGPUUniquePointer(const CAGPUUniquePointer&) = delete;
@@ -35,14 +53,16 @@ class CAGPUUniquePointer
     CAGPUUniquePointer(CAGPUUniquePointer&&);
     CAGPUUniquePointer &operator=(CAGPUUniquePointer&&);
 
-    T* get();
-    T& operator *();
+    GPU_HOST_DEVICE T* get() noexcept;
+    GPU_HOST_DEVICE const T* get() const noexcept;
+    GPU_HOST_DEVICE T& operator*() noexcept;
+    GPU_HOST_DEVICE const T& operator*() const noexcept;
 
   protected:
     void destroy();
 
   private:
-    T *mDevicePointer;
+    typename PointerTraits::InternalPointer mDevicePointer;
 
 };
 
@@ -54,7 +74,7 @@ CAGPUUniquePointer<T>::CAGPUUniquePointer()
 }
 
 template<typename T>
-CAGPUUniquePointer<T>::CAGPUUniquePointer(T &ref)
+CAGPUUniquePointer<T>::CAGPUUniquePointer(const T &ref)
 {
   try {
 
@@ -101,15 +121,27 @@ void CAGPUUniquePointer<T>::destroy()
 }
 
 template<typename T>
-T *CAGPUUniquePointer<T>::get()
+GPU_HOST_DEVICE T* CAGPUUniquePointer<T>::get() noexcept
 {
-  return mDevicePointer;
+  return PointerTraits::getPointer(mDevicePointer);
 }
 
 template<typename T>
-T &CAGPUUniquePointer<T>::operator *()
+GPU_HOST_DEVICE const T* CAGPUUniquePointer<T>::get() const noexcept
 {
-  return *mDevicePointer;
+  return PointerTraits::getPointer(mDevicePointer);
+}
+
+template<typename T>
+GPU_HOST_DEVICE T& CAGPUUniquePointer<T>::operator*() noexcept
+{
+  return PointerTraits::getReference(mDevicePointer);
+}
+
+template<typename T>
+GPU_HOST_DEVICE const T& CAGPUUniquePointer<T>::operator*() const noexcept
+{
+  return PointerTraits::getReference(mDevicePointer);
 }
 
 #endif /* TRAKINGITSU_INCLUDE_GPU_CAGPUUNIQUE_POINTER_H_ */
