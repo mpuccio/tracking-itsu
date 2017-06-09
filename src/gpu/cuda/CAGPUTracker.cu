@@ -25,6 +25,7 @@
 #include <cuda_runtime.h>
 
 #include "CAConstants.h"
+#include "CAGPUContext.h"
 #include "CAGPUPrimaryVertexContext.h"
 #include "CAGPUVector.h"
 #include "CAIndexTableUtils.h"
@@ -32,17 +33,12 @@
 #include "CAPrimaryVertexContext.h"
 #include "CATrackingUtils.h"
 
-//TODO: this must be refined with runtime device queries or with careful planning
-constexpr int WarpSize { 32 };
-constexpr int MaxXThreads { 128 };
-constexpr int MaxYThreads { 128 };
-constexpr int MaxThreadsPerBlock { 128 };
-
 __host__  __device__ dim3 getBlockSize(const int colsNum, const int rowsNum)
 {
-  int xThreads = min(colsNum, MaxXThreads);
-  int yThreads = min(rowsNum, MaxYThreads);
-  const int totalThreads = min(CAMathUtils::roundUp(xThreads * yThreads, WarpSize), MaxThreadsPerBlock);
+  const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
+  int xThreads = min(colsNum, deviceProperties.maxThreadsDim.x);
+  int yThreads = min(rowsNum, deviceProperties.maxThreadsDim.y);
+  const int totalThreads = min(CAMathUtils::roundUp(xThreads * yThreads, deviceProperties.warpSize), deviceProperties.maxThreadsPerBlock);
 
   if (xThreads > yThreads) {
 
@@ -63,9 +59,9 @@ __host__  __device__ dim3 getBlockSize(const int colsNum)
   return getBlockSize(colsNum, 1);
 }
 
-__device__ int getLaneIndex()
+__device__ int getLaneIndex(int warpSize)
 {
-  return (threadIdx.x + threadIdx.y * blockDim.x) % WarpSize;
+  return (threadIdx.x + threadIdx.y * blockDim.x) % warpSize;
 }
 
 __device__ int shareToWarp(int value, int laneIndex)
@@ -74,7 +70,7 @@ __device__ int shareToWarp(int value, int laneIndex)
 }
 
 __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
-    int &clusterTracklets, bool dryRun)
+    int &clusterTracklets, const int warpSize, const bool dryRun)
 {
   const int currentClusterIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
   const float3 &primaryVertex = primaryVertexContext.getPrimaryVertex();
@@ -83,14 +79,14 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
 
   if (!dryRun) {
 
-    int laneIndex = getLaneIndex();
+    int laneIndex = getLaneIndex(warpSize);
 
-    if (laneIndex == WarpSize - 1) {
+    if (laneIndex == warpSize - 1) {
 
       startIndex = primaryVertexContext.getTracklets()[layerIndex].extend(clusterTracklets);
     }
 
-    startIndex = shareToWarp(startIndex, WarpSize - 1);
+    startIndex = shareToWarp(startIndex, warpSize - 1);
     const int currentClusterOffset = __shfl_up(clusterTracklets, 1);
 
     if (laneIndex != 0) {
@@ -164,7 +160,7 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
 }
 
 __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
-    int &trackletCells, bool dryRun)
+    int &trackletCells, const int warpSize, const bool dryRun)
 {
   const int currentTrackletIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
   const float3 &primaryVertex = primaryVertexContext.getPrimaryVertex();
@@ -173,14 +169,14 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
 
   if (!dryRun) {
 
-    int laneIndex = getLaneIndex();
+    int laneIndex = getLaneIndex(warpSize);
 
-    if (laneIndex == WarpSize - 1) {
+    if (laneIndex == warpSize - 1) {
 
       startIndex = primaryVertexContext.getCells()[layerIndex].extend(trackletCells);
     }
 
-    startIndex = shareToWarp(startIndex, WarpSize - 1);
+    startIndex = shareToWarp(startIndex, warpSize - 1);
     const int currentTrackletOffset = __shfl_up(trackletCells, 1);
 
     if (laneIndex != 0) {
@@ -296,14 +292,14 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
   }
 }
 
-__global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex)
+__global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex, const int warpSize)
 {
   int clusterTracklets = 0;
-  const int laneIndex = getLaneIndex();
+  const int laneIndex = getLaneIndex(warpSize);
 
-  computeLayerTracklets(primaryVertexContext, layerIndex, clusterTracklets, true);
+  computeLayerTracklets(primaryVertexContext, layerIndex, clusterTracklets, warpSize, true);
 
-  for (int iOffset = WarpSize / 2; iOffset > 0; iOffset /= 2) {
+  for (int iOffset = warpSize / 2; iOffset > 0; iOffset /= 2) {
 
     int clustersToSum = __shfl_up(clusterTracklets, iOffset);
 
@@ -313,17 +309,17 @@ __global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexCon
     }
   }
 
-  computeLayerTracklets(primaryVertexContext, layerIndex, clusterTracklets, false);
+  computeLayerTracklets(primaryVertexContext, layerIndex, clusterTracklets, warpSize, false);
 }
 
-__global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex)
+__global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex, const int warpSize)
 {
   int trackletCells = 0;
-  const int laneIndex = getLaneIndex();
+  const int laneIndex = getLaneIndex(warpSize);
 
-  computeLayerCells(primaryVertexContext, layerIndex, trackletCells, true);
+  computeLayerCells(primaryVertexContext, layerIndex, trackletCells, warpSize, true);
 
-  for (int iOffset = WarpSize / 2; iOffset > 0; iOffset /= 2) {
+  for (int iOffset = warpSize / 2; iOffset > 0; iOffset /= 2) {
 
     int trackletsToSum = __shfl_up(trackletCells, iOffset);
 
@@ -333,12 +329,13 @@ __global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext
     }
   }
 
-  computeLayerCells(primaryVertexContext, layerIndex, trackletCells, false);
+  computeLayerCells(primaryVertexContext, layerIndex, trackletCells, warpSize, false);
 }
 
 template<>
 void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext, const int layerIndex)
 {
+  const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
   const int clustersNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex].size()) };
   dim3 threadsPerBlock { getBlockSize(clustersNum) };
   dim3 blocksGrid { 1 + clustersNum / threadsPerBlock.x };
@@ -347,7 +344,7 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext,
   cudaStreamCreate(&currentStream);
 
   layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(primaryVertexContext.getDeviceContext(),
-      layerIndex);
+      layerIndex, deviceProperties.warpSize);
 
   cudaError_t error = cudaGetLastError();
 
@@ -371,6 +368,7 @@ void CATrackerTraits<true>::postProcessTracklets(Context& primaryVertexContext)
 template<>
 void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, const int layerIndex)
 {
+  const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
   const std::unique_ptr<int, void (*)(void*)> trackletsSizeUniquePointer =
       primaryVertexContext.getDeviceTracklets()[layerIndex].getSizeFromDevice();
 
@@ -381,7 +379,7 @@ void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, con
   cudaStreamCreate(&currentStream);
 
   layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(primaryVertexContext.getDeviceContext(),
-      layerIndex);
+      layerIndex, deviceProperties.warpSize);
 
   cudaStreamDestroy(currentStream);
 
