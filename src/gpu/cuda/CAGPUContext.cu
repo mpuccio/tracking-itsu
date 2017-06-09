@@ -89,7 +89,7 @@ const CAGPUDeviceProperties& CAGPUContext::getDeviceProperties()
   int currentDeviceIndex;
   checkCUDAError(cudaGetDevice(&currentDeviceIndex), __FILE__, __LINE__);
 
-  getDeviceProperties(currentDeviceIndex);
+  return getDeviceProperties(currentDeviceIndex);
 }
 
 const CAGPUDeviceProperties& CAGPUContext::getDeviceProperties(const int deviceIndex)

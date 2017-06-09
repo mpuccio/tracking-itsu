@@ -33,42 +33,6 @@
 #include "CAPrimaryVertexContext.h"
 #include "CATrackingUtils.h"
 
-__host__  __device__ dim3 getBlockSize(const int colsNum, const int rowsNum)
-{
-  const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
-  int xThreads = min(colsNum, deviceProperties.maxThreadsDim.x);
-  int yThreads = min(rowsNum, deviceProperties.maxThreadsDim.y);
-  const int totalThreads = min(CAMathUtils::roundUp(xThreads * yThreads, deviceProperties.warpSize), deviceProperties.maxThreadsPerBlock);
-
-  if (xThreads > yThreads) {
-
-    xThreads = CAMathUtils::findNearestDivisor(xThreads, totalThreads);
-    yThreads = totalThreads / xThreads;
-
-  } else {
-
-    yThreads = CAMathUtils::findNearestDivisor(yThreads, totalThreads);
-    xThreads = totalThreads / yThreads;
-  }
-
-  return dim3 { static_cast<unsigned int>(xThreads), static_cast<unsigned int>(yThreads) };
-}
-
-__host__  __device__ dim3 getBlockSize(const int colsNum)
-{
-  return getBlockSize(colsNum, 1);
-}
-
-__device__ int getLaneIndex(int warpSize)
-{
-  return (threadIdx.x + threadIdx.y * blockDim.x) % warpSize;
-}
-
-__device__ int shareToWarp(int value, int laneIndex)
-{
-  return __shfl(value, laneIndex);
-}
-
 __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
     int &clusterTracklets, const int warpSize, const bool dryRun)
 {
@@ -79,14 +43,14 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
 
   if (!dryRun) {
 
-    int laneIndex = getLaneIndex(warpSize);
+    int laneIndex = CAGPUUtils::Device::getLaneIndex(warpSize);
 
     if (laneIndex == warpSize - 1) {
 
       startIndex = primaryVertexContext.getTracklets()[layerIndex].extend(clusterTracklets);
     }
 
-    startIndex = shareToWarp(startIndex, warpSize - 1);
+    startIndex = CAGPUUtils::Device::shareToWarp(startIndex, warpSize - 1);
     const int currentClusterOffset = __shfl_up(clusterTracklets, 1);
 
     if (laneIndex != 0) {
@@ -169,14 +133,14 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
 
   if (!dryRun) {
 
-    int laneIndex = getLaneIndex(warpSize);
+    int laneIndex = CAGPUUtils::Device::getLaneIndex(warpSize);
 
     if (laneIndex == warpSize - 1) {
 
       startIndex = primaryVertexContext.getCells()[layerIndex].extend(trackletCells);
     }
 
-    startIndex = shareToWarp(startIndex, warpSize - 1);
+    startIndex = CAGPUUtils::Device::shareToWarp(startIndex, warpSize - 1);
     const int currentTrackletOffset = __shfl_up(trackletCells, 1);
 
     if (laneIndex != 0) {
@@ -295,7 +259,7 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
 __global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex, const int warpSize)
 {
   int clusterTracklets = 0;
-  const int laneIndex = getLaneIndex(warpSize);
+  const int laneIndex = CAGPUUtils::Device::getLaneIndex(warpSize);
 
   computeLayerTracklets(primaryVertexContext, layerIndex, clusterTracklets, warpSize, true);
 
@@ -315,7 +279,7 @@ __global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexCon
 __global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex, const int warpSize)
 {
   int trackletCells = 0;
-  const int laneIndex = getLaneIndex(warpSize);
+  const int laneIndex = CAGPUUtils::Device::getLaneIndex(warpSize);
 
   computeLayerCells(primaryVertexContext, layerIndex, trackletCells, warpSize, true);
 
@@ -337,7 +301,7 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext,
 {
   const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
   const int clustersNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex].size()) };
-  dim3 threadsPerBlock { getBlockSize(clustersNum) };
+  dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(clustersNum) };
   dim3 blocksGrid { 1 + clustersNum / threadsPerBlock.x };
 
   cudaStream_t currentStream;
@@ -372,7 +336,7 @@ void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, con
   const std::unique_ptr<int, void (*)(void*)> trackletsSizeUniquePointer =
       primaryVertexContext.getDeviceTracklets()[layerIndex].getSizeFromDevice();
 
-  dim3 threadsPerBlock { getBlockSize(*trackletsSizeUniquePointer) };
+  dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(*trackletsSizeUniquePointer) };
   dim3 blocksGrid { 1 + *trackletsSizeUniquePointer / threadsPerBlock.x };
 
   cudaStream_t currentStream;

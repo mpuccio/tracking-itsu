@@ -24,6 +24,9 @@
 namespace CAGPUUtils {
 
 namespace Host {
+dim3 getBlockSize(const int);
+dim3 getBlockSize(const int, const int);
+
 void gpuMalloc(void**, const int);
 void gpuFree(void*);
 void gpuMemset(void *, int, int);
@@ -34,6 +37,8 @@ void gpuStopProfiler();
 }
 
 namespace Device {
+GPU_DEVICE int getLaneIndex(const int);
+GPU_DEVICE int shareToWarp(const int, const int);
 GPU_DEVICE int gpuAtomicAdd(int*, const int);
 }
 }

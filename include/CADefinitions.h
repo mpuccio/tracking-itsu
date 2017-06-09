@@ -71,8 +71,9 @@
 # define MATH_MIN std::min
 # define MATH_SQRT std::sqrt
 
-typedef struct _float2 { float x; float y; } float2;
-typedef struct _float3 { float x; float y; float z; } float3;
+typedef struct _dim3 { unsigned int x, y, z; } dim3;
+typedef struct _float2 { float x, y; } float2;
+typedef struct _float3 { float x, y, z; } float3;
 
 # include <array>
 # define GPU_ARRAY std::array

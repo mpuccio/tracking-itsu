@@ -18,48 +18,65 @@
 
 #include "CAGPUPrimaryVertexContext.h"
 
+#include <sstream>
+
 namespace {
-__global__ void fillIndexTables(CAGPUPrimaryVertexContext &primaryVertexContext)
-{
-  const int iLayer = threadIdx.x;
+__device__ void fillIndexTables(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex) {
 
-  const int layerClustersNum { static_cast<int>(primaryVertexContext.getClusters()[iLayer + 1].size()) };
-  int previousBinIndex { 0 };
-  primaryVertexContext.getIndexTables()[iLayer] = CAGPUArray<int,
-      CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> { };
-  primaryVertexContext.getIndexTables()[iLayer][0] = 0;
+  const int currentClusterIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
+  const int nextLayerClustersNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex + 1].size()) };
 
-  for (int iCluster { 0 }; iCluster < layerClustersNum; ++iCluster) {
+  if(currentClusterIndex < nextLayerClustersNum) {
 
-    const int currentBinIndex { primaryVertexContext.getClusters()[iLayer + 1][iCluster].indexTableBinIndex };
+    const int currentBinIndex { primaryVertexContext.getClusters()[layerIndex + 1][currentClusterIndex].indexTableBinIndex };
+    int previousBinIndex;
+
+    if(currentClusterIndex == 0) {
+
+      primaryVertexContext.getIndexTables()[layerIndex][0] = 0;
+      previousBinIndex = 0;
+
+    } else {
+
+      previousBinIndex = primaryVertexContext.getClusters()[layerIndex + 1][currentClusterIndex - 1].indexTableBinIndex;
+    }
 
     if (currentBinIndex > previousBinIndex) {
 
       for (int iBin { previousBinIndex + 1 }; iBin <= currentBinIndex; ++iBin) {
 
-        primaryVertexContext.getIndexTables()[iLayer][iBin] = iCluster;
+        primaryVertexContext.getIndexTables()[layerIndex][iBin] = currentClusterIndex;
       }
 
       previousBinIndex = currentBinIndex;
     }
+
+    if(currentClusterIndex == nextLayerClustersNum - 1) {
+
+      for (int iBin { currentBinIndex + 1 }; iBin <= CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins;
+            iBin++) {
+
+      primaryVertexContext.getIndexTables()[layerIndex][iBin] = nextLayerClustersNum;
+    }
   }
-
-  for (int iBin { previousBinIndex + 1 }; iBin <= CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins;
-      iBin++) {
-
-    primaryVertexContext.getIndexTables()[iLayer][iBin] = layerClustersNum;
   }
 }
 
-__global__ void fillTrackletsLookupTables(CAGPUPrimaryVertexContext &primaryVertexContext)
+__device__ void fillTrackletsLookupTables(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex)
 {
-  const int iLayer = threadIdx.x;
-  const int tableSize = primaryVertexContext.getClusters()[iLayer + 1].size();
+  const int currentBinIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
+  const int tableSize { static_cast<int>(primaryVertexContext.getClusters()[layerIndex + 1].size()) };
 
-  for (int iBin = 0; iBin < tableSize; ++iBin) {
+  if(currentBinIndex < tableSize) {
 
-    primaryVertexContext.getTrackletsLookupTable()[iLayer][iBin] = CAConstants::ITS::UnusedIndex;
+    primaryVertexContext.getTrackletsLookupTable()[layerIndex][currentBinIndex] = CAConstants::ITS::UnusedIndex;
   }
+}
+
+__global__ void fillDeviceStructures(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex)
+{
+  fillIndexTables(primaryVertexContext, layerIndex);
+  fillTrackletsLookupTables(primaryVertexContext, layerIndex);
 }
 }
 
@@ -139,8 +156,31 @@ CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const
         CAPrimaryVertexContextInitializer<true>::initCellsLookupTable(event) }, mGPUContext { mPrimaryVertex, mClusters, mCells,
         mCellsLookupTable }, mGPUContextDevicePointer { mGPUContext }
 {
-  fillIndexTables<<< 1, CAConstants::ITS::TrackletsPerRoad >>>(*mGPUContextDevicePointer);
-  fillTrackletsLookupTables<<< 1, CAConstants::ITS::CellsPerRoad >>>(*mGPUContextDevicePointer);
+  for(int iLayer { 0 }; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
+
+    const int nextLayerClustersNum = static_cast<int>(mClusters[iLayer + 1].size());
+
+    dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(nextLayerClustersNum) };
+    dim3 blocksGrid { 1 + nextLayerClustersNum / threadsPerBlock.x };
+
+    cudaStream_t currentStream;
+    cudaStreamCreate(&currentStream);
+
+    fillDeviceStructures<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(*mGPUContextDevicePointer, iLayer);
+
+    cudaStreamDestroy(currentStream);
+
+    cudaError_t error = cudaGetLastError();
+
+    if (error != cudaSuccess) {
+
+      std::ostringstream errorString { };
+      errorString << __FILE__ << ":" << __LINE__ << " CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")" << std::endl;
+
+      throw std::runtime_error { errorString.str() };
+    }
+  }
+
   cudaDeviceSynchronize();
 }
 

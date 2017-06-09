@@ -69,6 +69,9 @@ int main(int argc, char** argv)
   CAGPUUtils::Host::gpuStartProfiler();
 #endif
 
+  // Prevent cold cache benchmark noise
+  CATracker<TRACKINGITSU_GPU_MODE>(events[0]).clustersToTracks();
+
   for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
 
     CAEvent& currentEvent = events[iEvent];
