@@ -504,20 +504,30 @@ void CATracker::traverseCellsTree(CAPrimaryVertexContext& primaryVertexContext, 
   }
 
   CACell& currentCell = primaryVertexContext.cells[currentLayerId][currentCellId];
-
-  primaryVertexContext.roads.back().addCell(currentLayerId, currentCellId);
+  const int currentCellLevel = currentCell.getLevel();
+  CARoad& currentRoad = primaryVertexContext.roads.back();
+    
+  currentRoad.addCell(currentLayerId, currentCellId);
 
   const int cellNeighboursNum = currentCell.getNumberOfNeighbours();
 
   for (int iNeighbourCell = 0; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
-
+    
+    const int neighbourCellId = currentCell.getNeighbourCellId(iNeighbourCell);
+    const CACell& neighbourCell = primaryVertexContext.cells[currentLayerId - 1][neighbourCellId];
+    
+    if(currentCellLevel - 1 != neighbourCell.getLevel()) {
+     
+      continue;
+    }
+    
     if (iNeighbourCell > 0) {
 
-      primaryVertexContext.roads.push_back(primaryVertexContext.roads.back());
+      primaryVertexContext.roads.push_back(currentRoad);
 
     }
 
-    traverseCellsTree(primaryVertexContext, currentCell.getNeighbourCellId(iNeighbourCell), currentLayerId - 1);
+    traverseCellsTree(primaryVertexContext, neighbourCellId, currentLayerId - 1);
   }
 
   currentCell.setLevel(0);
