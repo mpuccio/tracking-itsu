@@ -63,6 +63,9 @@ int main(int argc, char** argv)
 #if defined MEMORY_BENCHMARK
   std::ofstream memoryBenchmarkOutputStream;
   memoryBenchmarkOutputStream.open(benchmarkFolderName + "MemoryOccupancy.txt");
+#elif defined TIME_BENCHMARK
+  std::ofstream timeBenchmarkOutputStream;
+  timeBenchmarkOutputStream.open(benchmarkFolderName + "TimeOccupancy.txt");
 #endif
 
 #if defined GPU_PROFILING_MODE
@@ -89,6 +92,8 @@ int main(int argc, char** argv)
       std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
 #elif defined(DEBUG)
       std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
+#elif defined TIME_BENCHMARK
+      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksTimeBenchmark(timeBenchmarkOutputStream);
 #else
       std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
 #endif

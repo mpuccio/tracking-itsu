@@ -16,6 +16,9 @@ cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$
 ############
 #   ROOT   #
 ############
+> computing-time-benchmark
+root 'plotComputingTimeBenchmark.cxx("${ProjDirPath}/benchmarks/computing_time/")'
+
 > generate-pile-up-data
 root 'generatePileUpData.cxx(2, "${ProjDirPath}/benchmarks/benchmark_data/")'
 

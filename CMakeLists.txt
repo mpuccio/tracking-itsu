@@ -10,9 +10,11 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g -O2")
 set(CMAKE_CXX_FLAGS_PROFILE "-pg" CACHE STRING "Flags used by the C++ compiler during profiling builds.")
 set(CMAKE_CXX_FLAGS_MEMORYBENCHMARK -DMEMORY_BENCHMARK CACHE STRING "Flags used by the C++ compiler during memory benchmark builds.")
+set(CMAKE_CXX_FLAGS_TIMEBENCHMARK "-DTIME_BENCHMARK" CACHE STRING "Flags used by the C++ compiler during time benchmark builds.")
 
 MARK_AS_ADVANCED(CMAKE_CXX_FLAGS_PROFILE)
 MARK_AS_ADVANCED(CMAKE_CXX_FLAGS_MEMORYBENCHMARK)
+MARK_AS_ADVANCED(CMAKE_CXX_FLAGS_TIMEBENCHMARK)
 
 set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
   "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel Profile MemoryBenchmark.")

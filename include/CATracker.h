@@ -64,6 +64,7 @@ class CATracker: private CATrackerTraits<IsGPU>
     std::vector<std::vector<CARoad>> clustersToTracks();
     std::vector<std::vector<CARoad>> clustersToTracksVerbose();
     std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark(std::ofstream&);
+    std::vector<std::vector<CARoad>> clustersToTracksTimeBenchmark(std::ofstream&);
 
   protected:
     void computeTracklets(TrackerContext&);
@@ -75,6 +76,7 @@ class CATracker: private CATrackerTraits<IsGPU>
 
   private:
     void evaluateTask(void (CATracker<IsGPU>::*)(TrackerContext&), const char*, TrackerContext&);
+    void evaluateTask(void (CATracker<IsGPU>::*)(TrackerContext&), const char*, TrackerContext&, std::ostream&);
 
     const CAEvent& mEvent;
     std::vector<int> mUsedClustersTable;

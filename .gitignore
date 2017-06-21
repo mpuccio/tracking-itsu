@@ -41,8 +41,10 @@ Debug
 Release
 Profile
 MemoryBenchmark
+TimeBenchmark
 
 # Benchmark data folders
 benchmarks/benchmark_data
 benchmarks/transverse_momentum
 benchmarks/memory_occupancy
+benchmarks/computing_time

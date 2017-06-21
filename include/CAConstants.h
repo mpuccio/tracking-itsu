@@ -35,7 +35,7 @@ namespace ITS {
 constexpr int LayersNumber { 7 };
 constexpr int TrackletsPerRoad { 6 };
 constexpr int CellsPerRoad { LayersNumber - 2 };
-constexpr int UnusedIndex { INT_MAX };
+constexpr int UnusedIndex { -1 };
 
 GPU_HOST_DEVICE constexpr GPU_ARRAY<float, LayersNumber> LayersZCoordinate()
 {

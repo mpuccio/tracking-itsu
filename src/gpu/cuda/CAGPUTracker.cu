@@ -156,97 +156,93 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
     const int nextLayerFirstTrackletIndex {
         primaryVertexContext.getTrackletsLookupTable()[layerIndex][nextLayerClusterIndex] };
 
-    /*
-     if (nextLayerFirstTrackletIndex == CAConstants::ITS::UnusedIndex) {
+    if (nextLayerFirstTrackletIndex != CAConstants::ITS::UnusedIndex) {
 
-     continue;
-     }
-     */
+      const CACluster& firstCellCluster {
+          primaryVertexContext.getClusters()[layerIndex][currentTracklet.firstClusterIndex] };
+      const CACluster& secondCellCluster {
+          primaryVertexContext.getClusters()[layerIndex + 1][currentTracklet.secondClusterIndex] };
+      const float firstCellClusterQuadraticRCoordinate { firstCellCluster.rCoordinate * firstCellCluster.rCoordinate };
+      const float secondCellClusterQuadraticRCoordinate { secondCellCluster.rCoordinate * secondCellCluster.rCoordinate };
+      const float3 firstDeltaVector { secondCellCluster.xCoordinate - firstCellCluster.xCoordinate,
+          secondCellCluster.yCoordinate - firstCellCluster.yCoordinate, secondCellClusterQuadraticRCoordinate
+              - firstCellClusterQuadraticRCoordinate };
+      const int nextLayerTrackletsNum { static_cast<int>(primaryVertexContext.getTracklets()[layerIndex + 1].size()) };
 
-    const CACluster& firstCellCluster {
-        primaryVertexContext.getClusters()[layerIndex][currentTracklet.firstClusterIndex] };
-    const CACluster& secondCellCluster {
-        primaryVertexContext.getClusters()[layerIndex + 1][currentTracklet.secondClusterIndex] };
-    const float firstCellClusterQuadraticRCoordinate { firstCellCluster.rCoordinate * firstCellCluster.rCoordinate };
-    const float secondCellClusterQuadraticRCoordinate { secondCellCluster.rCoordinate * secondCellCluster.rCoordinate };
-    const float3 firstDeltaVector { secondCellCluster.xCoordinate - firstCellCluster.xCoordinate,
-        secondCellCluster.yCoordinate - firstCellCluster.yCoordinate, secondCellClusterQuadraticRCoordinate
-            - firstCellClusterQuadraticRCoordinate };
-    const int nextLayerTrackletsNum { static_cast<int>(primaryVertexContext.getTracklets()[layerIndex + 1].size()) };
+      if (!dryRun && layerIndex > 0) {
 
-    if (!dryRun && layerIndex > 0) {
+        primaryVertexContext.getCellsLookupTable()[layerIndex - 1][currentTrackletIndex] = startIndex;
+      }
 
-      primaryVertexContext.getCellsLookupTable()[layerIndex - 1][currentTrackletIndex] = startIndex;
-    }
+      for (int iNextLayerTracklet { nextLayerFirstTrackletIndex };
+          iNextLayerTracklet < nextLayerTrackletsNum
+              && primaryVertexContext.getTracklets()[layerIndex + 1][iNextLayerTracklet].firstClusterIndex
+                  == nextLayerClusterIndex; ++iNextLayerTracklet) {
 
-    for (int iNextLayerTracklet { nextLayerFirstTrackletIndex };
-        iNextLayerTracklet < nextLayerTrackletsNum
-            && primaryVertexContext.getTracklets()[layerIndex + 1][iNextLayerTracklet].firstClusterIndex
-                == nextLayerClusterIndex; ++iNextLayerTracklet) {
+        const CATracklet& nextTracklet { primaryVertexContext.getTracklets()[layerIndex + 1][iNextLayerTracklet] };
+        const float deltaTanLambda { MATH_ABS(currentTracklet.tanLambda - nextTracklet.tanLambda) };
+        const float deltaPhi { MATH_ABS(currentTracklet.phiCoordinate - nextTracklet.phiCoordinate) };
 
-      const CATracklet& nextTracklet { primaryVertexContext.getTracklets()[layerIndex + 1][iNextLayerTracklet] };
-      const float deltaTanLambda { MATH_ABS(currentTracklet.tanLambda - nextTracklet.tanLambda) };
-      const float deltaPhi { MATH_ABS(currentTracklet.phiCoordinate - nextTracklet.phiCoordinate) };
+        if (deltaTanLambda < CAConstants::Thresholds::CellMaxDeltaTanLambdaThreshold
+            && (deltaPhi < CAConstants::Thresholds::CellMaxDeltaPhiThreshold
+                || MATH_ABS(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::CellMaxDeltaPhiThreshold)) {
 
-      if (deltaTanLambda < CAConstants::Thresholds::CellMaxDeltaTanLambdaThreshold
-          && (deltaPhi < CAConstants::Thresholds::CellMaxDeltaPhiThreshold
-              || MATH_ABS(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::CellMaxDeltaPhiThreshold)) {
+          const float averageTanLambda { 0.5f * (currentTracklet.tanLambda + nextTracklet.tanLambda) };
+          const float directionZIntersection { -averageTanLambda * firstCellCluster.rCoordinate
+              + firstCellCluster.zCoordinate };
+          const float deltaZ { MATH_ABS(directionZIntersection - primaryVertex.z) };
 
-        const float averageTanLambda { 0.5f * (currentTracklet.tanLambda + nextTracklet.tanLambda) };
-        const float directionZIntersection { -averageTanLambda * firstCellCluster.rCoordinate
-            + firstCellCluster.zCoordinate };
-        const float deltaZ { MATH_ABS(directionZIntersection - primaryVertex.z) };
+          if (deltaZ < CAConstants::Thresholds::CellMaxDeltaZThreshold()[layerIndex]) {
 
-        if (deltaZ < CAConstants::Thresholds::CellMaxDeltaZThreshold()[layerIndex]) {
+            const CACluster& thirdCellCluster {
+                primaryVertexContext.getClusters()[layerIndex + 2][nextTracklet.secondClusterIndex] };
 
-          const CACluster& thirdCellCluster {
-              primaryVertexContext.getClusters()[layerIndex + 2][nextTracklet.secondClusterIndex] };
+            const float thirdCellClusterQuadraticRCoordinate { thirdCellCluster.rCoordinate * thirdCellCluster.rCoordinate };
 
-          const float thirdCellClusterQuadraticRCoordinate { thirdCellCluster.rCoordinate * thirdCellCluster.rCoordinate };
+            const float3 secondDeltaVector { thirdCellCluster.xCoordinate - firstCellCluster.xCoordinate,
+                thirdCellCluster.yCoordinate - firstCellCluster.yCoordinate, thirdCellClusterQuadraticRCoordinate
+                    - firstCellClusterQuadraticRCoordinate };
 
-          const float3 secondDeltaVector { thirdCellCluster.xCoordinate - firstCellCluster.xCoordinate,
-              thirdCellCluster.yCoordinate - firstCellCluster.yCoordinate, thirdCellClusterQuadraticRCoordinate
-                  - firstCellClusterQuadraticRCoordinate };
+            float3 cellPlaneNormalVector { CAMathUtils::crossProduct(firstDeltaVector, secondDeltaVector) };
 
-          float3 cellPlaneNormalVector { CAMathUtils::crossProduct(firstDeltaVector, secondDeltaVector) };
+            const float vectorNorm { std::sqrt(
+                cellPlaneNormalVector.x * cellPlaneNormalVector.x + cellPlaneNormalVector.y * cellPlaneNormalVector.y
+                    + cellPlaneNormalVector.z * cellPlaneNormalVector.z) };
 
-          const float vectorNorm { std::sqrt(
-              cellPlaneNormalVector.x * cellPlaneNormalVector.x + cellPlaneNormalVector.y * cellPlaneNormalVector.y
-                  + cellPlaneNormalVector.z * cellPlaneNormalVector.z) };
+            if (!(vectorNorm < CAConstants::Math::FloatMinThreshold
+                || MATH_ABS(cellPlaneNormalVector.z) < CAConstants::Math::FloatMinThreshold)) {
 
-          if (!(vectorNorm < CAConstants::Math::FloatMinThreshold
-              || MATH_ABS(cellPlaneNormalVector.z) < CAConstants::Math::FloatMinThreshold)) {
+              const float inverseVectorNorm { 1.0f / vectorNorm };
+              const float3 normalizedPlaneVector { cellPlaneNormalVector.x * inverseVectorNorm, cellPlaneNormalVector.y
+                  * inverseVectorNorm, cellPlaneNormalVector.z * inverseVectorNorm };
+              const float planeDistance { -normalizedPlaneVector.x * (secondCellCluster.xCoordinate - primaryVertex.x)
+                  - (normalizedPlaneVector.y * secondCellCluster.yCoordinate - primaryVertex.y)
+                  - normalizedPlaneVector.z * secondCellClusterQuadraticRCoordinate };
+              const float normalizedPlaneVectorQuadraticZCoordinate { normalizedPlaneVector.z * normalizedPlaneVector.z };
+              const float cellTrajectoryRadius { MATH_SQRT(
+                  (1.0f - normalizedPlaneVectorQuadraticZCoordinate - 4.0f * planeDistance * normalizedPlaneVector.z)
+                      / (4.0f * normalizedPlaneVectorQuadraticZCoordinate)) };
+              const float2 circleCenter { -0.5f * normalizedPlaneVector.x / normalizedPlaneVector.z, -0.5f
+                  * normalizedPlaneVector.y / normalizedPlaneVector.z };
+              const float distanceOfClosestApproach { MATH_ABS(
+                  cellTrajectoryRadius - MATH_SQRT(circleCenter.x * circleCenter.x + circleCenter.y * circleCenter.y)) };
 
-            const float inverseVectorNorm { 1.0f / vectorNorm };
-            const float3 normalizedPlaneVector { cellPlaneNormalVector.x * inverseVectorNorm, cellPlaneNormalVector.y
-                * inverseVectorNorm, cellPlaneNormalVector.z * inverseVectorNorm };
-            const float planeDistance { -normalizedPlaneVector.x * (secondCellCluster.xCoordinate - primaryVertex.x)
-                - (normalizedPlaneVector.y * secondCellCluster.yCoordinate - primaryVertex.y)
-                - normalizedPlaneVector.z * secondCellClusterQuadraticRCoordinate };
-            const float normalizedPlaneVectorQuadraticZCoordinate { normalizedPlaneVector.z * normalizedPlaneVector.z };
-            const float cellTrajectoryRadius { MATH_SQRT(
-                (1.0f - normalizedPlaneVectorQuadraticZCoordinate - 4.0f * planeDistance * normalizedPlaneVector.z)
-                    / (4.0f * normalizedPlaneVectorQuadraticZCoordinate)) };
-            const float2 circleCenter { -0.5f * normalizedPlaneVector.x / normalizedPlaneVector.z, -0.5f
-                * normalizedPlaneVector.y / normalizedPlaneVector.z };
-            const float distanceOfClosestApproach { MATH_ABS(
-                cellTrajectoryRadius - MATH_SQRT(circleCenter.x * circleCenter.x + circleCenter.y * circleCenter.y)) };
+              if (distanceOfClosestApproach
+                  <= CAConstants::Thresholds::CellMaxDistanceOfClosestApproachThreshold()[layerIndex]) {
 
-            if (distanceOfClosestApproach
-                <= CAConstants::Thresholds::CellMaxDistanceOfClosestApproachThreshold()[layerIndex]) {
+                if (dryRun) {
 
-              if (dryRun) {
+                  ++trackletCells;
 
-                ++trackletCells;
+                } else {
 
-              } else {
+                  const float cellTrajectoryCurvature { 1.0f / cellTrajectoryRadius };
 
-                const float cellTrajectoryCurvature { 1.0f / cellTrajectoryRadius };
-
-                primaryVertexContext.getCells()[layerIndex].emplace(startIndex + currentIndex,
-                    currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex, nextTracklet.secondClusterIndex,
-                    currentTrackletIndex, iNextLayerTracklet, normalizedPlaneVector, cellTrajectoryCurvature);
-                ++currentIndex;
+                  primaryVertexContext.getCells()[layerIndex].emplace(startIndex + currentIndex,
+                      currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex, nextTracklet.secondClusterIndex,
+                      currentTrackletIndex, iNextLayerTracklet, normalizedPlaneVector, cellTrajectoryCurvature);
+                  ++currentIndex;
+                }
               }
             }
           }
