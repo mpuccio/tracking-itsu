@@ -478,18 +478,32 @@ void CATracker::findTracks(CAPrimaryVertexContext& primaryVertexContext)
         primaryVertexContext.roads.emplace_back(iLayer, iCell);
 
         const int cellNeighboursNum = currentCell.getNumberOfNeighbours();
+        int isFirstValidNeighbour = true;
 
         for (int iNeighbourCell = 0; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
 
-          if (iNeighbourCell > 0) {
+          const int neighbourCellId = currentCell.getNeighbourCellId(iNeighbourCell);
+          const CACell& neighbourCell = primaryVertexContext.cells[iLayer - 1][neighbourCellId];
+
+          if(iLevel - 1 != neighbourCell.getLevel()) {
+
+            continue;
+          }
+
+          if (isFirstValidNeighbour) {
+
+            isFirstValidNeighbour = false;
+
+          } else {
 
             primaryVertexContext.roads.emplace_back(iLayer, iCell);
           }
 
-          traverseCellsTree(primaryVertexContext, currentCell.getNeighbourCellId(iNeighbourCell), iLayer - 1);
+          traverseCellsTree(primaryVertexContext, neighbourCellId, iLayer - 1);
         }
 
-        currentCell.setLevel(0);
+        //TODO: crosscheck for short track iterations
+        //currentCell.setLevel(0);
       }
     }
   }
@@ -505,11 +519,10 @@ void CATracker::traverseCellsTree(CAPrimaryVertexContext& primaryVertexContext, 
 
   CACell& currentCell = primaryVertexContext.cells[currentLayerId][currentCellId];
   const int currentCellLevel = currentCell.getLevel();
-  CARoad& currentRoad = primaryVertexContext.roads.back();
-    
-  currentRoad.addCell(currentLayerId, currentCellId);
-
   const int cellNeighboursNum = currentCell.getNumberOfNeighbours();
+  int isFirstValidNeighbour = true;
+
+  primaryVertexContext.roads.back().addCell(currentLayerId, currentCellId);
 
   for (int iNeighbourCell = 0; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
     
@@ -521,10 +534,13 @@ void CATracker::traverseCellsTree(CAPrimaryVertexContext& primaryVertexContext, 
       continue;
     }
     
-    if (iNeighbourCell > 0) {
+    if (isFirstValidNeighbour) {
 
-      primaryVertexContext.roads.push_back(currentRoad);
+      isFirstValidNeighbour = false;
 
+    } else {
+
+      primaryVertexContext.roads.push_back(primaryVertexContext.roads.back());
     }
 
     traverseCellsTree(primaryVertexContext, neighbourCellId, currentLayerId - 1);
