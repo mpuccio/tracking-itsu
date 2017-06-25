@@ -198,7 +198,8 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
             const CACluster& thirdCellCluster {
                 primaryVertexContext.getClusters()[layerIndex + 2][nextTracklet.secondClusterIndex] };
 
-            const float thirdCellClusterQuadraticRCoordinate { thirdCellCluster.rCoordinate * thirdCellCluster.rCoordinate };
+            const float thirdCellClusterQuadraticRCoordinate { thirdCellCluster.rCoordinate
+                * thirdCellCluster.rCoordinate };
 
             const float3 secondDeltaVector { thirdCellCluster.xCoordinate - firstCellCluster.xCoordinate,
                 thirdCellCluster.yCoordinate - firstCellCluster.yCoordinate, thirdCellClusterQuadraticRCoordinate
@@ -240,8 +241,9 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
                   const float cellTrajectoryCurvature { 1.0f / cellTrajectoryRadius };
 
                   primaryVertexContext.getCells()[layerIndex].emplace(startIndex + currentIndex,
-                      currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex, nextTracklet.secondClusterIndex,
-                      currentTrackletIndex, iNextLayerTracklet, normalizedPlaneVector, cellTrajectoryCurvature);
+                      currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex,
+                      nextTracklet.secondClusterIndex, currentTrackletIndex, iNextLayerTracklet, normalizedPlaneVector,
+                      cellTrajectoryCurvature);
                   ++currentIndex;
                 }
               }
@@ -253,7 +255,8 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
   }
 }
 
-__global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex, const int warpSize)
+__global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
+    const int warpSize)
 {
   int clusterTracklets = 0;
   const int laneIndex = CAGPUUtils::Device::getLaneIndex(warpSize);
@@ -273,7 +276,8 @@ __global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexCon
   computeLayerTracklets(primaryVertexContext, layerIndex, clusterTracklets, warpSize, false);
 }
 
-__global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex, const int warpSize)
+__global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
+    const int warpSize)
 {
   int trackletCells = 0;
   const int laneIndex = CAGPUUtils::Device::getLaneIndex(warpSize);
@@ -301,7 +305,7 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext,
   dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(clustersNum) };
   dim3 blocksGrid { 1 + clustersNum / threadsPerBlock.x };
 
-  CAGPUStream stream{};
+  CAGPUStream stream { };
 
   layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, stream.get() >>>(primaryVertexContext.getDeviceContext(),
       layerIndex, deviceProperties.warpSize);
@@ -333,7 +337,7 @@ void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, con
   dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(*trackletsSizeUniquePointer) };
   dim3 blocksGrid { 1 + *trackletsSizeUniquePointer / threadsPerBlock.x };
 
-  CAGPUStream stream{};
+  CAGPUStream stream { };
 
   layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, stream.get() >>>(primaryVertexContext.getDeviceContext(),
       layerIndex, deviceProperties.warpSize);

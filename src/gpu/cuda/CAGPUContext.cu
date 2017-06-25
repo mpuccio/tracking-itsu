@@ -69,10 +69,12 @@ CAGPUContext::CAGPUContext()
     mDeviceProperties[iDevice].registersPerBlock = deviceProperties.regsPerBlock;
     mDeviceProperties[iDevice].warpSize = deviceProperties.warpSize;
     mDeviceProperties[iDevice].maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
-    mDeviceProperties[iDevice].maxThreadsDim = dim3 { static_cast<unsigned int> (deviceProperties.maxThreadsDim[0]),
-      static_cast<unsigned int> (deviceProperties.maxThreadsDim[1]), static_cast<unsigned int> (deviceProperties.maxThreadsDim[2]) };
-    mDeviceProperties[iDevice].maxGridDim = dim3 { static_cast<unsigned int> (deviceProperties.maxGridSize[0]), static_cast<unsigned int> (deviceProperties.maxGridSize[1]),
-      static_cast<unsigned int> (deviceProperties.maxGridSize[2]) };
+    mDeviceProperties[iDevice].maxThreadsDim = dim3 { static_cast<unsigned int>(deviceProperties.maxThreadsDim[0]),
+        static_cast<unsigned int>(deviceProperties.maxThreadsDim[1]),
+        static_cast<unsigned int>(deviceProperties.maxThreadsDim[2]) };
+    mDeviceProperties[iDevice].maxGridDim = dim3 { static_cast<unsigned int>(deviceProperties.maxGridSize[0]),
+        static_cast<unsigned int>(deviceProperties.maxGridSize[1]),
+        static_cast<unsigned int>(deviceProperties.maxGridSize[2]) };
   }
 
   checkCUDAError(cudaSetDevice(currentDeviceIndex), __FILE__, __LINE__);

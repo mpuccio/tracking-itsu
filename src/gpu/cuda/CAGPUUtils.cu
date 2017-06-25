@@ -54,7 +54,8 @@ dim3 CAGPUUtils::Host::getBlockSize(const int colsNum, const int rowsNum)
   const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
   int xThreads = min(colsNum, deviceProperties.maxThreadsDim.x);
   int yThreads = min(rowsNum, deviceProperties.maxThreadsDim.y);
-  const int totalThreads = min(CAMathUtils::roundUp(xThreads * yThreads, deviceProperties.warpSize), deviceProperties.maxThreadsPerBlock);
+  const int totalThreads = min(CAMathUtils::roundUp(xThreads * yThreads, deviceProperties.warpSize),
+      deviceProperties.maxThreadsPerBlock);
 
   if (xThreads > yThreads) {
 

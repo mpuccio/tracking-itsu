@@ -43,6 +43,7 @@ set(DEPENDENT_HOST_SRCS
    CACell.cxx
    CACluster.cxx
    CAMathUtils.cxx
+   CAPrimaryVertexContextInitializer.cxx
    CATrackingUtils.cxx
    CATracklet.cxx
 )

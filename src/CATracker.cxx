@@ -45,7 +45,8 @@
 template<>
 void CATrackerTraits<false>::computeLayerTracklets(Context& primaryVertexContext, const int layerIndex)
 {
-  if (primaryVertexContext.getClusters()[layerIndex].empty() || primaryVertexContext.getClusters()[layerIndex + 1].empty()) {
+  if (primaryVertexContext.getClusters()[layerIndex].empty()
+      || primaryVertexContext.getClusters()[layerIndex + 1].empty()) {
 
     return;
   }
@@ -369,7 +370,8 @@ std::vector<std::vector<CARoad>> CATracker<IsGPU>::clustersToTracksMemoryBenchma
 }
 
 template<bool IsGPU>
-std::vector<std::vector<CARoad>> CATracker<IsGPU>::clustersToTracksTimeBenchmark(std::ofstream& timeBenchmarkOutputStream)
+std::vector<std::vector<CARoad>> CATracker<IsGPU>::clustersToTracksTimeBenchmark(
+    std::ofstream& timeBenchmarkOutputStream)
 {
   const int verticesNum = mEvent.getPrimaryVerticesNum();
   std::vector<std::vector<CARoad>> roads;
@@ -513,7 +515,7 @@ void CATracker<IsGPU>::findTracks(TrackerContext& primaryVertexContext)
           const int neighbourCellId = primaryVertexContext.getCellsNeighbours()[iLayer - 1][iCell][iNeighbourCell];
           const CACell& neighbourCell = primaryVertexContext.getCells()[iLayer - 1][neighbourCellId];
 
-          if(iLevel - 1 != neighbourCell.getLevel()) {
+          if (iLevel - 1 != neighbourCell.getLevel()) {
 
             continue;
           }
@@ -545,7 +547,7 @@ void CATracker<IsGPU>::traverseCellsTree(TrackerContext& primaryVertexContext, c
 
   primaryVertexContext.getRoads().back().addCell(currentLayerId, currentCellId);
 
-  if(currentLayerId > 0) {
+  if (currentLayerId > 0) {
 
     const int cellNeighboursNum {
         static_cast<int>(primaryVertexContext.getCellsNeighbours()[currentLayerId - 1][currentCellId].size()) };
@@ -553,10 +555,11 @@ void CATracker<IsGPU>::traverseCellsTree(TrackerContext& primaryVertexContext, c
 
     for (int iNeighbourCell { 0 }; iNeighbourCell < cellNeighboursNum; ++iNeighbourCell) {
 
-      const int neighbourCellId = primaryVertexContext.getCellsNeighbours()[currentLayerId - 1][currentCellId][iNeighbourCell];
+      const int neighbourCellId =
+          primaryVertexContext.getCellsNeighbours()[currentLayerId - 1][currentCellId][iNeighbourCell];
       const CACell& neighbourCell = primaryVertexContext.getCells()[currentLayerId - 1][neighbourCellId];
 
-      if(currentCellLevel - 1 != neighbourCell.getLevel()) {
+      if (currentCellLevel - 1 != neighbourCell.getLevel()) {
 
         continue;
       }
@@ -680,7 +683,7 @@ void CATracker<IsGPU>::evaluateTask(void (CATracker<IsGPU>::*task)(TrackerContex
   t2 = clock();
   diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
 
-  if(taskName == nullptr) {
+  if (taskName == nullptr) {
 
     ostream << diff << "\t";
 

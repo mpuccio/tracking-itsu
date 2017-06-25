@@ -23,17 +23,19 @@
 #include "CAGPUStream.h"
 
 namespace {
-__device__ void fillIndexTables(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex) {
+__device__ void fillIndexTables(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex)
+{
 
   const int currentClusterIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
   const int nextLayerClustersNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex + 1].size()) };
 
-  if(currentClusterIndex < nextLayerClustersNum) {
+  if (currentClusterIndex < nextLayerClustersNum) {
 
-    const int currentBinIndex { primaryVertexContext.getClusters()[layerIndex + 1][currentClusterIndex].indexTableBinIndex };
+    const int currentBinIndex {
+        primaryVertexContext.getClusters()[layerIndex + 1][currentClusterIndex].indexTableBinIndex };
     int previousBinIndex;
 
-    if(currentClusterIndex == 0) {
+    if (currentClusterIndex == 0) {
 
       primaryVertexContext.getIndexTables()[layerIndex][0] = 0;
       previousBinIndex = 0;
@@ -53,14 +55,14 @@ __device__ void fillIndexTables(CAGPUPrimaryVertexContext &primaryVertexContext,
       previousBinIndex = currentBinIndex;
     }
 
-    if(currentClusterIndex == nextLayerClustersNum - 1) {
+    if (currentClusterIndex == nextLayerClustersNum - 1) {
 
       for (int iBin { currentBinIndex + 1 }; iBin <= CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins;
-            iBin++) {
+          iBin++) {
 
-      primaryVertexContext.getIndexTables()[layerIndex][iBin] = nextLayerClustersNum;
+        primaryVertexContext.getIndexTables()[layerIndex][iBin] = nextLayerClustersNum;
+      }
     }
-  }
   }
 }
 
@@ -69,7 +71,7 @@ __device__ void fillTrackletsLookupTables(CAGPUPrimaryVertexContext &primaryVert
   const int currentBinIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
   const int tableSize { static_cast<int>(primaryVertexContext.getClusters()[layerIndex + 1].size()) };
 
-  if(currentBinIndex < tableSize) {
+  if (currentBinIndex < tableSize) {
 
     primaryVertexContext.getTrackletsLookupTable()[layerIndex][currentBinIndex] = CAConstants::ITS::UnusedIndex;
   }
@@ -153,19 +155,19 @@ GPU_HOST_DEVICE CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>
 
 CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
     : mPrimaryVertex { event.getPrimaryVertex(primaryVertexIndex) }, mClusters {
-        CAPrimaryVertexContextInitializer<true>::initClusters(event, primaryVertexIndex) }, mCells {
-        CAPrimaryVertexContextInitializer<true>::initCells(event) }, mCellsLookupTable {
-        CAPrimaryVertexContextInitializer<true>::initCellsLookupTable(event) }, mGPUContext { mPrimaryVertex, mClusters, mCells,
-        mCellsLookupTable }, mGPUContextDevicePointer { mGPUContext }
+        CAPrimaryVertexContextInitializer::initClusters(event, primaryVertexIndex) }, mCells {
+        CAPrimaryVertexContextInitializer::initCells(event) }, mCellsLookupTable {
+        CAPrimaryVertexContextInitializer::initCellsLookupTable(event) }, mGPUContext { mPrimaryVertex, mClusters,
+        mCells, mCellsLookupTable }, mGPUContextDevicePointer { mGPUContext }
 {
-  for(int iLayer { 0 }; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
     const int nextLayerClustersNum = static_cast<int>(mClusters[iLayer + 1].size());
 
     dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(nextLayerClustersNum) };
     dim3 blocksGrid { 1 + nextLayerClustersNum / threadsPerBlock.x };
 
-    CAGPUStream stream{};
+    CAGPUStream stream { };
 
     fillDeviceStructures<<< blocksGrid, threadsPerBlock, 0, stream.get() >>>(*mGPUContextDevicePointer, iLayer);
 
@@ -174,7 +176,8 @@ CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const
     if (error != cudaSuccess) {
 
       std::ostringstream errorString { };
-      errorString << __FILE__ << ":" << __LINE__ << " CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")" << std::endl;
+      errorString << __FILE__ << ":" << __LINE__ << " CUDA API returned error [" << cudaGetErrorString(error)
+          << "] (code " << error << ")" << std::endl;
 
       throw std::runtime_error { errorString.str() };
     }

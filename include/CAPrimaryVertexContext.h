@@ -18,7 +18,6 @@
 #ifndef TRACKINGITSU_INCLUDE_CAPRIMARYVERTEXCONTEXT_H_
 #define TRACKINGITSU_INCLUDE_CAPRIMARYVERTEXCONTEXT_H_
 
-#include <algorithm>
 #include <array>
 #include <vector>
 
@@ -26,24 +25,11 @@
 #include "CAConstants.h"
 #include "CADefinitions.h"
 #include "CAEvent.h"
+#include "CAPrimaryVertexContextInitializer.h"
 #include "CARoad.h"
 #include "CATracklet.h"
 
 using namespace TRACKINGITSU_TARGET_NAMESPACE;
-
-template<bool IsGPU>
-struct CAPrimaryVertexContextInitializer
-    final
-    {
-      static std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> initClusters(const CAEvent&, const int);
-      static std::array<std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>,
-          CAConstants::ITS::TrackletsPerRoad> initIndexTables(
-          std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber>&);
-      static std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> initTracklets(const CAEvent&);
-      static std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> initTrackletsLookupTable(const CAEvent&);
-      static std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> initCells(const CAEvent&);
-      static std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> initCellsLookupTable(const CAEvent&);
-  };
 
   template<bool IsGPU>
   class CAPrimaryVertexContext
@@ -80,147 +66,14 @@ struct CAPrimaryVertexContextInitializer
     };
 
     template<bool IsGPU>
-    std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> CAPrimaryVertexContextInitializer<IsGPU>::initClusters(
-        const CAEvent& event, const int primaryVertexIndex)
-    {
-      std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> clusters;
-
-      for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
-
-        const CALayer& currentLayer { event.getLayer(iLayer) };
-        const int clustersNum { currentLayer.getClustersSize() };
-
-        clusters[iLayer].reserve(clustersNum);
-
-        for (int iCluster { 0 }; iCluster < clustersNum; ++iCluster) {
-
-          const CACluster& currentCluster { currentLayer.getCluster(iCluster) };
-          clusters[iLayer].emplace_back(iLayer, event.getPrimaryVertex(primaryVertexIndex), currentCluster);
-        }
-
-        std::sort(clusters[iLayer].begin(), clusters[iLayer].end(), [](CACluster& cluster1, CACluster& cluster2) {
-          return cluster1.indexTableBinIndex < cluster2.indexTableBinIndex;
-        });
-      }
-
-      return clusters;
-    }
-
-    template<bool IsGPU>
-    std::array<std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>,
-        CAConstants::ITS::TrackletsPerRoad> CAPrimaryVertexContextInitializer<IsGPU>::initIndexTables(
-        std::array<std::vector<CACluster>, CAConstants::ITS::LayersNumber> &clusters)
-    {
-      std::array<std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>,
-          CAConstants::ITS::TrackletsPerRoad> indexTables;
-
-      for (int iLayer { 1 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
-
-        const int clustersNum = static_cast<int>(clusters[iLayer].size());
-        int previousBinIndex { 0 };
-        indexTables[iLayer - 1][0] = 0;
-
-        for (int iCluster { 0 }; iCluster < clustersNum; ++iCluster) {
-
-          const int currentBinIndex { clusters[iLayer][iCluster].indexTableBinIndex };
-
-          if (currentBinIndex > previousBinIndex) {
-
-            for (int iBin { previousBinIndex + 1 }; iBin <= currentBinIndex; ++iBin) {
-
-              indexTables[iLayer - 1][iBin] = iCluster;
-            }
-
-            previousBinIndex = currentBinIndex;
-          }
-        }
-
-        for (int iBin { previousBinIndex + 1 };
-            iBin <= CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins; iBin++) {
-
-          indexTables[iLayer - 1][iBin] = clustersNum;
-        }
-      }
-
-      return indexTables;
-    }
-
-    template<bool IsGPU>
-    std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> CAPrimaryVertexContextInitializer<IsGPU>::initTracklets(
-        const CAEvent &event)
-    {
-      std::array<std::vector<CATracklet>, CAConstants::ITS::TrackletsPerRoad> tracklets;
-
-      for (int iLayer { 0 }; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
-
-        tracklets[iLayer].reserve(
-            std::ceil(
-                (CAConstants::Memory::TrackletsMemoryCoefficients[iLayer] * event.getLayer(iLayer).getClustersSize())
-                    * event.getLayer(iLayer + 1).getClustersSize()));
-      }
-
-      return tracklets;
-    }
-
-    template<bool IsGPU>
-    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> CAPrimaryVertexContextInitializer<IsGPU>::initTrackletsLookupTable(
-        const CAEvent &event)
-    {
-      std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad> trackletsLookupTable;
-
-      for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
-
-        trackletsLookupTable[iLayer].resize(event.getLayer(iLayer + 1).getClustersSize(),
-            CAConstants::ITS::UnusedIndex);
-      }
-
-      return trackletsLookupTable;
-    }
-
-    template<bool IsGPU>
-    std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> CAPrimaryVertexContextInitializer<IsGPU>::initCells(
-        const CAEvent &event)
-    {
-      std::array<std::vector<CACell>, CAConstants::ITS::CellsPerRoad> cells;
-
-      for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
-
-        cells[iLayer].reserve(
-            std::ceil(
-                ((CAConstants::Memory::CellsMemoryCoefficients[iLayer] * event.getLayer(iLayer).getClustersSize())
-                    * event.getLayer(iLayer + 1).getClustersSize()) * event.getLayer(iLayer + 2).getClustersSize()));
-      }
-
-      return cells;
-    }
-
-    template<bool IsGPU>
-    std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> CAPrimaryVertexContextInitializer<IsGPU>::initCellsLookupTable(
-        const CAEvent &event)
-    {
-      std::array<std::vector<int>, CAConstants::ITS::CellsPerRoad - 1> cellsLookupTable;
-
-      for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad - 1; ++iLayer) {
-
-        cellsLookupTable[iLayer].resize(
-            std::ceil(
-                (CAConstants::Memory::TrackletsMemoryCoefficients[iLayer + 1]
-                    * event.getLayer(iLayer + 1).getClustersSize()) * event.getLayer(iLayer + 2).getClustersSize()),
-            CAConstants::ITS::UnusedIndex);
-      }
-
-      return cellsLookupTable;
-    }
-
-    template<bool IsGPU>
     CAPrimaryVertexContext<IsGPU>::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
         : mPrimaryVertex { event.getPrimaryVertex(primaryVertexIndex) }, mClusters {
-            CAPrimaryVertexContextInitializer<IsGPU>::initClusters(event, primaryVertexIndex) }, mIndexTables {
-            CAPrimaryVertexContextInitializer<IsGPU>::initIndexTables(mClusters) }, mTracklets {
-            CAPrimaryVertexContextInitializer<IsGPU>::initTracklets(event) }, mTrackletsLookupTable {
-            CAPrimaryVertexContextInitializer<IsGPU>::initTrackletsLookupTable(event) }, mCells {
-            CAPrimaryVertexContextInitializer<IsGPU>::initCells(event) }, mCellsLookupTable {
-            CAPrimaryVertexContextInitializer<IsGPU>::initCellsLookupTable(event) }
+            CAPrimaryVertexContextInitializer::initClusters(event, primaryVertexIndex) }, mIndexTables {
+            CAPrimaryVertexContextInitializer::initIndexTables(mClusters) }, mTracklets {
+            CAPrimaryVertexContextInitializer::initTracklets(event) }, mTrackletsLookupTable {
+            CAPrimaryVertexContextInitializer::initTrackletsLookupTable(event) }, mCells {
+            CAPrimaryVertexContextInitializer::initCells(event) }, mCellsLookupTable {
+            CAPrimaryVertexContextInitializer::initCellsLookupTable(event) }
     {
       // Nothing to do
     }
