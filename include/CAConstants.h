@@ -37,36 +37,36 @@ constexpr int TrackletsPerRoad { 6 };
 constexpr int CellsPerRoad { LayersNumber - 2 };
 constexpr int UnusedIndex { -1 };
 
-GPU_HOST_DEVICE constexpr GPU_ARRAY<float, LayersNumber> LayersZCoordinate()
+GPU_HOST_DEVICE constexpr GPUArray<float, LayersNumber> LayersZCoordinate()
 {
-  return GPU_ARRAY<float, LayersNumber> { { 16.333f, 16.333f, 16.333f, 42.140f, 42.140f, 73.745f, 73.745f } };
+  return GPUArray<float, LayersNumber> { { 16.333f, 16.333f, 16.333f, 42.140f, 42.140f, 73.745f, 73.745f } };
 }
-GPU_HOST_DEVICE constexpr GPU_ARRAY<float, LayersNumber> LayersRCoordinate()
+GPU_HOST_DEVICE constexpr GPUArray<float, LayersNumber> LayersRCoordinate()
 {
-  return GPU_ARRAY<float, LayersNumber> { { 2.33959f, 3.14076f, 3.91924f, 19.6213f, 24.5597f, 34.388f, 39.3329f } };
+  return GPUArray<float, LayersNumber> { { 2.33959f, 3.14076f, 3.91924f, 19.6213f, 24.5597f, 34.388f, 39.3329f } };
 }
 }
 
 namespace Thresholds {
-GPU_DEVICE constexpr GPU_ARRAY<float, ITS::TrackletsPerRoad> TrackletMaxDeltaZThreshold()
+GPU_DEVICE constexpr GPUArray<float, ITS::TrackletsPerRoad> TrackletMaxDeltaZThreshold()
 {
-  return GPU_ARRAY<float, ITS::TrackletsPerRoad> { { 0.1f, 0.1f, 0.3f, 0.3f, 0.3f, 0.3f } };
+  return GPUArray<float, ITS::TrackletsPerRoad> { { 0.1f, 0.1f, 0.3f, 0.3f, 0.3f, 0.3f } };
 }
 constexpr float CellMaxDeltaTanLambdaThreshold { 0.025f };
-GPU_DEVICE constexpr GPU_ARRAY<float, ITS::CellsPerRoad> CellMaxDeltaZThreshold()
+GPU_DEVICE constexpr GPUArray<float, ITS::CellsPerRoad> CellMaxDeltaZThreshold()
 {
-  return GPU_ARRAY<float, ITS::CellsPerRoad> { { 0.2f, 0.4f, 0.5f, 0.6f, 3.0f } };
+  return GPUArray<float, ITS::CellsPerRoad> { { 0.2f, 0.4f, 0.5f, 0.6f, 3.0f } };
 }
-GPU_DEVICE constexpr GPU_ARRAY<float, ITS::CellsPerRoad> CellMaxDistanceOfClosestApproachThreshold()
+GPU_DEVICE constexpr GPUArray<float, ITS::CellsPerRoad> CellMaxDistanceOfClosestApproachThreshold()
 {
-  return GPU_ARRAY<float, ITS::CellsPerRoad> { { 0.05f, 0.04f, 0.05f, 0.2f, 0.4f } };
+  return GPUArray<float, ITS::CellsPerRoad> { { 0.05f, 0.04f, 0.05f, 0.2f, 0.4f } };
 }
 constexpr float CellMaxDeltaPhiThreshold { 0.14f };
 constexpr float ZCoordinateCut { 0.5f };
 constexpr float PhiCoordinateCut { 0.3f };
-constexpr GPU_ARRAY<float, ITS::CellsPerRoad - 1> NeighbourCellMaxNormalVectorsDelta {
+constexpr GPUArray<float, ITS::CellsPerRoad - 1> NeighbourCellMaxNormalVectorsDelta {
     { 0.002f, 0.009f, 0.002f, 0.005f } };
-constexpr GPU_ARRAY<float, ITS::CellsPerRoad - 1> NeighbourCellMaxCurvaturesDelta { { 0.008f, 0.0025f, 0.003f, 0.0035f } };
+constexpr GPUArray<float, ITS::CellsPerRoad - 1> NeighbourCellMaxCurvaturesDelta { { 0.008f, 0.0025f, 0.003f, 0.0035f } };
 constexpr int CellsMinLevel { 5 };
 }
 
@@ -74,17 +74,17 @@ namespace IndexTable {
 constexpr int ZBins { 20 };
 constexpr int PhiBins { 20 };
 constexpr float InversePhiBinSize { CAConstants::IndexTable::PhiBins / CAConstants::Math::TwoPi };
-GPU_HOST_DEVICE constexpr GPU_ARRAY<float, ITS::LayersNumber> InverseZBinSize()
+GPU_HOST_DEVICE constexpr GPUArray<float, ITS::LayersNumber> InverseZBinSize()
 {
-  return GPU_ARRAY<float, ITS::LayersNumber> { { 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f,
+  return GPUArray<float, ITS::LayersNumber> { { 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f, 0.5 * ZBins / 16.333f,
       0.5 * ZBins / 42.140f, 0.5 * ZBins / 42.140f, 0.5 * ZBins / 73.745f, 0.5 * ZBins / 73.745f } };
 }
 }
 
 namespace Memory {
-constexpr GPU_ARRAY<float, ITS::TrackletsPerRoad> TrackletsMemoryCoefficients { { 0.0016353f, 0.0013627f, 0.000984f,
+constexpr GPUArray<float, ITS::TrackletsPerRoad> TrackletsMemoryCoefficients { { 0.0016353f, 0.0013627f, 0.000984f,
     0.00078135f, 0.00057934f, 0.00052217f } };
-constexpr GPU_ARRAY<float, ITS::CellsPerRoad> CellsMemoryCoefficients { { 2.3208e-08f, 2.104e-08f, 1.6432e-08f,
+constexpr GPUArray<float, ITS::CellsPerRoad> CellsMemoryCoefficients { { 2.3208e-08f, 2.104e-08f, 1.6432e-08f,
     1.2412e-08f, 1.3543e-08f } };
 }
 

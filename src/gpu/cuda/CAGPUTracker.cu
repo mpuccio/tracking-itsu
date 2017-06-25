@@ -27,6 +27,7 @@
 #include "CAConstants.h"
 #include "CAGPUContext.h"
 #include "CAGPUPrimaryVertexContext.h"
+#include "CAGPUStream.h"
 #include "CAGPUVector.h"
 #include "CAIndexTableUtils.h"
 #include "CAMathUtils.h"
@@ -73,7 +74,7 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
         * ((CAConstants::ITS::LayersRCoordinate())[layerIndex + 1] - currentCluster.rCoordinate)
         + currentCluster.zCoordinate };
 
-    const GPU_ARRAY<int, 4> selectedBinsRect { CATrackingUtils::getBinsRect(currentCluster, layerIndex,
+    const GPUArray<int, 4> selectedBinsRect { CATrackingUtils::getBinsRect(currentCluster, layerIndex,
         directionZIntersection) };
 
     if (selectedBinsRect[0] != 0 || selectedBinsRect[1] != 0 || selectedBinsRect[2] != 0 || selectedBinsRect[3] != 0) {
@@ -300,15 +301,12 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext,
   dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(clustersNum) };
   dim3 blocksGrid { 1 + clustersNum / threadsPerBlock.x };
 
-  cudaStream_t currentStream;
-  cudaStreamCreate(&currentStream);
+  CAGPUStream stream{};
 
-  layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(primaryVertexContext.getDeviceContext(),
+  layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, stream.get() >>>(primaryVertexContext.getDeviceContext(),
       layerIndex, deviceProperties.warpSize);
 
   cudaError_t error = cudaGetLastError();
-
-  cudaStreamDestroy(currentStream);
 
   if (error != cudaSuccess) {
 
@@ -335,13 +333,10 @@ void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, con
   dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(*trackletsSizeUniquePointer) };
   dim3 blocksGrid { 1 + *trackletsSizeUniquePointer / threadsPerBlock.x };
 
-  cudaStream_t currentStream;
-  cudaStreamCreate(&currentStream);
+  CAGPUStream stream{};
 
-  layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(primaryVertexContext.getDeviceContext(),
+  layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, stream.get() >>>(primaryVertexContext.getDeviceContext(),
       layerIndex, deviceProperties.warpSize);
-
-  cudaStreamDestroy(currentStream);
 
   cudaError_t error = cudaGetLastError();
 

@@ -20,6 +20,8 @@
 
 #include <sstream>
 
+#include "CAGPUStream.h"
+
 namespace {
 __device__ void fillIndexTables(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex) {
 
@@ -163,12 +165,9 @@ CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const
     dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(nextLayerClustersNum) };
     dim3 blocksGrid { 1 + nextLayerClustersNum / threadsPerBlock.x };
 
-    cudaStream_t currentStream;
-    cudaStreamCreate(&currentStream);
+    CAGPUStream stream{};
 
-    fillDeviceStructures<<< blocksGrid, threadsPerBlock, 0, currentStream >>>(*mGPUContextDevicePointer, iLayer);
-
-    cudaStreamDestroy(currentStream);
+    fillDeviceStructures<<< blocksGrid, threadsPerBlock, 0, stream.get() >>>(*mGPUContextDevicePointer, iLayer);
 
     cudaError_t error = cudaGetLastError();
 

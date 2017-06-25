@@ -19,6 +19,8 @@
 #ifndef TRACKINGITSU_INCLUDE_CADEFINITIONS_H_
 #define TRACKINGITSU_INCLUDE_CADEFINITIONS_H_
 
+#include <array>
+
 #if defined(TRACKINGITSU_CUDA_COMPILE)
 # define TRACKINGITSU_GPU_MODE true
 #else
@@ -54,7 +56,11 @@
 # define MATH_SQRT sqrt
 
 # include "CAGPUArray.h"
-# define GPU_ARRAY CAGPUArray
+
+template<typename T, std::size_t Size>
+using GPUArray = CAGPUArray<T, Size>;
+
+typedef cudaStream_t GPUStream;
 
 #else
 
@@ -71,12 +77,14 @@
 # define MATH_MIN std::min
 # define MATH_SQRT std::sqrt
 
-typedef struct _dim3 { unsigned int x, y, z; } dim3;
-typedef struct _float2 { float x, y; } float2;
-typedef struct _float3 { float x, y, z; } float3;
+typedef struct _dim3 {unsigned int x, y, z;}dim3;
+typedef struct _float2 {float x, y;}float2;
+typedef struct _float3 {float x, y, z;}float3;
 
-# include <array>
-# define GPU_ARRAY std::array
+template<typename T, std::size_t Size>
+using GPUArray = std::array<T, Size>;
+
+typedef struct _dummyStream {}GPUStream;
 
 #endif
 

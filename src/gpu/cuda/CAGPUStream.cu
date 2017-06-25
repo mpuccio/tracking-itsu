@@ -1,4 +1,4 @@
-/// \file CATrackingUtils.h
+/// \file CAGPUStream.cu
 /// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
@@ -16,18 +16,21 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TRACKINGITSU_INCLUDE_CATRACKINGUTILS_H_
-#define TRACKINGITSU_INCLUDE_CATRACKINGUTILS_H_
+#include "CAGPUStream.h"
 
-#include "CACluster.h"
-#include "CADefinitions.h"
+#include <cuda_runtime.h>
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
-namespace CATrackingUtils {
-constexpr GPUArray<int, 4> EmptyBinsRect { { 0, 0, 0, 0 } };
-GPU_DEVICE bool isValidTracklet(const CACluster&, const CACluster&, const float, const float);
-GPU_DEVICE const GPUArray<int, 4> getBinsRect(const CACluster&, const int, const float);
-}
+CAGPUStream::CAGPUStream()
+{
+  cudaStreamCreate(&mStream);
 }
 
-#endif /* TRACKINGITSU_INCLUDE_CATRACKINGUTILS_H_ */
+CAGPUStream::~CAGPUStream()
+{
+  cudaStreamDestroy(mStream);
+}
+
+const GPUStream& CAGPUStream::get() const
+{
+  return mStream;
+}

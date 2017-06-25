@@ -67,7 +67,7 @@ void CATrackerTraits<false>::computeLayerTracklets(Context& primaryVertexContext
         * (CAConstants::ITS::LayersRCoordinate()[layerIndex + 1] - currentCluster.rCoordinate)
         + currentCluster.zCoordinate };
 
-    const GPU_ARRAY<int, 4> selectedBinsRect { CATrackingUtils::getBinsRect(currentCluster, layerIndex,
+    const GPUArray<int, 4> selectedBinsRect { CATrackingUtils::getBinsRect(currentCluster, layerIndex,
         directionZIntersection) };
 
     if (selectedBinsRect == CATrackingUtils::EmptyBinsRect) {

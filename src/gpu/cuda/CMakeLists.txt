@@ -34,6 +34,7 @@ include_directories(
 set(CUDA_SRCS
     CAGPUContext.cu
     CAGPUPrimaryVertexContext.cu
+    CAGPUStream.cu
     CAGPUUtils.cu
     CAGPUTracker.cu
 )

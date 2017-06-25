@@ -38,7 +38,7 @@ GPU_DEVICE bool CATrackingUtils::isValidTracklet(const CACluster &firstLayerClus
           || MATH_ABS(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut);
 }
 
-GPU_DEVICE const GPU_ARRAY<int, 4> CATrackingUtils::getBinsRect(const CACluster& currentCluster, const int layerIndex,
+GPU_DEVICE const GPUArray<int, 4> CATrackingUtils::getBinsRect(const CACluster& currentCluster, const int layerIndex,
     const float directionZIntersection)
 {
   const float zRangeMin = directionZIntersection - 2 * CAConstants::Thresholds::ZCoordinateCut;
@@ -52,7 +52,7 @@ GPU_DEVICE const GPU_ARRAY<int, 4> CATrackingUtils::getBinsRect(const CACluster&
     return EmptyBinsRect;
   }
 
-  return GPU_ARRAY<int, 4> { { MATH_MAX(0, CAIndexTableUtils::getZBinIndex(layerIndex + 1, zRangeMin)),
+  return GPUArray<int, 4> { { MATH_MAX(0, CAIndexTableUtils::getZBinIndex(layerIndex + 1, zRangeMin)),
       CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin)), MATH_MIN(
           CAConstants::IndexTable::ZBins - 1, CAIndexTableUtils::getZBinIndex(layerIndex + 1, zRangeMax)),
       CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMax)) } };

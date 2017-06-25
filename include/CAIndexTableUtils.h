@@ -35,7 +35,7 @@ GPU_HOST_DEVICE int getZBinIndex(const int, const float);
 GPU_HOST_DEVICE int getPhiBinIndex(const float);
 GPU_HOST_DEVICE int getBinIndex(const int, const int);
 GPU_HOST_DEVICE int countRowSelectedBins(
-    const GPU_ARRAY<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>&, const int, const int,
+    const GPUArray<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>&, const int, const int,
     const int);
 const std::vector<std::pair<int, int>> selectClusters(
     const std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>&,
@@ -65,7 +65,7 @@ GPU_HOST_DEVICE inline int CAIndexTableUtils::getBinIndex(const int zIndex, cons
 }
 
 GPU_HOST_DEVICE inline int CAIndexTableUtils::countRowSelectedBins(
-    const GPU_ARRAY<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> &indexTable,
+    const GPUArray<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> &indexTable,
     const int phiBinIndex, const int minZBinIndex, const int maxZBinIndex)
 {
   const int firstBinIndex { getBinIndex(minZBinIndex, phiBinIndex) };
