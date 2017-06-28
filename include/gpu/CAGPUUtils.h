@@ -26,6 +26,8 @@ namespace CAGPUUtils {
 namespace Host {
 dim3 getBlockSize(const int);
 dim3 getBlockSize(const int, const int);
+dim3 getBlocksGrid(const dim3&, const int);
+dim3 getBlocksGrid(const dim3&, const int, const int);
 
 void gpuMalloc(void**, const int);
 void gpuFree(void*);

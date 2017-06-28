@@ -38,7 +38,6 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
     int &clusterTracklets, const int warpSize, const bool dryRun)
 {
   const int currentClusterIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
-  const float3 &primaryVertex = primaryVertexContext.getPrimaryVertex();
   int startIndex;
   int currentIndex = 0;
 
@@ -69,7 +68,8 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
      continue;
      }*/
 
-    const float tanLambda { (currentCluster.zCoordinate - primaryVertex.z) / currentCluster.rCoordinate };
+    const float tanLambda { (currentCluster.zCoordinate - primaryVertexContext.getPrimaryVertex().z)
+        / currentCluster.rCoordinate };
     const float directionZIntersection { tanLambda
         * ((CAConstants::ITS::LayersRCoordinate())[layerIndex + 1] - currentCluster.rCoordinate)
         + currentCluster.zCoordinate };
@@ -98,7 +98,8 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
         const int firstBinIndex { CAIndexTableUtils::getBinIndex(selectedBinsRect[0], iPhiBin) };
         const int maxBinIndex { firstBinIndex + selectedBinsRect[2] - selectedBinsRect[0] + 1 };
         const int firstRowClusterIndex = primaryVertexContext.getIndexTables()[layerIndex][firstBinIndex];
-        const int maxRowClusterIndex = primaryVertexContext.getIndexTables()[layerIndex][maxBinIndex];
+        const int maxRowClusterIndex = primaryVertexContext.getIndexTables()[layerIndex][ { firstBinIndex
+            + selectedBinsRect[2] - selectedBinsRect[0] + 1 }];
 
         for (int iNextLayerCluster { firstRowClusterIndex };
             iNextLayerCluster <= maxRowClusterIndex && iNextLayerCluster < nextLayerClustersNum; ++iNextLayerCluster) {
@@ -238,12 +239,10 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
 
                 } else {
 
-                  const float cellTrajectoryCurvature { 1.0f / cellTrajectoryRadius };
-
                   primaryVertexContext.getCells()[layerIndex].emplace(startIndex + currentIndex,
                       currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex,
                       nextTracklet.secondClusterIndex, currentTrackletIndex, iNextLayerTracklet, normalizedPlaneVector,
-                      cellTrajectoryCurvature);
+                      1.0f / cellTrajectoryRadius);
                   ++currentIndex;
                 }
               }
@@ -303,7 +302,7 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext,
   const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
   const int clustersNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex].size()) };
   dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(clustersNum) };
-  dim3 blocksGrid { 1 + clustersNum / threadsPerBlock.x };
+  dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, clustersNum) };
 
   CAGPUStream stream { };
 
@@ -335,7 +334,7 @@ void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, con
       primaryVertexContext.getDeviceTracklets()[layerIndex].getSizeFromDevice();
 
   dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(*trackletsSizeUniquePointer) };
-  dim3 blocksGrid { 1 + *trackletsSizeUniquePointer / threadsPerBlock.x };
+  dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, *trackletsSizeUniquePointer) };
 
   CAGPUStream stream { };
 

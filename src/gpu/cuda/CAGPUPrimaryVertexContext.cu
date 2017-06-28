@@ -165,7 +165,7 @@ CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const
     const int nextLayerClustersNum = static_cast<int>(mClusters[iLayer + 1].size());
 
     dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(nextLayerClustersNum) };
-    dim3 blocksGrid { 1 + nextLayerClustersNum / threadsPerBlock.x };
+    dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, nextLayerClustersNum) };
 
     CAGPUStream stream { };
 

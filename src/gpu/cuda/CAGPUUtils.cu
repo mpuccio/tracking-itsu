@@ -24,6 +24,7 @@
 #include <cuda_runtime.h>
 #include <cuda_profiler_api.h>
 
+#include "CAConstants.h"
 #include "CAGPUContext.h"
 #include "CAMathUtils.h"
 
@@ -52,8 +53,8 @@ dim3 CAGPUUtils::Host::getBlockSize(const int colsNum)
 dim3 CAGPUUtils::Host::getBlockSize(const int colsNum, const int rowsNum)
 {
   const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
-  int xThreads = min(colsNum, deviceProperties.maxThreadsDim.x);
-  int yThreads = min(rowsNum, deviceProperties.maxThreadsDim.y);
+  int xThreads = min(colsNum, deviceProperties.cudaCores / deviceProperties.maxBlocksPerSM);
+  int yThreads = min(rowsNum, deviceProperties.cudaCores / deviceProperties.maxBlocksPerSM);
   const int totalThreads = min(CAMathUtils::roundUp(xThreads * yThreads, deviceProperties.warpSize),
       deviceProperties.maxThreadsPerBlock);
 
@@ -69,6 +70,16 @@ dim3 CAGPUUtils::Host::getBlockSize(const int colsNum, const int rowsNum)
   }
 
   return dim3 { static_cast<unsigned int>(xThreads), static_cast<unsigned int>(yThreads) };
+}
+
+dim3 CAGPUUtils::Host::getBlocksGrid(const dim3 &threadsPerBlock, const int rowsNum) {
+
+  return getBlocksGrid(threadsPerBlock, rowsNum, 1);
+}
+
+dim3 CAGPUUtils::Host::getBlocksGrid(const dim3 &threadsPerBlock, const int rowsNum, const int colsNum) {
+
+  return dim3 { 1 + (rowsNum - 1) / threadsPerBlock.x, 1 + (colsNum - 1) / threadsPerBlock.y };
 }
 
 void CAGPUUtils::Host::gpuMalloc(void **p, const int size)

@@ -26,6 +26,7 @@ struct CAGPUDeviceProperties final
 {
     std::string name;
     int gpuProcessors;
+    int cudaCores;
     long globalMemorySize;
     long constantMemorySize;
     long sharedMemorySize;
@@ -35,6 +36,7 @@ struct CAGPUDeviceProperties final
     long registersPerBlock;
     int warpSize;
     int maxThreadsPerBlock;
+    int maxBlocksPerSM;
     dim3 maxThreadsDim;
     dim3 maxGridDim;
 };
