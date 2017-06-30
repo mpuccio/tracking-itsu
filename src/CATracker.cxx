@@ -43,81 +43,78 @@
 #endif
 
 template<>
-void CATrackerTraits<false>::computeLayerTracklets(Context& primaryVertexContext, const int layerIndex)
+void CATrackerTraits<false>::computeLayerTracklets(Context& primaryVertexContext)
 {
-  if (primaryVertexContext.getClusters()[layerIndex].empty()
-      || primaryVertexContext.getClusters()[layerIndex + 1].empty()) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
-    return;
-  }
+    if (primaryVertexContext.getClusters()[iLayer].empty()
+        || primaryVertexContext.getClusters()[iLayer + 1].empty()) {
 
-  const float3 &primaryVertex = primaryVertexContext.getPrimaryVertex();
-  const int currentLayerClustersNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex].size()) };
-
-  for (int iCluster { 0 }; iCluster < currentLayerClustersNum; ++iCluster) {
-
-    const CACluster& currentCluster { primaryVertexContext.getClusters()[layerIndex][iCluster] };
-
-    /*if (mUsedClustersTable[currentCluster.clusterId] != CAConstants::ITS::UnusedIndex) {
-
-     continue;
-     }*/
-
-    const float tanLambda { (currentCluster.zCoordinate - primaryVertex.z) / currentCluster.rCoordinate };
-    const float directionZIntersection { tanLambda
-        * (CAConstants::ITS::LayersRCoordinate()[layerIndex + 1] - currentCluster.rCoordinate)
-        + currentCluster.zCoordinate };
-
-    const GPUArray<int, 4> selectedBinsRect { CATrackingUtils::getBinsRect(currentCluster, layerIndex,
-        directionZIntersection) };
-
-    if (selectedBinsRect == CATrackingUtils::EmptyBinsRect) {
-
-      continue;
+      return;
     }
 
-    int phiBinsNum { selectedBinsRect[3] - selectedBinsRect[1] + 1 };
+    const float3 &primaryVertex = primaryVertexContext.getPrimaryVertex();
+    const int currentLayerClustersNum { static_cast<int>(primaryVertexContext.getClusters()[iLayer].size()) };
 
-    if (phiBinsNum < 0) {
+    for (int iCluster { 0 }; iCluster < currentLayerClustersNum; ++iCluster) {
 
-      phiBinsNum += CAConstants::IndexTable::PhiBins;
-    }
+      const CACluster& currentCluster { primaryVertexContext.getClusters()[iLayer][iCluster] };
 
-    for (int iPhiBin { selectedBinsRect[1] }, iPhiCount { 0 }; iPhiCount < phiBinsNum;
-        iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins ? 0 : iPhiBin, iPhiCount++) {
+      /*if (mUsedClustersTable[currentCluster.clusterId] != CAConstants::ITS::UnusedIndex) {
 
-      const int firstBinIndex { CAIndexTableUtils::getBinIndex(selectedBinsRect[0], iPhiBin) };
-      const int maxBinIndex { firstBinIndex + selectedBinsRect[2] - selectedBinsRect[0] + 1 };
-      const int firstRowClusterIndex = primaryVertexContext.getIndexTables()[layerIndex][firstBinIndex];
-      const int maxRowClusterIndex = primaryVertexContext.getIndexTables()[layerIndex][maxBinIndex];
+       continue;
+       }*/
 
-      for (int iNextLayerCluster { firstRowClusterIndex }; iNextLayerCluster <= maxRowClusterIndex;
-          ++iNextLayerCluster) {
+      const float tanLambda { (currentCluster.zCoordinate - primaryVertex.z) / currentCluster.rCoordinate };
+      const float directionZIntersection { tanLambda
+          * (CAConstants::ITS::LayersRCoordinate()[iLayer + 1] - currentCluster.rCoordinate)
+          + currentCluster.zCoordinate };
 
-        const CACluster& nextCluster { primaryVertexContext.getClusters()[layerIndex + 1][iNextLayerCluster] };
+      const GPUArray<int, 4> selectedBinsRect { CATrackingUtils::getBinsRect(currentCluster, iLayer,
+          directionZIntersection) };
 
-        if (CATrackingUtils::isValidTracklet(currentCluster, nextCluster, tanLambda, directionZIntersection)) {
+      if (selectedBinsRect == CATrackingUtils::EmptyBinsRect) {
 
-          if (layerIndex > 0
-              && primaryVertexContext.getTrackletsLookupTable()[layerIndex - 1][iCluster]
-                  == CAConstants::ITS::UnusedIndex) {
+        continue;
+      }
 
-            primaryVertexContext.getTrackletsLookupTable()[layerIndex - 1][iCluster] =
-                primaryVertexContext.getTracklets()[layerIndex].size();
+      int phiBinsNum { selectedBinsRect[3] - selectedBinsRect[1] + 1 };
+
+      if (phiBinsNum < 0) {
+
+        phiBinsNum += CAConstants::IndexTable::PhiBins;
+      }
+
+      for (int iPhiBin { selectedBinsRect[1] }, iPhiCount { 0 }; iPhiCount < phiBinsNum;
+          iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins ? 0 : iPhiBin, iPhiCount++) {
+
+        const int firstBinIndex { CAIndexTableUtils::getBinIndex(selectedBinsRect[0], iPhiBin) };
+        const int maxBinIndex { firstBinIndex + selectedBinsRect[2] - selectedBinsRect[0] + 1 };
+        const int firstRowClusterIndex = primaryVertexContext.getIndexTables()[iLayer][firstBinIndex];
+        const int maxRowClusterIndex = primaryVertexContext.getIndexTables()[iLayer][maxBinIndex];
+
+        for (int iNextLayerCluster { firstRowClusterIndex }; iNextLayerCluster <= maxRowClusterIndex;
+            ++iNextLayerCluster) {
+
+          const CACluster& nextCluster { primaryVertexContext.getClusters()[iLayer + 1][iNextLayerCluster] };
+
+          if (CATrackingUtils::isValidTracklet(currentCluster, nextCluster, tanLambda, directionZIntersection)) {
+
+            if (iLayer > 0
+                && primaryVertexContext.getTrackletsLookupTable()[iLayer - 1][iCluster]
+                    == CAConstants::ITS::UnusedIndex) {
+
+              primaryVertexContext.getTrackletsLookupTable()[iLayer - 1][iCluster] =
+                  primaryVertexContext.getTracklets()[iLayer].size();
+            }
+
+            primaryVertexContext.getTracklets()[iLayer].emplace_back(iCluster, iNextLayerCluster, currentCluster,
+                nextCluster);
           }
-
-          primaryVertexContext.getTracklets()[layerIndex].emplace_back(iCluster, iNextLayerCluster, currentCluster,
-              nextCluster);
         }
       }
     }
   }
-}
-
-template<>
-void CATrackerTraits<false>::postProcessTracklets(Context& primaryVertexContext)
-{
-  // Nothing to do
 }
 
 template<>
@@ -405,12 +402,7 @@ std::vector<std::vector<CARoad>> CATracker<IsGPU>::clustersToTracksTimeBenchmark
 template<bool IsGPU>
 void CATracker<IsGPU>::computeTracklets(TrackerContext& primaryVertexContext)
 {
-  for (int iLayer { 0 }; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
-
-    TrackerTraits::computeLayerTracklets(primaryVertexContext, iLayer);
-  }
-
-  TrackerTraits::postProcessTracklets(primaryVertexContext);
+  TrackerTraits::computeLayerTracklets(primaryVertexContext);
 }
 
 template<bool IsGPU>

@@ -22,7 +22,7 @@
 
 CAGPUStream::CAGPUStream()
 {
-  cudaStreamCreate(&mStream);
+  cudaStreamCreateWithFlags(&mStream, cudaStreamNonBlocking);
 }
 
 CAGPUStream::~CAGPUStream()

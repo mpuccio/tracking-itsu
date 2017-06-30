@@ -39,7 +39,7 @@ void gpuStopProfiler();
 }
 
 namespace Device {
-GPU_DEVICE int getLaneIndex(const int);
+GPU_DEVICE int getLaneIndex();
 GPU_DEVICE int shareToWarp(const int, const int);
 GPU_DEVICE int gpuAtomicAdd(int*, const int);
 }

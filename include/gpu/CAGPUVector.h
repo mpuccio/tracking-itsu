@@ -36,8 +36,8 @@ class CAGPUVector
 
     public:
       CAGPUVector();
-      explicit CAGPUVector(const int);
-      CAGPUVector(const T* const, const int);
+      explicit CAGPUVector(const int, const int = 0);
+      CAGPUVector(const T* const, const int, const int = 0);
       ~CAGPUVector();
 
       CAGPUVector(const CAGPUVector&) = delete;
@@ -47,9 +47,11 @@ class CAGPUVector
       CAGPUVector &operator=(CAGPUVector&&);
 
       std::unique_ptr<int, void (*)(void*)> getSizeFromDevice() const;
+      void resize(const int);
       void copyIntoVector(std::vector<T>&, const int);
 
       GPU_HOST_DEVICE T* get() const;
+      GPU_HOST_DEVICE int capacity() const;
       GPU_DEVICE T& operator[](const int) const;
       GPU_DEVICE int size() const;
       GPU_DEVICE int extend(const int) const;
@@ -73,14 +75,14 @@ class CAGPUVector
   }
 
   template<typename T>
-  CAGPUVector<T>::CAGPUVector(const int capacity)
-      : CAGPUVector { nullptr, capacity }
+  CAGPUVector<T>::CAGPUVector(const int capacity, const int initialSize)
+      : CAGPUVector { nullptr, capacity, initialSize }
   {
     // Nothing to do
   }
 
   template<typename T>
-  CAGPUVector<T>::CAGPUVector(const T* const source, const int size)
+  CAGPUVector<T>::CAGPUVector(const T* const source, const int size, const int initialSize)
       : mCapacity { size }
   {
     try {
@@ -95,7 +97,8 @@ class CAGPUVector
 
       } else {
 
-        CAGPUUtils::Host::gpuMemset(mDeviceSize, 0, sizeof(int));
+        CAGPUUtils::Host::gpuMemcpyHostToDevice(mDeviceSize, &initialSize, sizeof(int));
+
       }
 
     } catch (...) {
@@ -113,8 +116,8 @@ class CAGPUVector
   }
 
   template<typename T>
-  CAGPUVector<T>::CAGPUVector(CAGPUVector<T> &&other) : mArrayPointer{ other.mArrayPointer },
-    mDeviceSize{ other.mDeviceSize }, mCapacity{ other.mCapacity }
+  CAGPUVector<T>::CAGPUVector(CAGPUVector<T> &&other)
+      : mArrayPointer { other.mArrayPointer }, mDeviceSize { other.mDeviceSize }, mCapacity { other.mCapacity }
   {
     other.mArrayPointer = nullptr;
     other.mDeviceSize = nullptr;
@@ -123,6 +126,8 @@ class CAGPUVector
   template<typename T>
   CAGPUVector<T> &CAGPUVector<T>::operator=(CAGPUVector<T> &&other)
   {
+    destroy();
+
     mArrayPointer = other.mArrayPointer;
     mDeviceSize = other.mDeviceSize;
     mCapacity = other.mCapacity;
@@ -152,6 +157,12 @@ class CAGPUVector
 
       throw;
     }
+  }
+
+  template<typename T>
+  void CAGPUVector<T>::resize(const int size)
+  {
+    CAGPUUtils::Host::gpuMemcpyHostToDevice(mDeviceSize, &size, sizeof(int));
   }
 
   template<typename T>
@@ -196,6 +207,12 @@ class CAGPUVector
   GPU_HOST_DEVICE inline T* CAGPUVector<T>::get() const
   {
     return mArrayPointer;
+  }
+
+  template<typename T>
+  GPU_HOST_DEVICE inline int CAGPUVector<T>::capacity() const
+  {
+    return mCapacity;
   }
 
   template<typename T>

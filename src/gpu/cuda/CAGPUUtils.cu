@@ -117,9 +117,11 @@ void CAGPUUtils::Host::gpuStopProfiler()
   checkCUDAError(cudaProfilerStop(), __FILE__, __LINE__);
 }
 
-GPU_DEVICE int CAGPUUtils::Device::getLaneIndex(const int warpSize)
+GPU_DEVICE int CAGPUUtils::Device::getLaneIndex()
 {
-  return (threadIdx.x + threadIdx.y * blockDim.x) % warpSize;
+  uint32_t laneIndex;
+  asm volatile("mov.u32 %0, %%laneid;" : "=r"(laneIndex));
+  return static_cast<int>(laneIndex);
 }
 
 GPU_DEVICE int CAGPUUtils::Device::shareToWarp(const int value, const int laneIndex)

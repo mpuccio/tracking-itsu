@@ -39,8 +39,7 @@ class CATrackerTraits
   private:
     typedef CAPrimaryVertexContext<IsGPU> Context;
   public:
-    void computeLayerTracklets(Context&, const int);
-    void postProcessTracklets(Context&);
+    void computeLayerTracklets(Context&);
     void computeLayerCells(Context&, const int);
     void postProcessCells(Context&);
 

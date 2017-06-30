@@ -29,6 +29,7 @@ message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 include_directories(
     ${TRACKING-ITSU_SOURCE_DIR}/include
     ${TRACKING-ITSU_SOURCE_DIR}/include/gpu
+    ${TRACKING-ITSU_SOURCE_DIR}/include/external/cub
 )
 
 set(CUDA_SRCS
