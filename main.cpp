@@ -68,12 +68,12 @@ int main(int argc, char** argv)
   timeBenchmarkOutputStream.open(benchmarkFolderName + "TimeOccupancy.txt");
 #endif
 
+  // Prevent cold cache benchmark noise
+  CATracker<TRACKINGITSU_GPU_MODE>(events[0]).clustersToTracks();
+
 #if defined GPU_PROFILING_MODE
   CAGPUUtils::Host::gpuStartProfiler();
 #endif
-
-  // Prevent cold cache benchmark noise
-  CATracker<TRACKINGITSU_GPU_MODE>(events[0]).clustersToTracks();
 
   for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
 
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 #elif defined TIME_BENCHMARK
       std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksTimeBenchmark(timeBenchmarkOutputStream);
 #else
-      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracks();
+      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
 #endif
 
 #if defined HAVE_VALGRIND
@@ -112,7 +112,19 @@ int main(int argc, char** argv)
       if (maxTime < diff)
         maxTime = diff;
 
-      std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
+      for(int iVertex = 0; iVertex < currentEvent.getPrimaryVerticesNum(); ++iVertex) {
+
+        std::cout << "Found " << roads[iVertex].size() << " roads for vertex " << iVertex + 1 << std::endl;
+      }
+
+      std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl;
+
+      if(currentEvent.getPrimaryVerticesNum() > 1) {
+
+        std::cout << "Vertex processing mean time: " << diff / currentEvent.getPrimaryVerticesNum() << "ms" << std::endl;
+      }
+
+      std::cout << std::endl;
 
       if (createBenchmarkData) {
 

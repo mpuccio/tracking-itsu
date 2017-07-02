@@ -19,7 +19,7 @@
 #ifndef TRAKINGITSU_INCLUDE_GPU_CAGPUVECTOR_H_
 #define TRAKINGITSU_INCLUDE_GPU_CAGPUVECTOR_H_
 
-#include <memory>
+#include <assert.h>
 #include <new>
 #include <type_traits>
 #include <vector>
@@ -37,24 +37,21 @@ class CAGPUVector
     public:
       CAGPUVector();
       explicit CAGPUVector(const int, const int = 0);
-      CAGPUVector(const T* const, const int, const int = 0);
-      ~CAGPUVector();
+      CAGPUVector(const T* const, const int, const int = 0);GPU_HOST_DEVICE ~CAGPUVector();
 
       CAGPUVector(const CAGPUVector&) = delete;
       CAGPUVector &operator=(const CAGPUVector&) = delete;
 
-      CAGPUVector(CAGPUVector&&);
+      GPU_HOST_DEVICE CAGPUVector(CAGPUVector&&);
       CAGPUVector &operator=(CAGPUVector&&);
 
-      std::unique_ptr<int, void (*)(void*)> getSizeFromDevice() const;
+      int getSizeFromDevice() const;
       void resize(const int);
       void copyIntoVector(std::vector<T>&, const int);
 
-      GPU_HOST_DEVICE T* get() const;
-      GPU_HOST_DEVICE int capacity() const;
-      GPU_DEVICE T& operator[](const int) const;
-      GPU_DEVICE int size() const;
-      GPU_DEVICE int extend(const int) const;
+      GPU_HOST_DEVICE T* get() const;GPU_HOST_DEVICE int capacity() const;GPU_HOST_DEVICE CAGPUVector<T> getWeakCopy() const;GPU_DEVICE T& operator[](
+          const int) const;GPU_DEVICE int size() const;GPU_DEVICE int extend(const int) const;
+
       template<typename ...Args>
       GPU_DEVICE void emplace(const int, Args&&...);
 
@@ -62,14 +59,17 @@ class CAGPUVector
       void destroy();
 
     private:
+      GPU_HOST_DEVICE CAGPUVector(const CAGPUVector&, const bool);
+
       T *mArrayPointer;
       int *mDeviceSize;
       int mCapacity;
+      bool mIsWeak;
   };
 
   template<typename T>
   CAGPUVector<T>::CAGPUVector()
-      : mArrayPointer { nullptr }, mDeviceSize { nullptr }, mCapacity { 0 }
+      : mArrayPointer { nullptr }, mDeviceSize { nullptr }, mCapacity { 0 }, mIsWeak { true }
   {
     // Nothing to do
   }
@@ -83,7 +83,7 @@ class CAGPUVector
 
   template<typename T>
   CAGPUVector<T>::CAGPUVector(const T* const source, const int size, const int initialSize)
-      : mCapacity { size }
+      : mCapacity { size }, mIsWeak { false }
   {
     try {
 
@@ -110,14 +110,33 @@ class CAGPUVector
   }
 
   template<typename T>
-  CAGPUVector<T>::~CAGPUVector()
+  CAGPUVector<T>::CAGPUVector(const CAGPUVector& other, const bool isWeak)
+      : mArrayPointer { other.mArrayPointer }, mDeviceSize { other.mDeviceSize }, mCapacity { other.mCapacity }, mIsWeak {
+          isWeak }
   {
-    destroy();
+    //Nothing to do
   }
 
   template<typename T>
-  CAGPUVector<T>::CAGPUVector(CAGPUVector<T> &&other)
-      : mArrayPointer { other.mArrayPointer }, mDeviceSize { other.mDeviceSize }, mCapacity { other.mCapacity }
+  GPU_HOST_DEVICE CAGPUVector<T>::~CAGPUVector()
+  {
+    if (mIsWeak) {
+
+      return;
+
+    } else {
+#if defined(TRACKINGITSU_GPU_DEVICE)
+      assert(0);
+#else
+      destroy();
+#endif
+    }
+  }
+
+  template<typename T>
+  GPU_HOST_DEVICE CAGPUVector<T>::CAGPUVector(CAGPUVector<T> &&other)
+      : mArrayPointer { other.mArrayPointer }, mDeviceSize { other.mDeviceSize }, mCapacity { other.mCapacity }, mIsWeak {
+          other.mIsWeak }
   {
     other.mArrayPointer = nullptr;
     other.mDeviceSize = nullptr;
@@ -131,6 +150,7 @@ class CAGPUVector
     mArrayPointer = other.mArrayPointer;
     mDeviceSize = other.mDeviceSize;
     mCapacity = other.mCapacity;
+    mIsWeak = other.mIsWeak;
 
     other.mArrayPointer = nullptr;
     other.mDeviceSize = nullptr;
@@ -139,24 +159,12 @@ class CAGPUVector
   }
 
   template<typename T>
-  std::unique_ptr<int, void (*)(void*)> CAGPUVector<T>::getSizeFromDevice() const
+  int CAGPUVector<T>::getSizeFromDevice() const
   {
-    int *primitiveHostSizePointer = nullptr;
+    int size;
+    CAGPUUtils::Host::gpuMemcpyDeviceToHost(&size, mDeviceSize, sizeof(int));
 
-    try {
-
-      primitiveHostSizePointer = static_cast<int *>(malloc(sizeof(int)));
-      CAGPUUtils::Host::gpuMemcpyDeviceToHost(primitiveHostSizePointer, mDeviceSize, sizeof(int));
-
-      return std::unique_ptr<int, void (*)(void*)> {
-        primitiveHostSizePointer, free };
-
-    } catch(...) {
-
-      free(primitiveHostSizePointer);
-
-      throw;
-    }
+    return size;
   }
 
   template<typename T>
@@ -216,6 +224,12 @@ class CAGPUVector
   }
 
   template<typename T>
+  GPU_HOST_DEVICE inline CAGPUVector<T> CAGPUVector<T>::getWeakCopy() const
+  {
+    return CAGPUVector { *this, true };
+  }
+
+  template<typename T>
   GPU_DEVICE inline T& CAGPUVector<T>::operator[](const int index) const
   {
     return mArrayPointer[index];
@@ -231,15 +245,9 @@ class CAGPUVector
   GPU_DEVICE int CAGPUVector<T>::extend(const int sizeIncrement) const
   {
     const int startIndex = CAGPUUtils::Device::gpuAtomicAdd(mDeviceSize, sizeIncrement);
+    assert(size() <= mCapacity);
 
-    if (size() > mCapacity) {
-
-      return -1; //TODO: error handling
-
-    } else {
-
-      return startIndex;
-    }
+    return startIndex;
   }
 
   template<typename T>

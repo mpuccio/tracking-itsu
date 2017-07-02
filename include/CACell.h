@@ -34,7 +34,7 @@ class CACell
       int getFirstClusterIndex() const;
       int getSecondClusterIndex() const;
       int getThirdClusterIndex() const;
-      int getFirstTrackletIndex() const;
+      GPU_HOST_DEVICE int getFirstTrackletIndex() const;
       int getSecondTrackletIndex() const;
       int getLevel() const;
       float getCurvature() const;
@@ -67,7 +67,7 @@ class CACell
     return mThirdClusterIndex;
   }
 
-  inline int CACell::getFirstTrackletIndex() const
+  GPU_HOST_DEVICE inline int CACell::getFirstTrackletIndex() const
   {
     return mFirstTrackletIndex;
   }

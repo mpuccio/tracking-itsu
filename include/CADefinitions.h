@@ -31,6 +31,10 @@
 # define TRACKINGITSU_GPU_COMPILING
 #endif
 
+#if defined(__CUDA_ARCH__)
+# define TRACKINGITSU_GPU_DEVICE
+#endif
+
 #define TRACKINGITSU_HOST_COMPILATION_NAMESPACE HostCompiledCode
 #define TRACKINGITSU_DEVICE_COMPILATION_NAMESPACE DeviceCompiledCode
 
@@ -77,9 +81,11 @@ typedef cudaStream_t GPUStream;
 # define MATH_MIN std::min
 # define MATH_SQRT std::sqrt
 
-typedef struct _dim3 {unsigned int x, y, z;}dim3;
-typedef struct _float2 {float x, y;}float2;
-typedef struct _float3 {float x, y, z;}float3;
+typedef struct _dim3 { unsigned int x, y, z; } dim3;
+typedef struct _int4 { int x, y, z, w; } int4;
+typedef struct _float2 { float x, y; } float2;
+typedef struct _float3 { float x, y, z; } float3;
+typedef struct _float4 { float x, y, z, w; } float4;
 
 template<typename T, std::size_t Size>
 using GPUArray = std::array<T, Size>;

@@ -66,17 +66,6 @@ __device__ void fillIndexTables(CAGPUPrimaryVertexContext &primaryVertexContext,
   }
 }
 
-__device__ void fillTrackletsLookupTables(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex)
-{
-  const int currentClusterIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
-  const int clustersSize { static_cast<int>(primaryVertexContext.getClusters()[layerIndex + 1].size()) };
-
-  if (currentClusterIndex < clustersSize) {
-
-    primaryVertexContext.getTrackletsLookupTable()[layerIndex][clustersSize] = CAConstants::ITS::UnusedIndex;
-  }
-}
-
 __device__ void fillTrackletsPerClusterTables(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex)
 {
   const int currentClusterIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
@@ -88,11 +77,34 @@ __device__ void fillTrackletsPerClusterTables(CAGPUPrimaryVertexContext &primary
   }
 }
 
+__device__ void fillCellsPerClusterTables(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex)
+{
+  const int totalThreadNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex + 1].size()) };
+  const int trackletsSize { static_cast<int>(primaryVertexContext.getTracklets()[layerIndex + 1].capacity()) };
+  const int trackletsPerThread { 1 + (trackletsSize - 1) / totalThreadNum };
+  const int firstTrackletIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) * trackletsPerThread };
+
+  if(firstTrackletIndex < trackletsSize) {
+
+    const int trackletsToSet { min(trackletsSize, firstTrackletIndex + trackletsPerThread) - firstTrackletIndex };
+    memset(&primaryVertexContext.getCellsPerTrackletTable()[layerIndex][firstTrackletIndex], 0,
+        trackletsToSet * sizeof(int));
+  }
+}
+
 __global__ void fillDeviceStructures(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex)
 {
   fillIndexTables(primaryVertexContext, layerIndex);
-  fillTrackletsLookupTables(primaryVertexContext, layerIndex);
-  fillTrackletsPerClusterTables(primaryVertexContext, layerIndex);
+
+  if (layerIndex < CAConstants::ITS::CellsPerRoad) {
+
+    fillTrackletsPerClusterTables(primaryVertexContext, layerIndex);
+  }
+
+  if (layerIndex < CAConstants::ITS::CellsPerRoad - 1) {
+
+    fillCellsPerClusterTables(primaryVertexContext, layerIndex);
+  }
 }
 }
 
@@ -123,8 +135,8 @@ CAGPUPrimaryVertexContext::CAGPUPrimaryVertexContext(const float3 &primaryVertex
 
     if (iLayer < CAConstants::ITS::CellsPerRoad - 1) {
 
-      this->mCellsLookupTable[iLayer] = CAGPUVector<int> { &cellsLookupTable[iLayer][0],
-          static_cast<int>(cellsLookupTable[iLayer].size()) };
+      this->mCellsLookupTable[iLayer] = CAGPUVector<int> { static_cast<int>(cellsLookupTable[iLayer].size()) };
+      this->mCellsPerTrackletTable[iLayer] = CAGPUVector<int> { static_cast<int>(cellsLookupTable[iLayer].size()) };
     }
   }
 }
@@ -237,7 +249,12 @@ CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& CAPrimaryVerte
   return mGPUContext.getCellsLookupTable();
 }
 
+CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& CAPrimaryVertexContext<true>::getDeviceCellsPerTrackletTable()
+{
+  return mGPUContext.getCellsPerTrackletTable();
+}
+
 void CAPrimaryVertexContext<true>::updateDeviceContext()
 {
-  mGPUContextDevicePointer = CAGPUUniquePointer<CAGPUPrimaryVertexContext>{ mGPUContext };
+  mGPUContextDevicePointer = CAGPUUniquePointer<CAGPUPrimaryVertexContext> { mGPUContext };
 }

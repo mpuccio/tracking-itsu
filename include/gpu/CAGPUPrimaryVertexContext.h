@@ -51,6 +51,8 @@ class CAGPUPrimaryVertexContext
           CAConstants::ITS::CellsPerRoad>& getCells();
       GPU_HOST_DEVICE CAGPUArray<CAGPUVector<int>,
           CAConstants::ITS::CellsPerRoad - 1>& getCellsLookupTable();
+      GPU_HOST_DEVICE CAGPUArray<CAGPUVector<int>,
+          CAConstants::ITS::CellsPerRoad - 1>& getCellsPerTrackletTable();
 
     private:
       const CAGPUUniquePointer<float3> mPrimaryVertex;
@@ -62,6 +64,7 @@ class CAGPUPrimaryVertexContext
       CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad> mTrackletsPerClusterTable;
       CAGPUArray<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad> mCells;
       CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1> mCellsLookupTable;
+      CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1> mCellsPerTrackletTable;
   };
 
   GPU_DEVICE inline const float3& CAGPUPrimaryVertexContext::getPrimaryVertex()
@@ -105,6 +108,11 @@ class CAGPUPrimaryVertexContext
     return mCellsLookupTable;
   }
 
+  GPU_HOST_DEVICE inline CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& CAGPUPrimaryVertexContext::getCellsPerTrackletTable()
+  {
+    return mCellsPerTrackletTable;
+  }
+
   template<>
   class CAPrimaryVertexContext<true>
   {
@@ -130,6 +138,7 @@ class CAGPUPrimaryVertexContext
       CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad>& getDeviceTrackletsPerClustersTable();
       CAGPUArray<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad>& getDeviceCells();
       CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& getDeviceCellsLookupTable();
+      CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& getDeviceCellsPerTrackletTable();
       void updateDeviceContext();
 
     private:

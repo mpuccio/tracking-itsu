@@ -36,13 +36,16 @@
 #include "CAPrimaryVertexContext.h"
 #include "CATrackingUtils.h"
 
-__device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex)
+__device__ void computeLayerTracklets(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex)
 {
   extern __shared__ CACluster sharedClusters[];
   const int currentClusterIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
   int clusterTrackletsNum = 0;
 
   if (currentClusterIndex < primaryVertexContext.getClusters()[layerIndex].size()) {
+
+    CAGPUVector<CACluster> nextLayerClusters { primaryVertexContext.getClusters()[layerIndex + 1].getWeakCopy() };
+    CAGPUVector<CATracklet> tracklets { primaryVertexContext.getTracklets()[layerIndex].getWeakCopy() };
 
     sharedClusters[threadIdx.x] = primaryVertexContext.getClusters()[layerIndex][currentClusterIndex];
     const CACluster& currentCluster { sharedClusters[threadIdx.x] };
@@ -58,49 +61,47 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
         * ((CAConstants::ITS::LayersRCoordinate())[layerIndex + 1] - currentCluster.rCoordinate)
         + currentCluster.zCoordinate };
 
-    const GPUArray<int, 4> selectedBinsRect { CATrackingUtils::getBinsRect(currentCluster, layerIndex,
-        directionZIntersection) };
+    const int4 selectedBinsRect { CATrackingUtils::getBinsRect(currentCluster, layerIndex, directionZIntersection) };
 
-    if (selectedBinsRect[0] != 0 || selectedBinsRect[1] != 0 || selectedBinsRect[2] != 0 || selectedBinsRect[3] != 0) {
+    if (selectedBinsRect.x != 0 || selectedBinsRect.y != 0 || selectedBinsRect.z != 0 || selectedBinsRect.w != 0) {
 
-      const int nextLayerClustersNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex + 1].size()) };
-      int phiBinsNum { selectedBinsRect[3] - selectedBinsRect[1] + 1 };
+      const int nextLayerClustersNum { static_cast<int>(nextLayerClusters.size()) };
+      int phiBinsNum { selectedBinsRect.w - selectedBinsRect.y + 1 };
 
       if (phiBinsNum < 0) {
 
         phiBinsNum += CAConstants::IndexTable::PhiBins;
       }
 
-      for (int iPhiBin { selectedBinsRect[1] }, iPhiCount { 0 }; iPhiCount < phiBinsNum;
+      for (int iPhiBin { selectedBinsRect.y }, iPhiCount { 0 }; iPhiCount < phiBinsNum;
           iPhiBin = ++iPhiBin == CAConstants::IndexTable::PhiBins ? 0 : iPhiBin, iPhiCount++) {
 
-        const int firstBinIndex { CAIndexTableUtils::getBinIndex(selectedBinsRect[0], iPhiBin) };
-        const int maxBinIndex { firstBinIndex + selectedBinsRect[2] - selectedBinsRect[0] + 1 };
+        const int firstBinIndex { CAIndexTableUtils::getBinIndex(selectedBinsRect.x, iPhiBin) };
         const int firstRowClusterIndex = primaryVertexContext.getIndexTables()[layerIndex][firstBinIndex];
         const int maxRowClusterIndex = primaryVertexContext.getIndexTables()[layerIndex][ { firstBinIndex
-            + selectedBinsRect[2] - selectedBinsRect[0] + 1 }];
+            + selectedBinsRect.z - selectedBinsRect.x + 1 }];
 
         for (int iNextLayerCluster { firstRowClusterIndex };
             iNextLayerCluster <= maxRowClusterIndex && iNextLayerCluster < nextLayerClustersNum; ++iNextLayerCluster) {
 
-          const CACluster& nextCluster { primaryVertexContext.getClusters()[layerIndex + 1][iNextLayerCluster] };
+          const CACluster& nextCluster { nextLayerClusters[iNextLayerCluster] };
 
           if (CATrackingUtils::isValidTracklet(currentCluster, nextCluster, tanLambda, directionZIntersection)) {
 
             int mask { static_cast<int>(__ballot(1)) };
             int leader { __ffs(mask) - 1 };
             int laneIndex { CAGPUUtils::Device::getLaneIndex() };
-            int startIndex { };
+            int currentIndex { };
 
             if (laneIndex == leader) {
 
-              startIndex = primaryVertexContext.getTracklets()[layerIndex].extend(__popc(mask));
+              currentIndex = tracklets.extend(__popc(mask));
             }
 
-            startIndex = CAGPUUtils::Device::shareToWarp(startIndex, leader) + __popc(mask & ((1 << laneIndex) - 1));
+            currentIndex = CAGPUUtils::Device::shareToWarp(currentIndex, leader)
+                + __popc(mask & ((1 << laneIndex) - 1));
 
-            primaryVertexContext.getTracklets()[layerIndex].emplace(startIndex, currentClusterIndex, iNextLayerCluster,
-                currentCluster, nextCluster);
+            tracklets.emplace(currentIndex, currentClusterIndex, iNextLayerCluster, currentCluster, nextCluster);
             ++clusterTrackletsNum;
           }
         }
@@ -114,31 +115,11 @@ __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext& primaryVertexCo
   }
 }
 
-__device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
-    int &trackletCells, const int warpSize, const bool dryRun)
+__device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex)
 {
   const int currentTrackletIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
   const float3 &primaryVertex = primaryVertexContext.getPrimaryVertex();
-  int startIndex;
-  int currentIndex = 0;
-
-  if (!dryRun) {
-
-    int laneIndex = CAGPUUtils::Device::getLaneIndex();
-
-    if (laneIndex == warpSize - 1) {
-
-      startIndex = primaryVertexContext.getCells()[layerIndex].extend(trackletCells);
-    }
-
-    startIndex = CAGPUUtils::Device::shareToWarp(startIndex, warpSize - 1);
-    const int currentTrackletOffset = __shfl_up(trackletCells, 1);
-
-    if (laneIndex != 0) {
-
-      startIndex += currentTrackletOffset;
-    }
-  }
+  int trackletCellsNum = 0;
 
   if (currentTrackletIndex < primaryVertexContext.getTracklets()[layerIndex].size()) {
 
@@ -148,9 +129,8 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
         primaryVertexContext.getTrackletsLookupTable()[layerIndex][nextLayerClusterIndex] };
     const int nextLayerTrackletsNum { static_cast<int>(primaryVertexContext.getTracklets()[layerIndex + 1].size()) };
 
-    if (nextLayerClusterIndex + 1 == nextLayerTrackletsNum
-        || nextLayerFirstTrackletIndex
-            != primaryVertexContext.getTrackletsLookupTable()[layerIndex][nextLayerClusterIndex + 1]) {
+    if (primaryVertexContext.getTracklets()[layerIndex + 1][nextLayerFirstTrackletIndex].firstClusterIndex
+        == nextLayerClusterIndex) {
 
       const CACluster& firstCellCluster {
           primaryVertexContext.getClusters()[layerIndex][currentTracklet.firstClusterIndex] };
@@ -161,11 +141,6 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
       const float3 firstDeltaVector { secondCellCluster.xCoordinate - firstCellCluster.xCoordinate,
           secondCellCluster.yCoordinate - firstCellCluster.yCoordinate, secondCellClusterQuadraticRCoordinate
               - firstCellClusterQuadraticRCoordinate };
-
-      if (!dryRun && layerIndex > 0) {
-
-        primaryVertexContext.getCellsLookupTable()[layerIndex - 1][currentTrackletIndex] = startIndex;
-      }
 
       for (int iNextLayerTracklet { nextLayerFirstTrackletIndex };
           iNextLayerTracklet < nextLayerTrackletsNum
@@ -224,22 +199,32 @@ __device__ void computeLayerCells(CAGPUPrimaryVertexContext& primaryVertexContex
               if (distanceOfClosestApproach
                   <= CAConstants::Thresholds::CellMaxDistanceOfClosestApproachThreshold()[layerIndex]) {
 
-                if (dryRun) {
+                int mask { static_cast<int>(__ballot(1)) };
+                int leader { __ffs(mask) - 1 };
+                int laneIndex { CAGPUUtils::Device::getLaneIndex() };
+                int currentIndex { };
 
-                  ++trackletCells;
+                if (laneIndex == leader) {
 
-                } else {
-
-                  primaryVertexContext.getCells()[layerIndex].emplace(startIndex + currentIndex,
-                      currentTracklet.firstClusterIndex, nextTracklet.firstClusterIndex,
-                      nextTracklet.secondClusterIndex, currentTrackletIndex, iNextLayerTracklet, normalizedPlaneVector,
-                      1.0f / cellTrajectoryRadius);
-                  ++currentIndex;
+                  currentIndex = primaryVertexContext.getCells()[layerIndex].extend(__popc(mask));
                 }
+
+                currentIndex = CAGPUUtils::Device::shareToWarp(currentIndex, leader)
+                    + __popc(mask & ((1 << laneIndex) - 1));
+
+                primaryVertexContext.getCells()[layerIndex].emplace(currentIndex, currentTracklet.firstClusterIndex,
+                    nextTracklet.firstClusterIndex, nextTracklet.secondClusterIndex, currentTrackletIndex,
+                    iNextLayerTracklet, normalizedPlaneVector, 1.0f / cellTrajectoryRadius);
+                ++trackletCellsNum;
               }
             }
           }
         }
+      }
+
+      if (layerIndex > 0) {
+
+        primaryVertexContext.getCellsPerTrackletTable()[layerIndex - 1][currentTrackletIndex] = trackletCellsNum;
       }
     }
   }
@@ -253,7 +238,8 @@ __global__ void layerTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexCon
 __global__ void sortTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
     CATracklet *tempTrackletArray)
 {
-  const int currentTrackletIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
+  const int currentTrackletIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
+  const int trackletsNum { primaryVertexContext.getTracklets()[layerIndex].size() };
 
   if (currentTrackletIndex < primaryVertexContext.getTracklets()[layerIndex].size()) {
 
@@ -268,25 +254,27 @@ __global__ void sortTrackletsKernel(CAGPUPrimaryVertexContext& primaryVertexCont
   }
 }
 
-__global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
-    const int warpSize)
+__global__ void layerCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex)
 {
-  int trackletCells = 0;
-  const int laneIndex = CAGPUUtils::Device::getLaneIndex();
+  computeLayerCells(primaryVertexContext, layerIndex);
+}
 
-  computeLayerCells(primaryVertexContext, layerIndex, trackletCells, warpSize, true);
+__global__ void sortCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext, const int layerIndex,
+    CACell *tempCellsArray)
+{
+  const int currentCellIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
 
-  for (int iOffset = warpSize / 2; iOffset > 0; iOffset /= 2) {
+  if (currentCellIndex < primaryVertexContext.getCells()[layerIndex].size()) {
 
-    int trackletsToSum = __shfl_up(trackletCells, iOffset);
+    const int firstTrackletIndex =
+        primaryVertexContext.getCells()[layerIndex][currentCellIndex].getFirstTrackletIndex();
+    const int offset = atomicAdd(&primaryVertexContext.getCellsPerTrackletTable()[layerIndex - 1][firstTrackletIndex],
+        -1) - 1;
+    const int startIndex = primaryVertexContext.getCellsLookupTable()[layerIndex - 1][firstTrackletIndex];
 
-    if (laneIndex >= iOffset) {
-
-      trackletCells += trackletsToSum;
-    }
+    memcpy(&tempCellsArray[startIndex + offset], &primaryVertexContext.getCells()[layerIndex][currentCellIndex],
+        sizeof(CACell));
   }
-
-  computeLayerCells(primaryVertexContext, layerIndex, trackletCells, warpSize, false);
 }
 
 template<>
@@ -318,8 +306,9 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext)
     const int clustersNum { static_cast<int>(primaryVertexContext.getClusters()[iLayer].size()) };
     dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(clustersNum) };
     dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, clustersNum) };
+    const int sharedMemorySize { static_cast<int>(threadsPerBlock.x * sizeof(CACluster)) };
 
-    layerTrackletsKernel<<< blocksGrid, threadsPerBlock, threadsPerBlock.x * sizeof(CACluster), streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
+    layerTrackletsKernel<<< blocksGrid, threadsPerBlock, sharedMemorySize, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
         iLayer);
 
     cudaError_t error = cudaGetLastError();
@@ -337,7 +326,7 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext)
   for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
     cudaStreamSynchronize(streamArray[iLayer + 1].get());
-    trackletsNum[iLayer] = *primaryVertexContext.getDeviceTracklets()[iLayer + 1].getSizeFromDevice();
+    trackletsNum[iLayer] = primaryVertexContext.getDeviceTracklets()[iLayer + 1].getSizeFromDevice();
 
     cub::DeviceScan::ExclusiveSum(static_cast<void *>(tempTableArray[iLayer].get()), tempSize[iLayer],
         primaryVertexContext.getDeviceTrackletsPerClustersTable()[iLayer].get(),
@@ -374,48 +363,95 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext)
 }
 
 template<>
-void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext, const int layerIndex)
+void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext)
 {
-  const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
-  const std::unique_ptr<int, void (*)(void *)> trackletsSize =
-      primaryVertexContext.getDeviceTracklets()[layerIndex].getSizeFromDevice();
+  std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1> tempTableArray;
+  std::array<size_t, CAConstants::ITS::CellsPerRoad - 1> tempSize;
+  std::array<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad - 1> tempCellsArray;
+  std::array<int, CAConstants::ITS::CellsPerRoad - 1> trackletsNum;
+  std::array<int, CAConstants::ITS::CellsPerRoad - 1> cellsNum;
+  std::array<CAGPUStream, CAConstants::ITS::CellsPerRoad> streamArray;
 
-  dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(*trackletsSize) };
-  dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, *trackletsSize) };
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad - 1; ++iLayer) {
 
-  CAGPUStream stream { };
+    tempSize[iLayer] = 0;
+    trackletsNum[iLayer] = primaryVertexContext.getDeviceTracklets()[iLayer + 1].getSizeFromDevice();
+    const int cellsNum { static_cast<int>(primaryVertexContext.getDeviceCells()[iLayer + 1].capacity()) };
+    tempCellsArray[iLayer] = CAGPUVector<CACell> { cellsNum };
 
-  layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, stream.get() >>>(primaryVertexContext.getDeviceContext(),
-      layerIndex, deviceProperties.warpSize);
+    cub::DeviceScan::ExclusiveSum(static_cast<void *>(NULL), tempSize[iLayer],
+        primaryVertexContext.getDeviceCellsPerTrackletTable()[iLayer].get(),
+        primaryVertexContext.getDeviceCellsLookupTable()[iLayer].get(), trackletsNum[iLayer]);
 
-  cudaError_t error = cudaGetLastError();
-
-  if (error != cudaSuccess) {
-
-    std::ostringstream errorString { };
-    errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")" << std::endl;
-
-    throw std::runtime_error { errorString.str() };
+    tempTableArray[iLayer] = CAGPUVector<int> { static_cast<int>(tempSize[iLayer]) };
   }
-}
-
-template<>
-void CATrackerTraits<true>::postProcessCells(Context& primaryVertexContext)
-{
-  cudaDeviceSynchronize();
 
   for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
-    const std::unique_ptr<int, void (*)(void *)> cellsSize =
-        primaryVertexContext.getDeviceCells()[iLayer].getSizeFromDevice();
-    primaryVertexContext.getDeviceCells()[iLayer].copyIntoVector(primaryVertexContext.getCells()[iLayer], *cellsSize);
+    const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
+    const int trackletsSize = primaryVertexContext.getDeviceTracklets()[iLayer].getSizeFromDevice();
+    dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(trackletsSize) };
+    dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, trackletsSize) };
 
-    if (iLayer < CAConstants::ITS::CellsPerRoad - 1) {
+    layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
+        iLayer);
 
-      const std::unique_ptr<int, void (*)(void *)> cellsLookupTableSize =
-          primaryVertexContext.getDeviceCellsLookupTable()[iLayer].getSizeFromDevice();
-      primaryVertexContext.getDeviceCellsLookupTable()[iLayer].copyIntoVector(
-          primaryVertexContext.getCellsLookupTable()[iLayer], *cellsLookupTableSize);
+    cudaError_t error = cudaGetLastError();
+
+    if (error != cudaSuccess) {
+
+      std::ostringstream errorString { };
+      errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")"
+          << std::endl;
+
+      throw std::runtime_error { errorString.str() };
+    }
+  }
+
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad - 1; ++iLayer) {
+
+    cudaStreamSynchronize(streamArray[iLayer + 1].get());
+
+    cellsNum[iLayer] = primaryVertexContext.getDeviceCells()[iLayer + 1].getSizeFromDevice();
+
+    cub::DeviceScan::ExclusiveSum(static_cast<void *>(tempTableArray[iLayer].get()), tempSize[iLayer],
+        primaryVertexContext.getDeviceCellsPerTrackletTable()[iLayer].get(),
+        primaryVertexContext.getDeviceCellsLookupTable()[iLayer].get(), trackletsNum[iLayer],
+        streamArray[iLayer + 1].get());
+
+    dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(trackletsNum[iLayer]) };
+    dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, trackletsNum[iLayer]) };
+
+    sortCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer + 1].get() >>>(primaryVertexContext.getDeviceContext(),
+        iLayer + 1, tempCellsArray[iLayer].get());
+
+    cudaError_t error = cudaGetLastError();
+
+    if (error != cudaSuccess) {
+
+      std::ostringstream errorString { };
+      errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")"
+          << std::endl;
+
+      throw std::runtime_error { errorString.str() };
+    }
+  }
+
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
+
+    cudaStreamSynchronize(streamArray[iLayer].get());
+
+    if (iLayer == 0) {
+
+      const int cellsSize = primaryVertexContext.getDeviceCells()[iLayer].getSizeFromDevice();
+      primaryVertexContext.getDeviceCells()[iLayer].copyIntoVector(primaryVertexContext.getCells()[iLayer], cellsSize);
+
+    } else {
+
+      tempCellsArray[iLayer - 1].copyIntoVector(primaryVertexContext.getCells()[iLayer], cellsNum[iLayer - 1]);
+
+      primaryVertexContext.getDeviceCellsLookupTable()[iLayer - 1].copyIntoVector(
+          primaryVertexContext.getCellsLookupTable()[iLayer - 1], trackletsNum[iLayer - 1]);
     }
   }
 }
