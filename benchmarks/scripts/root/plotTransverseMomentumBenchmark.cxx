@@ -77,12 +77,16 @@ void plotHistogramsRatio(TH1F& numeratorHistogram, TH1F& denominatorHistogram,
   graphCanvas.SetGrid();
   graphCanvas.SetLogx();
 
+  gStyle->SetOptStat(1100);
+
   TH1F histogramsRatio("plot-transverse-momentum-benchmark.histograms-ratio", histogramTitle, BinNumber,
       binsEdges.data());
 
-  histogramsRatio.GetXaxis()->SetTitle("Transverse momentum P_{T} (Gev/c)");
+  histogramsRatio.GetXaxis()->SetTitle("Transverse momentum #rho_{T} (Gev/c)");
   histogramsRatio.GetXaxis()->SetTitleOffset(1.4);
   histogramsRatio.GetYaxis()->SetTitle(yAxisTitle);
+  histogramsRatio.SetFillColorAlpha(kBlue, .2);
+
   histogramsRatio.Divide(&numeratorHistogram, &denominatorHistogram);
   histogramsRatio.Draw();
 
@@ -130,7 +134,7 @@ void plotTransverseMomentumBenchmark(const std::string& inputFolder, const std::
   duplicatedAndCorrectHistogram.Add(&correctHistogram, &duplicatedHistogram);
 
   plotHistogramsRatio(duplicatedHistogram, duplicatedAndCorrectHistogram, binsEdges,
-      outputFolder + "DuplicatedToCorrectRoadsBenchmark.pdf", "Duplicated To Correct Roads Histogram", "Duplicated to correct ratio");
+      outputFolder + "DuplicatedToNotFakeRoadsBenchmark.pdf", "Duplicated To Not Fake Roads Histogram", "Duplicated to not fake ratio");
 }
 
 int main(int argc, char** argv)

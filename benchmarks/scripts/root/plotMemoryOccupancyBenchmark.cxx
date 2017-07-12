@@ -89,7 +89,7 @@ void plotHistogram(TH1F& histogram, const std::string& outputFileName)
   graphCanvas.SetGrid();
   graphCanvas.SetBottomMargin(0.15);
 
-  gStyle->SetOptStat(1100);
+  gStyle->SetOptStat(1110);
 
   histogram.Draw();
   graphCanvas.Update();
@@ -111,7 +111,7 @@ void plotHistogramWithoutMean(TH1F& histogram, const std::string& outputFileName
   graphCanvas.SetLeftMargin(0.15);
   graphCanvas.SetBottomMargin(0.12);
 
-  gStyle->SetOptStat(1100);
+  gStyle->SetOptStat(1110);
 
   histogram.Draw();
 
