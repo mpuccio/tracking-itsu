@@ -33,25 +33,6 @@
 #include "CAPrimaryVertexContext.h"
 #include "CATracklet.h"
 
-namespace {
-
-void evaluateTask(void (CATracker::*task)(CAPrimaryVertexContext&), CATracker* tracker, const char *taskName,
-    CAPrimaryVertexContext& primaryVertexContext)
-{
-
-  clock_t t1, t2;
-  float diff;
-
-  t1 = clock();
-
-  (tracker->*task)(primaryVertexContext);
-
-  t2 = clock();
-  diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
-  std::cout << std::setw(2) << " - " << taskName << " completed in: " << diff << "ms" << std::endl;
-}
-}
-
 CATracker::CATracker(const CAEvent& event)
     : mEvent(event), mUsedClustersTable(event.getTotalClusters(), CAConstants::ITS::UnusedIndex)
 {
@@ -95,11 +76,11 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracksVerbose()
 
     CAPrimaryVertexContext primaryVertexContext { mEvent, iVertex };
 
-    evaluateTask(&CATracker::computeTracklets, this, "Tracklets Finding", primaryVertexContext);
-    evaluateTask(&CATracker::computeCells, this, "Cells Finding", primaryVertexContext);
-    evaluateTask(&CATracker::findCellsNeighbours, this, "Neighbours Finding", primaryVertexContext);
-    evaluateTask(&CATracker::findTracks, this, "Tracks Finding", primaryVertexContext);
-    evaluateTask(&CATracker::computeMontecarloLabels, this, "Computing Montecarlo Labels", primaryVertexContext);
+    evaluateTask(&CATracker::computeTracklets, "Tracklets Finding", primaryVertexContext);
+    evaluateTask(&CATracker::computeCells, "Cells Finding", primaryVertexContext);
+    evaluateTask(&CATracker::findCellsNeighbours, "Neighbours Finding", primaryVertexContext);
+    evaluateTask(&CATracker::findTracks, "Tracks Finding", primaryVertexContext);
+    evaluateTask(&CATracker::computeMontecarloLabels, "Computing Montecarlo Labels", primaryVertexContext);
 
     t2 = clock();
     diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
@@ -169,6 +150,38 @@ std::vector<std::vector<CARoad>> CATracker::clustersToTracksMemoryBenchmark(std:
     roads.emplace_back(primaryVertexContext.roads);
 
     memoryBenchmarkOutputStream << primaryVertexContext.roads.size() << std::endl;
+  }
+
+  return roads;
+}
+
+std::vector<std::vector<CARoad>> CATracker::clustersToTracksTimeBenchmark(
+    std::ofstream& timeBenchmarkOutputStream)
+{
+  const int verticesNum = mEvent.getPrimaryVerticesNum();
+  std::vector<std::vector<CARoad>> roads;
+  roads.reserve(verticesNum);
+
+  for (int iVertex = 0; iVertex < verticesNum; ++iVertex) {
+
+    clock_t t1, t2;
+    float diff;
+
+    t1 = clock();
+
+    CAPrimaryVertexContext primaryVertexContext { mEvent, iVertex };
+
+    evaluateTask(&CATracker::computeTracklets, nullptr, primaryVertexContext, timeBenchmarkOutputStream);
+    evaluateTask(&CATracker::computeCells, nullptr, primaryVertexContext, timeBenchmarkOutputStream);
+    evaluateTask(&CATracker::findCellsNeighbours, nullptr, primaryVertexContext, timeBenchmarkOutputStream);
+    evaluateTask(&CATracker::findTracks, nullptr, primaryVertexContext, timeBenchmarkOutputStream);
+    evaluateTask(&CATracker::computeMontecarloLabels, nullptr, primaryVertexContext, timeBenchmarkOutputStream);
+
+    t2 = clock();
+    diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
+    timeBenchmarkOutputStream << diff << std::endl;
+
+    roads.emplace_back(primaryVertexContext.roads);
   }
 
   return roads;
@@ -627,5 +640,34 @@ void CATracker::computeMontecarloLabels(CAPrimaryVertexContext& primaryVertexCon
 
     currentRoad.setLabel(maxOccurrencesValue);
     currentRoad.setFakeRoad(isFakeRoad);
+  }
+}
+
+void CATracker::evaluateTask(void (CATracker::*task)(CAPrimaryVertexContext&), const char *taskName,
+    CAPrimaryVertexContext& primaryVertexContext)
+{
+  evaluateTask(task, taskName, primaryVertexContext, std::cout);
+}
+
+void CATracker::evaluateTask(void (CATracker::*task)(CAPrimaryVertexContext&), const char *taskName,
+    CAPrimaryVertexContext& primaryVertexContext, std::ostream& ostream)
+{
+  clock_t t1, t2;
+  float diff;
+
+  t1 = clock();
+
+  (this->*task)(primaryVertexContext);
+
+  t2 = clock();
+  diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
+
+  if (taskName == nullptr) {
+
+    ostream << diff << "\t";
+
+  } else {
+
+    ostream << std::setw(2) << " - " << taskName << " completed in: " << diff << "ms" << std::endl;
   }
 }

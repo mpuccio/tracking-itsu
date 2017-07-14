@@ -58,6 +58,9 @@ int main(int argc, char** argv)
 #if defined MEMORY_BENCHMARK
   std::ofstream memoryBenchmarkOutputStream;
   memoryBenchmarkOutputStream.open(benchmarkFolderName + "MemoryOccupancy.txt");
+#elif defined TIME_BENCHMARK
+  std::ofstream timeBenchmarkOutputStream;
+  timeBenchmarkOutputStream.open(benchmarkFolderName + "TimeOccupancy.txt");
 #endif
 
   for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
@@ -76,6 +79,8 @@ int main(int argc, char** argv)
     std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
 #elif defined DEBUG
     std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksVerbose();
+#elif defined TIME_BENCHMARK
+    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksTimeBenchmark(timeBenchmarkOutputStream);
 #else
     std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
 #endif

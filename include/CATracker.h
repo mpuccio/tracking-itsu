@@ -38,6 +38,7 @@ class CATracker final
     std::vector<std::vector<CARoad>> clustersToTracks();
     std::vector<std::vector<CARoad>> clustersToTracksVerbose();
     std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark(std::ofstream&);
+    std::vector<std::vector<CARoad>> clustersToTracksTimeBenchmark(std::ofstream&);
 
   protected:
     void computeTracklets(CAPrimaryVertexContext&);
@@ -48,6 +49,9 @@ class CATracker final
     void computeMontecarloLabels(CAPrimaryVertexContext&);
 
   private:
+    void evaluateTask(void (CATracker::*)(CAPrimaryVertexContext&), const char*, CAPrimaryVertexContext&);
+    void evaluateTask(void (CATracker::*)(CAPrimaryVertexContext&), const char*, CAPrimaryVertexContext&, std::ostream&);
+
     const CAEvent& mEvent;
     std::vector<int> mUsedClustersTable;
 };
