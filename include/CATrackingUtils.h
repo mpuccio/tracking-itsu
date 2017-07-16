@@ -25,7 +25,6 @@
 namespace TRACKINGITSU_TARGET_NAMESPACE {
 namespace CATrackingUtils {
 GPU_HOST_DEVICE constexpr int4 getEmptyBinsRect() { return int4{ 0, 0, 0, 0 }; }
-GPU_DEVICE bool isValidTracklet(const CACluster&, const CACluster&, const float, const float);
 GPU_DEVICE const int4 getBinsRect(const CACluster&, const int, const float);
 }
 }

@@ -30,15 +30,14 @@ struct CACluster
       CACluster(const int, const int, const float, const float, const float, const float, const int);
       CACluster(const int, const float3&, const CACluster&);
 
-      int clusterId;
-      int layerIndex;
       float xCoordinate;
       float yCoordinate;
       float zCoordinate;
-      float alphaAngle;
-      int monteCarloId;
       float phiCoordinate;
       float rCoordinate;
+      int clusterId;
+      float alphaAngle;
+      int monteCarloId;
       int indexTableBinIndex;
   };
 }

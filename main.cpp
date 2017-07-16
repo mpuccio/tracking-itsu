@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 #elif defined TIME_BENCHMARK
       std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksTimeBenchmark(timeBenchmarkOutputStream);
 #else
-      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
+      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracks();
 #endif
 
 #if defined HAVE_VALGRIND

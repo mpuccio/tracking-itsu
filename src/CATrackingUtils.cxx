@@ -25,18 +25,6 @@
 #include "CAMathUtils.h"
 
 namespace TRACKINGITSU_TARGET_NAMESPACE {
-GPU_DEVICE bool CATrackingUtils::isValidTracklet(const CACluster &firstLayerCluster,
-    const CACluster &secondLayerCluster, const float tanLambda, const float directionZIntersection)
-{
-  const float deltaZ { MATH_ABS(
-      tanLambda * (secondLayerCluster.rCoordinate - firstLayerCluster.rCoordinate) + firstLayerCluster.zCoordinate
-          - secondLayerCluster.zCoordinate) };
-  const float deltaPhi { MATH_ABS(firstLayerCluster.phiCoordinate - secondLayerCluster.phiCoordinate) };
-
-  return deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold()[firstLayerCluster.layerIndex]
-      && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut
-          || MATH_ABS(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut);
-}
 
 GPU_DEVICE const int4 CATrackingUtils::getBinsRect(const CACluster& currentCluster, const int layerIndex,
     const float directionZIntersection)

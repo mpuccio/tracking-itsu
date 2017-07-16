@@ -24,19 +24,18 @@
 namespace TRACKINGITSU_TARGET_NAMESPACE {
 CACluster::CACluster(const int clusterId, const int layerIndex, const float xCoordinate, const float yCoordinate,
     const float zCoordinate, const float alphaAngle, const int monteCarloId)
-    : clusterId { clusterId }, layerIndex { layerIndex }, xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate {
-        zCoordinate }, alphaAngle { alphaAngle }, monteCarloId { monteCarloId }, phiCoordinate { 0 }, rCoordinate { 0 }, indexTableBinIndex {
-        0 }
+    : xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate { 0 }, rCoordinate {
+        0 }, clusterId { clusterId }, alphaAngle { alphaAngle }, monteCarloId { monteCarloId }, indexTableBinIndex { 0 }
 {
   // Nothing to do
 }
 
 CACluster::CACluster(const int layerIndex, const float3 &primaryVertex, const CACluster& other)
-    : clusterId { other.clusterId }, layerIndex { other.layerIndex }, xCoordinate { other.xCoordinate }, yCoordinate {
-        other.yCoordinate }, zCoordinate { other.zCoordinate }, alphaAngle { other.alphaAngle }, monteCarloId {
-        other.monteCarloId }, phiCoordinate { CAMathUtils::getNormalizedPhiCoordinate(
-        CAMathUtils::calculatePhiCoordinate(xCoordinate - primaryVertex.x, yCoordinate - primaryVertex.y)) }, rCoordinate {
-        CAMathUtils::calculateRCoordinate(xCoordinate - primaryVertex.x, yCoordinate - primaryVertex.y) }, indexTableBinIndex {
+    : xCoordinate { other.xCoordinate }, yCoordinate { other.yCoordinate }, zCoordinate { other.zCoordinate }, phiCoordinate {
+        CAMathUtils::getNormalizedPhiCoordinate(
+            CAMathUtils::calculatePhiCoordinate(xCoordinate - primaryVertex.x, yCoordinate - primaryVertex.y)) }, rCoordinate {
+        CAMathUtils::calculateRCoordinate(xCoordinate - primaryVertex.x, yCoordinate - primaryVertex.y) }, clusterId {
+        other.clusterId }, alphaAngle { other.alphaAngle }, monteCarloId { other.monteCarloId }, indexTableBinIndex {
         CAIndexTableUtils::getBinIndex(CAIndexTableUtils::getZBinIndex(layerIndex, zCoordinate),
             CAIndexTableUtils::getPhiBinIndex(phiCoordinate)) }
 {

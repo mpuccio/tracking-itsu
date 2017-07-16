@@ -96,7 +96,14 @@ void CATrackerTraits<false>::computeLayerTracklets(Context& primaryVertexContext
 
           const CACluster& nextCluster { primaryVertexContext.getClusters()[iLayer + 1][iNextLayerCluster] };
 
-          if (CATrackingUtils::isValidTracklet(currentCluster, nextCluster, tanLambda, directionZIntersection)) {
+          const float deltaZ { MATH_ABS(
+              tanLambda * (nextCluster.rCoordinate - currentCluster.rCoordinate) + currentCluster.zCoordinate
+                  - nextCluster.zCoordinate) };
+          const float deltaPhi { MATH_ABS(currentCluster.phiCoordinate - nextCluster.phiCoordinate) };
+
+          if (deltaZ < CAConstants::Thresholds::TrackletMaxDeltaZThreshold()[iLayer]
+              && (deltaPhi < CAConstants::Thresholds::PhiCoordinateCut
+                  || MATH_ABS(deltaPhi - CAConstants::Math::TwoPi) < CAConstants::Thresholds::PhiCoordinateCut)) {
 
             if (iLayer > 0
                 && primaryVertexContext.getTrackletsLookupTable()[iLayer - 1][iCluster]

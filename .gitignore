@@ -47,4 +47,4 @@ TimeBenchmark
 benchmarks/benchmark_data
 benchmarks/transverse_momentum
 benchmarks/memory_occupancy
-benchmarks/computing_time
+benchmarks/time_benchmark
