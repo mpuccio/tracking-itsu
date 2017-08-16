@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "CADefinitions.h"
+#include "CAGPUStream.h"
 #include "CAGPUUtils.h"
 
 template<typename T>
@@ -49,8 +50,12 @@ class CAGPUVector
       void resize(const int);
       void copyIntoVector(std::vector<T>&, const int);
 
-      GPU_HOST_DEVICE T* get() const;GPU_HOST_DEVICE int capacity() const;GPU_HOST_DEVICE CAGPUVector<T> getWeakCopy() const;GPU_DEVICE T& operator[](
-          const int) const;GPU_DEVICE int size() const;GPU_DEVICE int extend(const int) const;
+      GPU_HOST_DEVICE T* get() const;
+      GPU_HOST_DEVICE int capacity() const;
+      GPU_HOST_DEVICE CAGPUVector<T> getWeakCopy() const;
+      GPU_DEVICE T& operator[](const int) const;
+      GPU_DEVICE int size() const;
+      GPU_DEVICE int extend(const int) const;
 
       template<typename ...Args>
       GPU_DEVICE void emplace(const int, Args&&...);

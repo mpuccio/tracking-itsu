@@ -20,12 +20,14 @@
 #define TRACKINGITSU_INCLUDE_GPU_CAGPUUTILS_H_
 
 #include "CADefinitions.h"
+#include "CAGPUStream.h"
 
 namespace CAGPUUtils {
 
 namespace Host {
 dim3 getBlockSize(const int);
 dim3 getBlockSize(const int, const int);
+dim3 getBlockSize(const int, const int, const int);
 dim3 getBlocksGrid(const dim3&, const int);
 dim3 getBlocksGrid(const dim3&, const int, const int);
 
@@ -33,6 +35,7 @@ void gpuMalloc(void**, const int);
 void gpuFree(void*);
 void gpuMemset(void *, int, int);
 void gpuMemcpyHostToDevice(void *, const void *, int);
+void gpuMemcpyHostToDeviceAsync(void *, const void *, int, CAGPUStream&);
 void gpuMemcpyDeviceToHost(void *, const void *, int);
 void gpuStartProfiler();
 void gpuStopProfiler();

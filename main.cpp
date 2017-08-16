@@ -75,7 +75,7 @@ int main(int argc, char** argv)
   CAGPUUtils::Host::gpuStartProfiler();
 #endif
 
-  for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
+  for (int iEvent = 0; iEvent < 1; ++iEvent) {
 
     CAEvent& currentEvent = events[iEvent];
     std::cout << "Processing event " << iEvent + 1 << std::endl;
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 #elif defined TIME_BENCHMARK
       std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksTimeBenchmark(timeBenchmarkOutputStream);
 #else
-      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracks();
+      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
 #endif
 
 #if defined HAVE_VALGRIND

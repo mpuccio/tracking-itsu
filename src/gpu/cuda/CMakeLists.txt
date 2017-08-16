@@ -5,7 +5,7 @@ include(FindCUDA)
 set(CUDA_ARCH -gencode arch=compute_52,code=sm_52 CACHE STRING "CUDA target architecture.")
 set(CUDA_HOST_COMPILER_FLAGS -fPIC CACHE STRING "CUDA -Xcompiler flags.")
 
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; ${CUDA_ARCH}; -std=c++11; --ptxas-options=-v;)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; ${CUDA_ARCH}; -std=c++11; --ptxas-options=-v,-dlcm=ca;)
 
 # Cannot use CUDA_NVCC_FLAGS_<CONFIG> due to issue 16411
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

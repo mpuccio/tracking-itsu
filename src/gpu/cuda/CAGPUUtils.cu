@@ -53,10 +53,16 @@ dim3 CAGPUUtils::Host::getBlockSize(const int colsNum)
 dim3 CAGPUUtils::Host::getBlockSize(const int colsNum, const int rowsNum)
 {
   const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
-  int xThreads = min(colsNum, deviceProperties.cudaCores / deviceProperties.maxBlocksPerSM);
-  int yThreads = min(rowsNum, deviceProperties.cudaCores / deviceProperties.maxBlocksPerSM);
-  const int totalThreads = min(CAMathUtils::roundUp(xThreads * yThreads, deviceProperties.warpSize),
-      deviceProperties.maxThreadsPerBlock);
+  return getBlockSize(colsNum, rowsNum, deviceProperties.cudaCores / deviceProperties.maxBlocksPerSM);
+}
+
+dim3 CAGPUUtils::Host::getBlockSize(const int colsNum, const int rowsNum, const int maxThreadsPerBlock)
+{
+  const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
+  int xThreads = min(colsNum, deviceProperties.maxThreadsDim.x);
+  int yThreads = min(rowsNum, deviceProperties.maxThreadsDim.y);
+  const int totalThreads = CAMathUtils::roundUp(min(xThreads * yThreads, maxThreadsPerBlock),
+      deviceProperties.warpSize);
 
   if (xThreads > yThreads) {
 
@@ -72,12 +78,14 @@ dim3 CAGPUUtils::Host::getBlockSize(const int colsNum, const int rowsNum)
   return dim3 { static_cast<unsigned int>(xThreads), static_cast<unsigned int>(yThreads) };
 }
 
-dim3 CAGPUUtils::Host::getBlocksGrid(const dim3 &threadsPerBlock, const int rowsNum) {
+dim3 CAGPUUtils::Host::getBlocksGrid(const dim3 &threadsPerBlock, const int rowsNum)
+{
 
   return getBlocksGrid(threadsPerBlock, rowsNum, 1);
 }
 
-dim3 CAGPUUtils::Host::getBlocksGrid(const dim3 &threadsPerBlock, const int rowsNum, const int colsNum) {
+dim3 CAGPUUtils::Host::getBlocksGrid(const dim3 &threadsPerBlock, const int rowsNum, const int colsNum)
+{
 
   return dim3 { 1 + (rowsNum - 1) / threadsPerBlock.x, 1 + (colsNum - 1) / threadsPerBlock.y };
 }
@@ -100,6 +108,11 @@ void CAGPUUtils::Host::gpuMemset(void *p, int value, int size)
 void CAGPUUtils::Host::gpuMemcpyHostToDevice(void *dst, const void *src, int size)
 {
   checkCUDAError(cudaMemcpy(dst, src, size, cudaMemcpyHostToDevice), __FILE__, __LINE__);
+}
+
+void CAGPUUtils::Host::gpuMemcpyHostToDeviceAsync(void *dst, const void *src, int size, CAGPUStream &stream)
+{
+  checkCUDAError(cudaMemcpyAsync(dst, src, size, cudaMemcpyHostToDevice, stream.get()), __FILE__, __LINE__);
 }
 
 void CAGPUUtils::Host::gpuMemcpyDeviceToHost(void *dst, const void *src, int size)

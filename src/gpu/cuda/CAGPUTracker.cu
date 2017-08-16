@@ -39,7 +39,6 @@
 __device__ void computeLayerTracklets(CAGPUPrimaryVertexContext &primaryVertexContext, const int layerIndex,
     CAGPUVector<CATracklet>& trackletsVector)
 {
-  //extern __shared__ CACluster sharedClusters[];
   const int currentClusterIndex = static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x);
   int clusterTrackletsNum = 0;
 
@@ -312,7 +311,7 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext)
 
     const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
     const int clustersNum { static_cast<int>(primaryVertexContext.getClusters()[iLayer].size()) };
-    dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(clustersNum) };
+    dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(clustersNum, 1, 192) };
     dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, clustersNum) };
 
     if (iLayer == 0) {

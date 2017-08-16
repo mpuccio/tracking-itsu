@@ -84,7 +84,7 @@ __device__ void fillCellsPerClusterTables(CAGPUPrimaryVertexContext &primaryVert
   const int trackletsPerThread { 1 + (trackletsSize - 1) / totalThreadNum };
   const int firstTrackletIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) * trackletsPerThread };
 
-  if(firstTrackletIndex < trackletsSize) {
+  if (firstTrackletIndex < trackletsSize) {
 
     const int trackletsToSet { min(trackletsSize, firstTrackletIndex + trackletsPerThread) - firstTrackletIndex };
     memset(&primaryVertexContext.getCellsPerTrackletTable()[layerIndex][firstTrackletIndex], 0,
@@ -148,6 +148,8 @@ CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const
         CAPrimaryVertexContextInitializer::initCellsLookupTable(event) }, mGPUContext { mPrimaryVertex, mClusters,
         mCells, mCellsLookupTable }, mGPUContextDevicePointer { mGPUContext }
 {
+  std::array<CAGPUStream, CAConstants::ITS::LayersNumber> streamArray;
+
   for (int iLayer { 0 }; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
     const int nextLayerClustersNum = static_cast<int>(mClusters[iLayer + 1].size());
@@ -155,9 +157,7 @@ CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const
     dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(nextLayerClustersNum) };
     dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, nextLayerClustersNum) };
 
-    CAGPUStream stream { };
-
-    fillDeviceStructures<<< blocksGrid, threadsPerBlock, 0, stream.get() >>>(*mGPUContextDevicePointer, iLayer);
+    fillDeviceStructures<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(*mGPUContextDevicePointer, iLayer);
 
     cudaError_t error = cudaGetLastError();
 
@@ -170,8 +170,6 @@ CAPrimaryVertexContext<true>::CAPrimaryVertexContext(const CAEvent& event, const
       throw std::runtime_error { errorString.str() };
     }
   }
-
-  cudaDeviceSynchronize();
 }
 
 const float3& CAPrimaryVertexContext<true>::getPrimaryVertex()

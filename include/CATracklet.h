@@ -20,7 +20,6 @@
 #define TRACKINGITSU_INCLUDE_CATRACKLET_H_
 
 #include "CACluster.h"
-#include "CADefinitions.h"
 
 namespace TRACKINGITSU_TARGET_NAMESPACE {
 struct CATracklet

@@ -20,7 +20,6 @@
 #define TRAKINGITSU_INCLUDE_GPU_CAGPUARRAY_H_
 
 #include "CADefinitions.h"
-#include "CAGPUUtils.h"
 
 namespace {
 template<typename T, std::size_t Size>

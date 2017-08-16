@@ -19,8 +19,6 @@
 #ifndef TRACKINGITSU_INCLUDE_CACLUSTER_H_
 #define TRACKINGITSU_INCLUDE_CACLUSTER_H_
 
-#include <array>
-
 #include "CADefinitions.h"
 
 namespace TRACKINGITSU_TARGET_NAMESPACE {
