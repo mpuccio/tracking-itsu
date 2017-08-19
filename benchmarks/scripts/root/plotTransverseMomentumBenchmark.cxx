@@ -70,14 +70,26 @@ void loadData(const std::string& fileName, TH1F& histogram)
 }
 
 void plotHistogramsRatio(TH1F& numeratorHistogram, TH1F& denominatorHistogram,
-    std::array<float, BinNumber + 1>& binsEdges, const std::string& outputFileName, const char* histogramTitle)
+    std::array<float, BinNumber + 1>& binsEdges, const std::string& outputFileName, const char *histogramTitle,
+    const char *yAxisTitle)
 {
   TCanvas graphCanvas { };
   graphCanvas.SetGrid();
   graphCanvas.SetLogx();
+  graphCanvas.SetLeftMargin(0.15);
+  graphCanvas.SetBottomMargin(0.15);
+
+  gStyle->SetOptStat(1100);
 
   TH1F histogramsRatio("plot-transverse-momentum-benchmark.histograms-ratio", histogramTitle, BinNumber,
       binsEdges.data());
+
+  histogramsRatio.GetXaxis()->SetTitle("Transverse momentum #rho_{T} (Gev/c)");
+  histogramsRatio.GetXaxis()->SetTitleSize(0.05);
+  histogramsRatio.GetXaxis()->SetTitleOffset(1.4);
+  histogramsRatio.GetYaxis()->SetTitle(yAxisTitle);
+  histogramsRatio.GetYaxis()->SetTitleSize(0.05);
+  histogramsRatio.SetFillColorAlpha(kBlue, .2);
 
   histogramsRatio.Divide(&numeratorHistogram, &denominatorHistogram);
   histogramsRatio.Draw();
@@ -106,27 +118,27 @@ void plotTransverseMomentumBenchmark(const std::string& inputFolder, const std::
   loadData(inputFolder + "CorrectRoads.txt", correctHistogram);
 
   plotHistogramsRatio(correctHistogram, generatedHistogram, binsEdges, outputFolder + "CorrectRoadsBenchmark.pdf",
-      "Correct Roads Histogram");
+      "Correct Roads Histogram", "Efficiency");
 
-  TH1F duplicateHistogram((histogramPrefix + ".duplicate-histogram").c_str(), "Duplicate Histogram", BinNumber,
+  TH1F duplicatedHistogram((histogramPrefix + ".duplicate-histogram").c_str(), "Duplicate Histogram", BinNumber,
       binsEdges.data());
-  loadData(inputFolder + "DuplicateRoads.txt", duplicateHistogram);
+  loadData(inputFolder + "DuplicateRoads.txt", duplicatedHistogram);
 
-  plotHistogramsRatio(duplicateHistogram, generatedHistogram, binsEdges, outputFolder + "DuplicateRoadsBenchmark.pdf",
-      "Duplicate Roads Histogram");
+  plotHistogramsRatio(duplicatedHistogram, generatedHistogram, binsEdges, outputFolder + "DuplicatedRoadsBenchmark.pdf",
+      "Duplicated Roads Histogram", "Duplicated to generated ratio");
 
   TH1F fakeHistogram((histogramPrefix + ".fake-histogram").c_str(), "Fake Histogram", BinNumber, binsEdges.data());
   loadData(inputFolder + "FakeRoads.txt", fakeHistogram);
 
   plotHistogramsRatio(fakeHistogram, generatedHistogram, binsEdges, outputFolder + "FakeRoadsBenchmark.pdf",
-      "Fake Roads Histogram");
+      "Fake Roads Histogram", "Fake to generated ratio");
 
-  TH1F duplicateAndCorrectHistogram((histogramPrefix + ".duplicate-and-correct-histogram").c_str(),
+  TH1F duplicatedAndCorrectHistogram((histogramPrefix + ".duplicate-and-correct-histogram").c_str(),
       "Duplicate And Correct Histogram", BinNumber, binsEdges.data());
-  duplicateAndCorrectHistogram.Add(&correctHistogram, &duplicateHistogram);
+  duplicatedAndCorrectHistogram.Add(&correctHistogram, &duplicatedHistogram);
 
-  plotHistogramsRatio(duplicateHistogram, duplicateAndCorrectHistogram, binsEdges,
-      outputFolder + "DuplicateOverCorrectRoadsBenchmark.pdf", "Duplicate Over Correct Roads Histogram");
+  plotHistogramsRatio(duplicatedHistogram, duplicatedAndCorrectHistogram, binsEdges,
+      outputFolder + "DuplicatedToNotFakeRoadsBenchmark.pdf", "Duplicated To Not Fake Roads Histogram", "Duplicated to not fake ratio");
 }
 
 int main(int argc, char** argv)

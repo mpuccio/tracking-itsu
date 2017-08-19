@@ -54,6 +54,8 @@ void plotMultiGraph(const std::string& outputFileName, const std::string& graphT
 {
   TCanvas graphCanvas { };
   graphCanvas.SetGrid();
+  graphCanvas.SetLeftMargin(0.15);
+  graphCanvas.SetBottomMargin(0.15);
 
   TMultiGraph multiGraph { };
   multiGraph.SetTitle(graphTitle.c_str());
@@ -81,7 +83,9 @@ void plotMultiGraph(const std::string& outputFileName, const std::string& graphT
 
   multiGraph.Draw("ACP");
   multiGraph.GetXaxis()->SetTitle("#Vertices");
+  multiGraph.GetXaxis()->SetTitleSize(0.05);
   multiGraph.GetYaxis()->SetTitle("Computing time (ms)");
+  multiGraph.GetYaxis()->SetTitleSize(0.05);
   multiGraph.GetYaxis()->SetTitleOffset(1.5);
 
   graphCanvas.BuildLegend(0.1, 0.7, 0.3, 0.9);
