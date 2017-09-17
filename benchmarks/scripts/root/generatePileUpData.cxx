@@ -20,8 +20,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
+#include <array>
+#include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
+#include <vector>
 
 namespace {
 constexpr int MonteCarloOffset { 100000 };

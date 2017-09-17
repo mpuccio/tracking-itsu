@@ -23,7 +23,7 @@
 CAEvent::CAEvent(const int eventId)
     : mEventId { eventId }
 {
-  for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
     mLayers[iLayer] = CALayer(iLayer);
   }
@@ -31,18 +31,18 @@ CAEvent::CAEvent(const int eventId)
 
 void CAEvent::addPrimaryVertex(const float xCoordinate, const float yCoordinate, const float zCoordinate)
 {
-  mPrimaryVertices.emplace_back(std::array<float, 3> { { xCoordinate, yCoordinate, zCoordinate } });
+  mPrimaryVertices.emplace_back(float3 { xCoordinate, yCoordinate, zCoordinate });
 }
 
 void CAEvent::printPrimaryVertices() const
 {
-  const int verticesNum = mPrimaryVertices.size();
+  const int verticesNum { static_cast<int>(mPrimaryVertices.size()) };
 
-  for (int iVertex = 0; iVertex < verticesNum; ++iVertex) {
+  for (int iVertex { 0 }; iVertex < verticesNum; ++iVertex) {
 
-    const std::array<float, 3>& currentVertex = mPrimaryVertices[iVertex];
+    const float3& currentVertex { mPrimaryVertices[iVertex] };
 
-    std::cout << "-1\t" << currentVertex[0] << "\t" << currentVertex[1] << "\t" << currentVertex[2] << std::endl;
+    std::cout << "-1\t" << currentVertex.x << "\t" << currentVertex.y << "\t" << currentVertex.z << std::endl;
   }
 }
 
@@ -52,11 +52,11 @@ void CAEvent::pushClusterToLayer(const int layerIndex, const int clusterId, cons
   mLayers[layerIndex].addCluster(clusterId, xCoordinate, yCoordinate, zCoordinate, aplhaAngle, monteCarlo);
 }
 
-const int CAEvent::getTotalClusters() const
+int CAEvent::getTotalClusters() const
 {
-  int totalClusters = 0;
+  int totalClusters { 0 };
 
-  for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
     totalClusters += mLayers[iLayer].getClustersSize();
   }

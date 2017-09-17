@@ -4,12 +4,17 @@
 #include <fstream>
 #include <vector>
 
-#if defined HAVE_VALGRIND
-#include <valgrind/callgrind.h>
-#endif
-
+#include "CADefinitions.h"
 #include "CAIOUtils.h"
 #include "CATracker.h"
+
+#if defined HAVE_VALGRIND
+# include <valgrind/callgrind.h>
+#endif
+
+#if TRACKINGITSU_GPU_MODE
+# include "CAGPUUtils.h"
+#endif
 
 std::string getDirectory(const std::string& fname)
 {
@@ -63,7 +68,15 @@ int main(int argc, char** argv)
   timeBenchmarkOutputStream.open(benchmarkFolderName + "TimeOccupancy.txt");
 #endif
 
-  for (int iEvent = 0; iEvent < eventsNum; ++iEvent) {
+  // Prevent cold cache benchmark noise
+  CATracker<TRACKINGITSU_GPU_MODE> tracker{};
+  tracker.clustersToTracks(events[0]);
+
+#if defined GPU_PROFILING_MODE
+  CAGPUUtils::Host::gpuStartProfiler();
+#endif
+
+  for (int iEvent = 0; iEvent < events.size(); ++iEvent) {
 
     CAEvent& currentEvent = events[iEvent];
     std::cout << "Processing event " << iEvent + 1 << std::endl;
@@ -75,38 +88,60 @@ int main(int argc, char** argv)
     CALLGRIND_TOGGLE_COLLECT;
 #endif
 
-#if defined MEMORY_BENCHMARK
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
-#elif defined DEBUG
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksVerbose();
+    try {
+#if defined(MEMORY_BENCHMARK)
+      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracksMemoryBenchmark(currentEvent, memoryBenchmarkOutputStream);
+#elif defined(DEBUG)
+      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracksVerbose(currentEvent);
 #elif defined TIME_BENCHMARK
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracksTimeBenchmark(timeBenchmarkOutputStream);
+      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracksTimeBenchmark(currentEvent, timeBenchmarkOutputStream);
 #else
-    std::vector<std::vector<CARoad>> roads = CATracker(currentEvent).clustersToTracks();
+      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracks(currentEvent);
 #endif
 
 #if defined HAVE_VALGRIND
-    CALLGRIND_TOGGLE_COLLECT;
+      CALLGRIND_TOGGLE_COLLECT;
 #endif
 
-    t2 = clock();
-    const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
+      t2 = clock();
+      const float diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
 
-    totalTime += diff;
+      totalTime += diff;
 
-    if (minTime > diff)
-      minTime = diff;
-    if (maxTime < diff)
-      maxTime = diff;
+      if (minTime > diff)
+        minTime = diff;
+      if (maxTime < diff)
+        maxTime = diff;
 
-    std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl << std::endl;
+      for(int iVertex = 0; iVertex < currentEvent.getPrimaryVerticesNum(); ++iVertex) {
 
-    if (createBenchmarkData) {
+        std::cout << "Found " << roads[iVertex].size() << " roads for vertex " << iVertex + 1 << std::endl;
+      }
 
-      CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
-          labelsMap[iEvent]);
+      std::cout << "Event " << iEvent + 1 << " processed in: " << diff << "ms" << std::endl;
+
+      if(currentEvent.getPrimaryVerticesNum() > 1) {
+
+        std::cout << "Vertex processing mean time: " << diff / currentEvent.getPrimaryVerticesNum() << "ms" << std::endl;
+      }
+
+      std::cout << std::endl;
+
+      if (createBenchmarkData) {
+
+        CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
+            labelsMap[iEvent]);
+      }
+
+    } catch (std::exception& e) {
+
+      std::cout << e.what() << std::endl;
     }
   }
+
+#if defined GPU_PROFILING_MODE
+  CAGPUUtils::Host::gpuStopProfiler();
+#endif
 
   std::cout << std::endl;
   std::cout << "Avg time: " << totalTime / verticesNum << "ms" << std::endl;

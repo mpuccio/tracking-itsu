@@ -19,41 +19,61 @@
 #ifndef TRACKINGITSU_INCLUDE_CATRACKER_H_
 #define TRACKINGITSU_INCLUDE_CATRACKER_H_
 
+#include <array>
+#include <cmath>
+#include <ctime>
+#include <fstream>
+#include <iomanip>
 #include <iostream>
-#include <vector>
+#include <memory>
 
+#include "CADefinitions.h"
+#include "CAEvent.h"
+#include "CAMathUtils.h"
+#include "CAPrimaryVertexContext.h"
 #include "CARoad.h"
 
-class CAEvent;
-struct CAPrimaryVertexContext;
-
-class CATracker final
+template<bool IsGPU>
+class CATrackerTraits
 {
   public:
-    explicit CATracker(const CAEvent&);
+    void computeLayerTracklets(CAPrimaryVertexContext&);
+    void computeLayerCells(CAPrimaryVertexContext&);
+
+  protected:
+    ~CATrackerTraits() = default;
+};
+
+template<bool IsGPU>
+class CATracker: private CATrackerTraits<IsGPU>
+{
+  private:
+    typedef CATrackerTraits<IsGPU> TrackerTraits;
+
+  public:
+    CATracker();
 
     CATracker(const CATracker&) = delete;
     CATracker &operator=(const CATracker&) = delete;
 
-    std::vector<std::vector<CARoad>> clustersToTracks();
-    std::vector<std::vector<CARoad>> clustersToTracksVerbose();
-    std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark(std::ofstream&);
-    std::vector<std::vector<CARoad>> clustersToTracksTimeBenchmark(std::ofstream&);
+    std::vector<std::vector<CARoad>> clustersToTracks(const CAEvent&);
+    std::vector<std::vector<CARoad>> clustersToTracksVerbose(const CAEvent&);
+    std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark(const CAEvent&, std::ofstream&);
+    std::vector<std::vector<CARoad>> clustersToTracksTimeBenchmark(const CAEvent&, std::ofstream&);
 
   protected:
-    void computeTracklets(CAPrimaryVertexContext&);
-    void computeCells(CAPrimaryVertexContext&);
-    void findCellsNeighbours(CAPrimaryVertexContext&);
-    void findTracks(CAPrimaryVertexContext&);
-    void traverseCellsTree(CAPrimaryVertexContext&, const int, const int);
-    void computeMontecarloLabels(CAPrimaryVertexContext&);
+    void computeTracklets();
+    void computeCells();
+    void findCellsNeighbours();
+    void findTracks();
+    void traverseCellsTree(const int, const int);
+    void computeMontecarloLabels();
 
   private:
-    void evaluateTask(void (CATracker::*)(CAPrimaryVertexContext&), const char*, CAPrimaryVertexContext&);
-    void evaluateTask(void (CATracker::*)(CAPrimaryVertexContext&), const char*, CAPrimaryVertexContext&, std::ostream&);
+    void evaluateTask(void (CATracker<IsGPU>::*)(void), const char*);
+    void evaluateTask(void (CATracker<IsGPU>::*)(void), const char*, std::ostream&);
 
-    const CAEvent& mEvent;
-    std::vector<int> mUsedClustersTable;
+    CAPrimaryVertexContext mPrimaryVertexContext;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */

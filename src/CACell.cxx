@@ -18,39 +18,12 @@
 
 #include "CACell.h"
 
-CACell::CACell(const int firstClusterIndex, const int secondClusterIndex, const int thirdClusterIndex,
-    const int firstTrackletIndex, const int secondTrackletIndex, const std::array<float, 3>& normalVectorCoordinates,
+GPU_DEVICE CACell::CACell(const int firstClusterIndex, const int secondClusterIndex, const int thirdClusterIndex,
+    const int firstTrackletIndex, const int secondTrackletIndex, const float3& normalVectorCoordinates,
     const float curvature)
     : mFirstClusterIndex { firstClusterIndex }, mSecondClusterIndex { secondClusterIndex }, mThirdClusterIndex {
         thirdClusterIndex }, mFirstTrackletIndex(firstTrackletIndex), mSecondTrackletIndex(secondTrackletIndex), mNormalVectorCoordinates(
         normalVectorCoordinates), mCurvature { curvature }, mLevel { 1 }
 {
   // Nothing to do
-}
-
-void CACell::setLevel(const int level)
-{
-  mLevel = level;
-}
-
-bool CACell::combineCells(const CACell& otherCell, int otherCellId)
-{
-  if (mSecondClusterIndex == otherCell.getThirdClusterIndex()
-      && mFirstClusterIndex == otherCell.getSecondClusterIndex()) {
-
-    mNeighbours.push_back(otherCellId);
-
-    int otherCellLevel = otherCell.getLevel();
-
-    if (otherCellLevel >= mLevel) {
-
-      setLevel(otherCellLevel + 1);
-    }
-
-    return true;
-
-  } else {
-
-    return false;
-  }
 }

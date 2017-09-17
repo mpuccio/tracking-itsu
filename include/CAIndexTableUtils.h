@@ -19,42 +19,56 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
-#ifndef TRACKINGITSU_CAINDEXTABLEUTILS_H_
-#define TRACKINGITSU_CAINDEXTABLEUTILS_H_
+#ifndef TRACKINGITSU_INCLUDE_CAINDEXTABLEUTILS_H_
+#define TRACKINGITSU_INCLUDE_CAINDEXTABLEUTILS_H_
+
+#include <array>
+#include <utility>
+#include <vector>
 
 #include "CAConstants.h"
+#include "CADefinitions.h"
 
 namespace CAIndexTableUtils {
-constexpr float getInverseZBinSize(const int);
-constexpr int getZBinIndex(const float, const float);
-constexpr int getPhiBinIndex(const float);
-constexpr int getBinIndex(const int, const int);
-}
-;
-
-constexpr float getInverseZCoordinate(const int layerIndex)
-{
-
-  return 0.5 * CAConstants::IndexTable::ZBins / CAConstants::ITS::LayersZCoordinate[layerIndex];
+float getInverseZBinSize(const int);
+GPU_HOST_DEVICE int getZBinIndex(const int, const float);
+GPU_HOST_DEVICE int getPhiBinIndex(const float);
+GPU_HOST_DEVICE int getBinIndex(const int, const int);
+GPU_HOST_DEVICE int countRowSelectedBins(
+    const GPUArray<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>&, const int, const int,
+    const int);
 }
 
-constexpr int CAIndexTableUtils::getZBinIndex(const float layerIndex, const float zCoordinate)
+inline float getInverseZCoordinate(const int layerIndex)
 {
-
-  return (zCoordinate + CAConstants::ITS::LayersZCoordinate[layerIndex])
-      * CAConstants::IndexTable::InverseZBinSize[layerIndex];
+  return 0.5f * CAConstants::IndexTable::ZBins / CAConstants::ITS::LayersZCoordinate()[layerIndex];
 }
 
-constexpr int CAIndexTableUtils::getPhiBinIndex(const float currentPhi)
+GPU_HOST_DEVICE inline int CAIndexTableUtils::getZBinIndex(const int layerIndex, const float zCoordinate)
 {
+  return (zCoordinate + CAConstants::ITS::LayersZCoordinate()[layerIndex])
+      * CAConstants::IndexTable::InverseZBinSize()[layerIndex];
+}
 
+GPU_HOST_DEVICE inline int CAIndexTableUtils::getPhiBinIndex(const float currentPhi)
+{
   return (currentPhi * CAConstants::IndexTable::InversePhiBinSize);
 }
 
-constexpr int CAIndexTableUtils::getBinIndex(const int zIndex, const int phiIndex)
+GPU_HOST_DEVICE inline int CAIndexTableUtils::getBinIndex(const int zIndex, const int phiIndex)
 {
-  return std::min(phiIndex * CAConstants::IndexTable::PhiBins + zIndex,
+  return MATH_MIN(phiIndex * CAConstants::IndexTable::PhiBins + zIndex,
       CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins);
 }
 
-#endif /* TRACKINGITSU_CAINDEXTABLEUTILS_H_ */
+GPU_HOST_DEVICE inline int CAIndexTableUtils::countRowSelectedBins(
+    const GPUArray<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> &indexTable,
+    const int phiBinIndex, const int minZBinIndex, const int maxZBinIndex)
+{
+  const int firstBinIndex { getBinIndex(minZBinIndex, phiBinIndex) };
+  const int maxBinIndex { firstBinIndex + maxZBinIndex - minZBinIndex + 1 };
+
+  return indexTable[maxBinIndex] - indexTable[firstBinIndex] + 1;
+}
+
+#endif /* TRACKINGITSU_INCLUDE_CAINDEXTABLEUTILS_H_ */

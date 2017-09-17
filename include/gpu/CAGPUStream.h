@@ -1,5 +1,5 @@
-/// \file CAIndexTable.h
-/// \brief 
+/// \file CAGPUStream.h
+/// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
 ///
@@ -16,34 +16,25 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_
-#define TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_
+#ifndef TRAKINGITSU_INCLUDE_GPU_STREAM_H_
+#define TRAKINGITSU_INCLUDE_GPU_STREAM_H_
 
-#include <array>
-#include <vector>
+#include "CADefinitions.h"
 
-#include <CACluster.h>
-#include <CAConstants.h>
+class CAGPUStream
+  final {
 
-class CAIndexTable final
-{
-  public:
-    CAIndexTable();
-    CAIndexTable(const int, const std::vector<CACluster>&);
+    public:
+      CAGPUStream();
+      ~CAGPUStream();
 
-    const int getBin(const int) const;
+      CAGPUStream(const CAGPUStream&) = delete;
+      CAGPUStream &operator=(const CAGPUStream&) = delete;
 
-    const std::vector<int> selectBins(const float, const float, const float, const float);
+      const GPUStream& get() const;
 
-  private:
-    int mLayerIndex;
-    std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1> mTableBins;
-};
+    private:
+      GPUStream mStream;
+  };
 
-inline const int CAIndexTable::getBin(const int binIndex) const
-{
-
-  return mTableBins[binIndex];
-}
-
-#endif /* TRACKINGITSU_INCLUDE_CALOOKUPTABLE_H_ */
+#endif /* TRAKINGITSU_INCLUDE_GPU_STREAM_H_ */

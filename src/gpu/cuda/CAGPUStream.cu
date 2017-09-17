@@ -1,5 +1,5 @@
-/// \file CAMathUtils.cxx
-/// \brief 
+/// \file CAGPUStream.cu
+/// \brief
 ///
 /// \author Iacopo Colonnelli, Politecnico di Torino
 ///
@@ -16,16 +16,21 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "CAMathUtils.h"
+#include "CAGPUStream.h"
 
-#include <cmath>
+#include <cuda_runtime.h>
 
-float CAMathUtils::calculatePhiCoordinate(const float xCoordinate, const float yCoordinate)
+CAGPUStream::CAGPUStream()
 {
-  return std::atan2(-yCoordinate, -xCoordinate) + CAConstants::Math::Pi;
+  cudaStreamCreateWithFlags(&mStream, cudaStreamNonBlocking);
 }
 
-float CAMathUtils::calculateRCoordinate(const float xCoordinate, const float yCoordinate)
+CAGPUStream::~CAGPUStream()
 {
-  return std::sqrt(xCoordinate * xCoordinate + yCoordinate * yCoordinate);
+  cudaStreamDestroy(mStream);
+}
+
+const GPUStream& CAGPUStream::get() const
+{
+  return mStream;
 }

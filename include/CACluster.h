@@ -19,22 +19,25 @@
 #ifndef TRACKINGITSU_INCLUDE_CACLUSTER_H_
 #define TRACKINGITSU_INCLUDE_CACLUSTER_H_
 
-#include <array>
+#include "CADefinitions.h"
+#include "CAMathUtils.h"
+#include "CAIndexTableUtils.h"
 
-struct CACluster final
-{
-    CACluster(const int, const float, const float, const float, const float, const int);
-    CACluster(const int, const std::array<float, 3>&, const CACluster&);
+struct CACluster
+    final
+    {
+      CACluster(const int, const int, const float, const float, const float, const float, const int);
+      CACluster(const int, const float3&, const CACluster&);
 
-    int clusterId;
-    float xCoordinate;
-    float yCoordinate;
-    float zCoordinate;
-    float alphaAngle;
-    int monteCarloId;
-    float phiCoordinate;
-    float rCoordinate;
-    int indexTableBinIndex;
-};
+      float xCoordinate;
+      float yCoordinate;
+      float zCoordinate;
+      float phiCoordinate;
+      float rCoordinate;
+      int clusterId;
+      float alphaAngle;
+      int monteCarloId;
+      int indexTableBinIndex;
+  };
 
 #endif /* TRACKINGITSU_INCLUDE_CACLUSTER_H_ */

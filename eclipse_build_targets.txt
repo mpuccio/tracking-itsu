@@ -7,9 +7,18 @@ cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=$
 > cmake-gcc
 cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=${ConfigName} -DCMAKE_CXX_COMPILER=c++
 
+> cmake-clang-cuda
+cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=${ConfigName} -DCMAKE_CXX_COMPILER=clang++ -DTRACKINGITSU_TARGET_DEVICE=GPU_CUDA
+
+> cmake-clang-gcc
+cmake -E chdir ${ConfigName}/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE=${ConfigName} -DCMAKE_CXX_COMPILER=g++ -DTRACKINGITSU_TARGET_DEVICE=GPU_CUDA
+
 ############
 #   ROOT   #
 ############
+> computing-time-benchmark
+root 'plotComputingTimeBenchmark.cxx("${ProjDirPath}/benchmarks/computing_time/")'
+
 > generate-pile-up-data
 root 'generatePileUpData.cxx(2, "${ProjDirPath}/benchmarks/benchmark_data/")'
 

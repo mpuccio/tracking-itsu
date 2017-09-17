@@ -16,17 +16,21 @@
 ///   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TRACKINGITSU_CADOUBLET_H_
-#define TRACKINGITSU_CADOUBLET_H_
+#ifndef TRACKINGITSU_INCLUDE_CATRACKLET_H_
+#define TRACKINGITSU_INCLUDE_CATRACKLET_H_
 
-struct CATracklet final
-{
-    CATracklet(const int, const int, const float, const float);
+#include "CACluster.h"
 
-    const int firstClusterIndex;
-    const int secondClusterIndex;
-    const float tanLambda;
-    const float phiCoordinate;
-};
+struct CATracklet
+    final
+    {
+      CATracklet();
+      GPU_DEVICE CATracklet(const int, const int, const CACluster&, const CACluster&);
 
-#endif /* TRACKINGITSU_CADOUBLET_H_ */
+      const int firstClusterIndex;
+      const int secondClusterIndex;
+      const float tanLambda;
+      const float phiCoordinate;
+  };
+
+#endif /* TRACKINGITSU_INCLUDE_CATRACKLET_H_ */

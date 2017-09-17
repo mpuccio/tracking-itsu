@@ -20,30 +20,40 @@
 #define TRACKINGITSU_INCLUDE_CAUTILS_H_
 
 #include <array>
+#include <cmath>
 
 #include "CAConstants.h"
 
 namespace CAMathUtils {
 float calculatePhiCoordinate(const float, const float);
 float calculateRCoordinate(const float, const float);
-constexpr float getNormalizedPhiCoordinate(const float);
-
-constexpr std::array<float, 3> crossProduct(const std::array<float, 3>&, const std::array<float, 3>&);
+GPU_HOST_DEVICE constexpr float getNormalizedPhiCoordinate(const float);
+GPU_HOST_DEVICE constexpr float3 crossProduct(const float3&, const float3&);
 }
 
-constexpr float CAMathUtils::getNormalizedPhiCoordinate(const float phiCoordinate)
+inline float CAMathUtils::calculatePhiCoordinate(const float xCoordinate, const float yCoordinate)
+{
+  return std::atan2(-yCoordinate, -xCoordinate) + CAConstants::Math::Pi;
+}
+
+inline float CAMathUtils::calculateRCoordinate(const float xCoordinate, const float yCoordinate)
+{
+  return std::sqrt(xCoordinate * xCoordinate + yCoordinate * yCoordinate);
+}
+
+GPU_HOST_DEVICE constexpr float CAMathUtils::getNormalizedPhiCoordinate(const float phiCoordinate)
 {
   return (phiCoordinate < 0) ? phiCoordinate + CAConstants::Math::TwoPi :
          (phiCoordinate > CAConstants::Math::TwoPi) ? phiCoordinate - CAConstants::Math::TwoPi : phiCoordinate;
 }
 
-constexpr std::array<float, 3> CAMathUtils::crossProduct(const std::array<float, 3>& firstVector,
-    const std::array<float, 3>& secondVector)
+GPU_HOST_DEVICE constexpr float3 CAMathUtils::crossProduct(const float3& firstVector,
+    const float3& secondVector)
 {
 
-  return std::array<float, 3> { { (firstVector[1] * secondVector[2]) - (firstVector[2] * secondVector[1]),
-      (firstVector[2] * secondVector[0]) - (firstVector[0] * secondVector[2]), (firstVector[0] * secondVector[1])
-          - (firstVector[1] * secondVector[0]) } };
+  return float3 { (firstVector.y * secondVector.z) - (firstVector.z * secondVector.y),
+      (firstVector.z * secondVector.x) - (firstVector.x * secondVector.z), (firstVector.x * secondVector.y)
+          - (firstVector.y * secondVector.x) };
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CAUTILS_H_ */

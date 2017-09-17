@@ -81,6 +81,8 @@ void plotHistogramsRatio(TH1F& numeratorHistogram, TH1F& denominatorHistogram,
 
   gStyle->SetOptStat(1100);
 
+  gStyle->SetOptStat(1100);
+
   TH1F histogramsRatio("plot-transverse-momentum-benchmark.histograms-ratio", histogramTitle, BinNumber,
       binsEdges.data());
 

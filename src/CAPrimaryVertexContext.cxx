@@ -18,52 +18,122 @@
 
 #include "CAPrimaryVertexContext.h"
 
-#include <algorithm>
-#include <cmath>
-
-#include "CAConstants.h"
 #include "CAEvent.h"
-#include "CALayer.h"
 
-CAPrimaryVertexContext::CAPrimaryVertexContext(const CAEvent& event, const int primaryVertexIndex)
-    : primaryVertexIndex { primaryVertexIndex }
+CAPrimaryVertexContext::CAPrimaryVertexContext()
 {
-  for (int iLayer = 0; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+  // Nothing to do
+}
 
-    const CALayer& currentLayer = event.getLayer(iLayer);
-    const int clustersNum = currentLayer.getClustersSize();
-    clusters[iLayer].reserve(clustersNum);
+void CAPrimaryVertexContext::initialize(const CAEvent& event, const int primaryVertexIndex) {
+  mPrimaryVertex = event.getPrimaryVertex(primaryVertexIndex);
 
-    for (int iCluster = 0; iCluster < clustersNum; ++iCluster) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
 
-      const CACluster& currentCluster = currentLayer.getCluster(iCluster);
-      clusters[iLayer].emplace_back(iLayer, event.getPrimaryVertex(primaryVertexIndex), currentCluster);
+    const CALayer& currentLayer { event.getLayer(iLayer) };
+    const int clustersNum { currentLayer.getClustersSize() };
+
+    mClusters[iLayer].clear();
+
+    if(clustersNum > mClusters[iLayer].capacity()) {
+
+      mClusters[iLayer].reserve(clustersNum);
     }
 
-    std::sort(clusters[iLayer].begin(), clusters[iLayer].end(), [](CACluster& cluster1, CACluster& cluster2) {
+    for (int iCluster { 0 }; iCluster < clustersNum; ++iCluster) {
+
+      const CACluster& currentCluster { currentLayer.getCluster(iCluster) };
+      mClusters[iLayer].emplace_back(iLayer, event.getPrimaryVertex(primaryVertexIndex), currentCluster);
+    }
+
+    std::sort(mClusters[iLayer].begin(), mClusters[iLayer].end(), [](CACluster& cluster1, CACluster& cluster2) {
       return cluster1.indexTableBinIndex < cluster2.indexTableBinIndex;
     });
 
-    if (iLayer > 0) {
+    if(iLayer < CAConstants::ITS::CellsPerRoad) {
 
-      indexTables[iLayer - 1] = CAIndexTable(iLayer, clusters[iLayer]);
+      mCells[iLayer].clear();
+      float cellsMemorySize = std::ceil(((CAConstants::Memory::CellsMemoryCoefficients[iLayer] * event.getLayer(iLayer).getClustersSize())
+         * event.getLayer(iLayer + 1).getClustersSize()) * event.getLayer(iLayer + 2).getClustersSize());
+
+      if(cellsMemorySize > mCells[iLayer].capacity()) {
+
+        mCells[iLayer].reserve(cellsMemorySize);
+      }
     }
 
-    if (iLayer < CAConstants::ITS::TrackletsPerRoad) {
+    if(iLayer < CAConstants::ITS::CellsPerRoad - 1) {
 
-      tracklets[iLayer].reserve(
-          std::ceil(
-              (CAConstants::Memory::TrackletsMemoryCoefficients[iLayer] * clustersNum)
-                  * event.getLayer(iLayer + 1).getClustersSize()));
-    }
+      mCellsLookupTable[iLayer].clear();
+      mCellsLookupTable[iLayer].resize(std::ceil(
+        (CAConstants::Memory::TrackletsMemoryCoefficients[iLayer + 1] * event.getLayer(iLayer + 1).getClustersSize())
+          * event.getLayer(iLayer + 2).getClustersSize()), CAConstants::ITS::UnusedIndex);
 
-    if (iLayer < CAConstants::ITS::CellsPerRoad) {
 
-      cells[iLayer].reserve(
-          std::ceil(
-              ((CAConstants::Memory::CellsMemoryCoefficients[iLayer] * clustersNum)
-                  * event.getLayer(iLayer + 1).getClustersSize()) * event.getLayer(iLayer + 2).getClustersSize()));
+      mCellsNeighbours[iLayer].clear();
     }
   }
-}
 
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad - 1; ++iLayer) {
+
+    mCellsNeighbours[iLayer].clear();
+  }
+
+  mRoads.clear();
+
+#if TRACKINGITSU_GPU_MODE
+  mGPUContextDevicePointer = mGPUContext.initialize(mPrimaryVertex, mClusters, mCells, mCellsLookupTable);
+#else
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::LayersNumber; ++iLayer) {
+
+    const int clustersNum = static_cast<int>(mClusters[iLayer].size());
+
+    if(iLayer > 0) {
+
+      int previousBinIndex { 0 };
+      mIndexTables[iLayer - 1][0] = 0;
+
+      for (int iCluster { 0 }; iCluster < clustersNum; ++iCluster) {
+
+        const int currentBinIndex { mClusters[iLayer][iCluster].indexTableBinIndex };
+
+        if (currentBinIndex > previousBinIndex) {
+
+          for (int iBin { previousBinIndex + 1 }; iBin <= currentBinIndex; ++iBin) {
+
+            mIndexTables[iLayer - 1][iBin] = iCluster;
+          }
+
+          previousBinIndex = currentBinIndex;
+        }
+      }
+
+      for (int iBin { previousBinIndex + 1 }; iBin <= CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins;
+          iBin++) {
+
+        mIndexTables[iLayer - 1][iBin] = clustersNum;
+      }
+    }
+
+    if(iLayer < CAConstants::ITS::TrackletsPerRoad) {
+
+      mTracklets[iLayer].clear();
+
+      float trackletsMemorySize = std::ceil((CAConstants::Memory::TrackletsMemoryCoefficients[iLayer] * event.getLayer(iLayer).getClustersSize())
+         * event.getLayer(iLayer + 1).getClustersSize());
+
+      if(trackletsMemorySize > mTracklets[iLayer].capacity()) {
+
+        mTracklets[iLayer].reserve(trackletsMemorySize);
+      }
+    }
+
+    if(iLayer < CAConstants::ITS::CellsPerRoad) {
+
+      mTrackletsLookupTable[iLayer].clear();
+      mTrackletsLookupTable[iLayer].resize(
+         event.getLayer(iLayer + 1).getClustersSize(), CAConstants::ITS::UnusedIndex);
+    }
+  }
+#endif
+}

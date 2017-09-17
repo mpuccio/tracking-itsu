@@ -119,6 +119,7 @@ void plotHistogramWithoutMean(TH1F& histogram, const std::string& outputFileName
 
   gStyle->SetOptStat(1100);
 
+
   histogram.Draw();
 
   graphCanvas.Print(outputFileName.c_str());

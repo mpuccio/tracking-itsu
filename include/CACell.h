@@ -22,86 +22,78 @@
 #include <array>
 #include <vector>
 
-class CACell final
-{
-  public:
-    CACell(const int, const int, const int, const int, const int, const std::array<float, 3>&, const float);
+#include "CADefinitions.h"
 
-    int getFirstClusterIndex() const;
-    int getSecondClusterIndex() const;
-    int getThirdClusterIndex() const;
-    int getFirstTrackletIndex() const;
-    int getSecondTrackletIndex() const;
-    int getLevel() const;
-    float getCurvature() const;
-    int getNumberOfNeighbours() const;
-    int getNeighbourCellId(const int) const;
-    const std::array<float, 3>& getNormalVectorCoordinates() const;
+class CACell
+  final
+  {
+    public:
+      GPU_DEVICE CACell(const int, const int, const int, const int, const int, const float3&, const float);
 
-    void setLevel(const int level);
+      int getFirstClusterIndex() const;
+      int getSecondClusterIndex() const;
+      int getThirdClusterIndex() const;
+      GPU_HOST_DEVICE int getFirstTrackletIndex() const;
+      int getSecondTrackletIndex() const;
+      int getLevel() const;
+      float getCurvature() const;
+      const float3& getNormalVectorCoordinates() const;
+      void setLevel(const int level);
 
-    bool combineCells(const CACell&, int);
+    private:
+      const int mFirstClusterIndex;
+      const int mSecondClusterIndex;
+      const int mThirdClusterIndex;
+      const int mFirstTrackletIndex;
+      const int mSecondTrackletIndex;
+      const float3 mNormalVectorCoordinates;
+      const float mCurvature;
+      int mLevel;
+  };
 
-  private:
-    const int mFirstClusterIndex;
-    const int mSecondClusterIndex;
-    const int mThirdClusterIndex;
-    const int mFirstTrackletIndex;
-    const int mSecondTrackletIndex;
-    const std::array<float, 3> mNormalVectorCoordinates;
-    const float mCurvature;
-    int mLevel;
-    std::vector<int> mNeighbours;
-};
+  inline int CACell::getFirstClusterIndex() const
+  {
+    return mFirstClusterIndex;
+  }
 
-inline int CACell::getFirstClusterIndex() const
-{
-  return mFirstClusterIndex;
-}
+  inline int CACell::getSecondClusterIndex() const
+  {
+    return mSecondClusterIndex;
+  }
 
-inline int CACell::getSecondClusterIndex() const
-{
-  return mSecondClusterIndex;
-}
+  inline int CACell::getThirdClusterIndex() const
+  {
+    return mThirdClusterIndex;
+  }
 
-inline int CACell::getThirdClusterIndex() const
-{
-  return mThirdClusterIndex;
-}
+  GPU_HOST_DEVICE inline int CACell::getFirstTrackletIndex() const
+  {
+    return mFirstTrackletIndex;
+  }
 
-inline int CACell::getFirstTrackletIndex() const
-{
-  return mFirstTrackletIndex;
-}
+  inline int CACell::getSecondTrackletIndex() const
+  {
+    return mSecondTrackletIndex;
+  }
 
-inline int CACell::getSecondTrackletIndex() const
-{
-  return mSecondTrackletIndex;
-}
+  inline int CACell::getLevel() const
+  {
+    return mLevel;
+  }
 
-inline int CACell::getLevel() const
-{
-  return mLevel;
-}
+  inline float CACell::getCurvature() const
+  {
+    return mCurvature;
+  }
 
-inline float CACell::getCurvature() const
-{
-  return mCurvature;
-}
+  inline const float3& CACell::getNormalVectorCoordinates() const
+  {
+    return mNormalVectorCoordinates;
+  }
 
-inline int CACell::getNumberOfNeighbours() const
-{
-  return mNeighbours.size();
-}
-
-inline int CACell::getNeighbourCellId(const int neighbourIndex) const
-{
-  return mNeighbours[neighbourIndex];
-}
-
-inline const std::array<float, 3>& CACell::getNormalVectorCoordinates() const
-{
-  return mNormalVectorCoordinates;
-}
+  inline void CACell::setLevel(const int level)
+  {
+    mLevel = level;
+  }
 
 #endif /* TRACKINGITSU_INCLUDE_CACELL_H_ */
