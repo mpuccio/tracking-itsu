@@ -40,25 +40,4 @@ struct CACluster
       int indexTableBinIndex;
   };
 
-inline CACluster::CACluster(const int clusterId, const int layerIndex, const float xCoordinate, const float yCoordinate,
-    const float zCoordinate, const float alphaAngle, const int monteCarloId)
-    : xCoordinate { xCoordinate }, yCoordinate { yCoordinate }, zCoordinate { zCoordinate }, phiCoordinate { 0 }, rCoordinate {
-        0 }, clusterId { clusterId }, alphaAngle { alphaAngle }, monteCarloId { monteCarloId }, indexTableBinIndex { 0 }
-{
-  // Nothing to do
-}
-
-inline CACluster::CACluster(const int layerIndex, const float3 &primaryVertex, const CACluster& other)
-    : xCoordinate { other.xCoordinate }, yCoordinate { other.yCoordinate }, zCoordinate { other.zCoordinate }, phiCoordinate {
-        CAMathUtils::getNormalizedPhiCoordinate(
-            CAMathUtils::calculatePhiCoordinate(xCoordinate - primaryVertex.x, yCoordinate - primaryVertex.y)) }, rCoordinate {
-        CAMathUtils::calculateRCoordinate(xCoordinate - primaryVertex.x, yCoordinate - primaryVertex.y) }, clusterId {
-        other.clusterId }, alphaAngle { other.alphaAngle }, monteCarloId { other.monteCarloId }, indexTableBinIndex {
-        CAIndexTableUtils::getBinIndex(CAIndexTableUtils::getZBinIndex(layerIndex, zCoordinate),
-            CAIndexTableUtils::getPhiBinIndex(phiCoordinate)) }
-{
-  // Nothing to do
-}
-
-
 #endif /* TRACKINGITSU_INCLUDE_CACLUSTER_H_ */

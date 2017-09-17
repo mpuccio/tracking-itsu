@@ -61,6 +61,9 @@
         CAGPUArray<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad>& getDeviceCells();
         CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& getDeviceCellsLookupTable();
         CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& getDeviceCellsPerTrackletTable();
+        std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad>& getTempTableArray();
+        std::array<CAGPUVector<CATracklet>, CAConstants::ITS::CellsPerRoad>& getTempTrackletArray();
+        std::array<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad - 1>& getTempCellArray();
         void updateDeviceContext();
 #else
         std::array<std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>,
@@ -80,6 +83,9 @@
 #if TRACKINGITSU_GPU_MODE
         CAGPUPrimaryVertexContext mGPUContext;
         CAGPUUniquePointer<CAGPUPrimaryVertexContext> mGPUContextDevicePointer;
+        std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad> mTempTableArray;
+        std::array<CAGPUVector<CATracklet>, CAConstants::ITS::CellsPerRoad> mTempTrackletArray;
+        std::array<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad - 1> mTempCellArray;
 #else
         std::array<std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>,
             CAConstants::ITS::TrackletsPerRoad> mIndexTables;
@@ -157,6 +163,21 @@
     inline CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1>& CAPrimaryVertexContext::getDeviceCellsPerTrackletTable()
     {
       return mGPUContext.getCellsPerTrackletTable();
+    }
+
+    inline std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad>& CAPrimaryVertexContext::getTempTableArray()
+    {
+      return mTempTableArray;
+    }
+
+    inline std::array<CAGPUVector<CATracklet>, CAConstants::ITS::CellsPerRoad>& CAPrimaryVertexContext::getTempTrackletArray()
+    {
+      return mTempTrackletArray;
+    }
+
+    inline std::array<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad - 1>& CAPrimaryVertexContext::getTempCellArray()
+    {
+      return mTempCellArray;
     }
 
     inline void CAPrimaryVertexContext::updateDeviceContext()

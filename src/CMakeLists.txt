@@ -2,6 +2,7 @@ set(MODULE src)
 
 set(SRCS
   CACell.cxx
+  CACluster.cxx
   CAEvent.cxx
   CAIOUtils.cxx
   CALabel.cxx
@@ -20,10 +21,12 @@ if(TRACKINGITSU_TARGET_DEVICE STREQUAL GPU_CUDA)
 	include(FindCUDA)
 
 	set(CUDA_ARCH -gencode arch=compute_52,code=sm_52 CACHE STRING "CUDA target architecture.")
+	set(CUDA_PTXAS_OPTIONS -dlcm=ca)
+	#set(CUDA_PTXAS_OPTIONS ${CUDA_PTXAS_OPTIONS},-v)
 	set(CUDA_HOST_COMPILER_FLAGS -fPIC CACHE STRING "CUDA -Xcompiler flags.")
-
-	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; ${CUDA_ARCH}; -std=c++11; --ptxas-options=-v,-dlcm=ca;)
-
+	
+	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; ${CUDA_ARCH}; -std=c++11; --ptxas-options=${CUDA_PTXAS_OPTIONS};)
+	
 	# Cannot use CUDA_NVCC_FLAGS_<CONFIG> due to issue 16411
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G; -g; -O2; -DDEBUG;)
@@ -38,8 +41,8 @@ if(TRACKINGITSU_TARGET_DEVICE STREQUAL GPU_CUDA)
 	endif(CMAKE_BUILD_TYPE STREQUAL "Profile")
 	
 	set(CUDA_SEPARABLE_COMPILATION ON)
-	set(CUDA_VERBOSE_BUILD ON)
 	set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+	#set(CUDA_VERBOSE_BUILD ON)
 
 	# -lcudadevrt option
 	#find_library_local_first(CUDA_CUDADEVRT_LIBRARY cudadevrt "\"cudadevrt\" library")

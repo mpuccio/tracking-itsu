@@ -283,28 +283,25 @@ __global__ void sortCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext,
 template<>
 void CATrackerTraits<true>::computeLayerTracklets(CAPrimaryVertexContext& primaryVertexContext)
 {
-  std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad> tempTableArray;
   std::array<size_t, CAConstants::ITS::CellsPerRoad> tempSize;
-  std::array<CAGPUVector<CATracklet>, CAConstants::ITS::CellsPerRoad> tempTrackletArray;
   std::array<int, CAConstants::ITS::CellsPerRoad> trackletsNum;
   std::array<CAGPUStream, CAConstants::ITS::TrackletsPerRoad> streamArray;
-  std::array<bool, CAConstants::ITS::CellsPerRoad> isProcessedStream;
-  isProcessedStream.fill(false);
-  int processedStreamsNum = 0;
 
   for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
     tempSize[iLayer] = 0;
     const int trackletsNum { static_cast<int>(primaryVertexContext.getDeviceTracklets()[iLayer + 1].capacity()) };
-    tempTrackletArray[iLayer] = CAGPUVector<CATracklet> { trackletsNum };
+    primaryVertexContext.getTempTrackletArray()[iLayer].reset(trackletsNum);
 
     cub::DeviceScan::ExclusiveSum(static_cast<void *>(NULL), tempSize[iLayer],
         primaryVertexContext.getDeviceTrackletsPerClustersTable()[iLayer].get(),
         primaryVertexContext.getDeviceTrackletsLookupTable()[iLayer].get(),
         primaryVertexContext.getClusters()[iLayer + 1].size());
 
-    tempTableArray[iLayer] = CAGPUVector<int> { static_cast<int>(tempSize[iLayer]) };
+    primaryVertexContext.getTempTableArray()[iLayer].reset(static_cast<int>(tempSize[iLayer]));
   }
+
+  cudaDeviceSynchronize();
 
   for (int iLayer { 0 }; iLayer < CAConstants::ITS::TrackletsPerRoad; ++iLayer) {
 
@@ -321,7 +318,7 @@ void CATrackerTraits<true>::computeLayerTracklets(CAPrimaryVertexContext& primar
     } else {
 
       layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
-          iLayer, tempTrackletArray[iLayer - 1].getWeakCopy());
+          iLayer, primaryVertexContext.getTempTrackletArray()[iLayer - 1].getWeakCopy());
     }
 
     cudaError_t error = cudaGetLastError();
@@ -336,47 +333,33 @@ void CATrackerTraits<true>::computeLayerTracklets(CAPrimaryVertexContext& primar
     }
   }
 
-  while(processedStreamsNum < CAConstants::ITS::CellsPerRoad) {
+  cudaDeviceSynchronize();
 
-    for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
-      if(isProcessedStream[iLayer] || cudaStreamQuery(streamArray[iLayer + 1].get()) == cudaErrorNotReady) {
+    trackletsNum[iLayer] = primaryVertexContext.getTempTrackletArray()[iLayer].getSizeFromDevice();
+    primaryVertexContext.getDeviceTracklets()[iLayer + 1].resize(trackletsNum[iLayer]);
 
-        continue;
-      }
+    cub::DeviceScan::ExclusiveSum(static_cast<void *>(primaryVertexContext.getTempTableArray()[iLayer].get()), tempSize[iLayer],
+        primaryVertexContext.getDeviceTrackletsPerClustersTable()[iLayer].get(),
+        primaryVertexContext.getDeviceTrackletsLookupTable()[iLayer].get(),
+        primaryVertexContext.getClusters()[iLayer + 1].size(), streamArray[iLayer + 1].get());
 
-      isProcessedStream[iLayer] = true;
-      ++processedStreamsNum;
+    dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(trackletsNum[iLayer]) };
+    dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, trackletsNum[iLayer]) };
 
-      trackletsNum[iLayer] = tempTrackletArray[iLayer].getSizeFromDevice();
-      primaryVertexContext.getDeviceTracklets()[iLayer + 1].resize(trackletsNum[iLayer]);
+    sortTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer + 1].get() >>>(primaryVertexContext.getDeviceContext(),
+        iLayer + 1, primaryVertexContext.getTempTrackletArray()[iLayer].getWeakCopy());
 
-      cub::DeviceScan::ExclusiveSum(static_cast<void *>(tempTableArray[iLayer].get()), tempSize[iLayer],
-          primaryVertexContext.getDeviceTrackletsPerClustersTable()[iLayer].get(),
-          primaryVertexContext.getDeviceTrackletsLookupTable()[iLayer].get(),
-          primaryVertexContext.getClusters()[iLayer + 1].size(), streamArray[iLayer + 1].get());
+    cudaError_t error = cudaGetLastError();
 
-      dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(trackletsNum[iLayer]) };
-      dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, trackletsNum[iLayer]) };
+    if (error != cudaSuccess) {
 
-      sortTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer + 1].get() >>>(primaryVertexContext.getDeviceContext(),
-          iLayer + 1, tempTrackletArray[iLayer].getWeakCopy());
+      std::ostringstream errorString { };
+      errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")"
+          << std::endl;
 
-      cudaError_t error = cudaGetLastError();
-
-      if (error != cudaSuccess) {
-
-        std::ostringstream errorString { };
-        errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")"
-            << std::endl;
-
-        throw std::runtime_error { errorString.str() };
-      }
-
-      if(processedStreamsNum == CAConstants::ITS::CellsPerRoad) {
-
-        break;
-      }
+      throw std::runtime_error { errorString.str() };
     }
   }
 }
@@ -384,29 +367,26 @@ void CATrackerTraits<true>::computeLayerTracklets(CAPrimaryVertexContext& primar
 template<>
 void CATrackerTraits<true>::computeLayerCells(CAPrimaryVertexContext& primaryVertexContext)
 {
-  std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1> tempTableArray;
   std::array<size_t, CAConstants::ITS::CellsPerRoad - 1> tempSize;
-  std::array<CAGPUVector<CACell>, CAConstants::ITS::CellsPerRoad - 1> tempCellsArray;
   std::array<int, CAConstants::ITS::CellsPerRoad - 1> trackletsNum;
   std::array<int, CAConstants::ITS::CellsPerRoad - 1> cellsNum;
   std::array<CAGPUStream, CAConstants::ITS::CellsPerRoad> streamArray;
-  std::array<bool, CAConstants::ITS::CellsPerRoad> isProcessedStream;
-  isProcessedStream.fill(false);
-  int processedStreamsNum = 0;
 
   for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad - 1; ++iLayer) {
 
     tempSize[iLayer] = 0;
     trackletsNum[iLayer] = primaryVertexContext.getDeviceTracklets()[iLayer + 1].getSizeFromDevice();
     const int cellsNum { static_cast<int>(primaryVertexContext.getDeviceCells()[iLayer + 1].capacity()) };
-    tempCellsArray[iLayer] = CAGPUVector<CACell> { cellsNum };
+    primaryVertexContext.getTempCellArray()[iLayer].reset(cellsNum);
 
     cub::DeviceScan::ExclusiveSum(static_cast<void *>(NULL), tempSize[iLayer],
         primaryVertexContext.getDeviceCellsPerTrackletTable()[iLayer].get(),
         primaryVertexContext.getDeviceCellsLookupTable()[iLayer].get(), trackletsNum[iLayer]);
 
-    tempTableArray[iLayer] = CAGPUVector<int> { static_cast<int>(tempSize[iLayer]) };
+    primaryVertexContext.getTempTableArray()[iLayer].reset(static_cast<int>(tempSize[iLayer]));
   }
+
+  cudaDeviceSynchronize();
 
   for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
@@ -423,7 +403,7 @@ void CATrackerTraits<true>::computeLayerCells(CAPrimaryVertexContext& primaryVer
     } else {
 
       layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
-          iLayer, tempCellsArray[iLayer - 1].getWeakCopy());
+          iLayer, primaryVertexContext.getTempCellArray()[iLayer - 1].getWeakCopy());
     }
 
     cudaError_t error = cudaGetLastError();
@@ -438,85 +418,54 @@ void CATrackerTraits<true>::computeLayerCells(CAPrimaryVertexContext& primaryVer
     }
   }
 
-  while(processedStreamsNum < CAConstants::ITS::CellsPerRoad - 1) {
+  cudaDeviceSynchronize();
 
-    for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad - 1; ++iLayer) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad - 1; ++iLayer) {
 
-      if(isProcessedStream[iLayer] || cudaStreamQuery(streamArray[iLayer + 1].get()) == cudaErrorNotReady) {
+    cellsNum[iLayer] = primaryVertexContext.getTempCellArray()[iLayer].getSizeFromDevice();
+    primaryVertexContext.getDeviceCells()[iLayer + 1].resize(cellsNum[iLayer]);
 
-        continue;
-      }
+    cub::DeviceScan::ExclusiveSum(static_cast<void *>(primaryVertexContext.getTempTableArray()[iLayer].get()), tempSize[iLayer],
+        primaryVertexContext.getDeviceCellsPerTrackletTable()[iLayer].get(),
+        primaryVertexContext.getDeviceCellsLookupTable()[iLayer].get(), trackletsNum[iLayer],
+        streamArray[iLayer + 1].get());
 
-      isProcessedStream[iLayer] = true;
-      ++processedStreamsNum;
+    dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(trackletsNum[iLayer]) };
+    dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, trackletsNum[iLayer]) };
 
-      cellsNum[iLayer] = tempCellsArray[iLayer].getSizeFromDevice();
-      primaryVertexContext.getDeviceCells()[iLayer + 1].resize(cellsNum[iLayer]);
+    sortCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer + 1].get() >>>(primaryVertexContext.getDeviceContext(),
+        iLayer + 1, primaryVertexContext.getTempCellArray()[iLayer].getWeakCopy());
 
-      cub::DeviceScan::ExclusiveSum(static_cast<void *>(tempTableArray[iLayer].get()), tempSize[iLayer],
-          primaryVertexContext.getDeviceCellsPerTrackletTable()[iLayer].get(),
-          primaryVertexContext.getDeviceCellsLookupTable()[iLayer].get(), trackletsNum[iLayer],
-          streamArray[iLayer + 1].get());
+    cudaError_t error = cudaGetLastError();
 
-      dim3 threadsPerBlock { CAGPUUtils::Host::getBlockSize(trackletsNum[iLayer]) };
-      dim3 blocksGrid { CAGPUUtils::Host::getBlocksGrid(threadsPerBlock, trackletsNum[iLayer]) };
+    if (error != cudaSuccess) {
 
-      sortCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer + 1].get() >>>(primaryVertexContext.getDeviceContext(),
-          iLayer + 1, tempCellsArray[iLayer].getWeakCopy());
+      std::ostringstream errorString { };
+      errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")"
+          << std::endl;
 
-      cudaError_t error = cudaGetLastError();
-
-      if (error != cudaSuccess) {
-
-        std::ostringstream errorString { };
-        errorString << "CUDA API returned error [" << cudaGetErrorString(error) << "] (code " << error << ")"
-            << std::endl;
-
-        throw std::runtime_error { errorString.str() };
-      }
-
-      if(processedStreamsNum == CAConstants::ITS::CellsPerRoad - 1) {
-
-        break;
-      }
+      throw std::runtime_error { errorString.str() };
     }
   }
 
-  isProcessedStream.fill(false);
-  processedStreamsNum = 0;
+  cudaDeviceSynchronize();
 
-  while(processedStreamsNum < CAConstants::ITS::CellsPerRoad) {
+  for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
 
-    for (int iLayer { 0 }; iLayer < CAConstants::ITS::CellsPerRoad; ++iLayer) {
+    int cellsSize;
 
-      if(isProcessedStream[iLayer] || cudaStreamQuery(streamArray[iLayer].get()) == cudaErrorNotReady) {
+    if (iLayer == 0) {
 
-        continue;
-      }
+      cellsSize = primaryVertexContext.getDeviceCells()[iLayer].getSizeFromDevice();
 
-      isProcessedStream[iLayer] = true;
-      ++processedStreamsNum;
+    } else {
 
-      int cellsSize;
+      cellsSize = cellsNum[iLayer - 1];
 
-      if (iLayer == 0) {
-
-        cellsSize = primaryVertexContext.getDeviceCells()[iLayer].getSizeFromDevice();
-
-      } else {
-
-        cellsSize = cellsNum[iLayer - 1];
-
-        primaryVertexContext.getDeviceCellsLookupTable()[iLayer - 1].copyIntoVector(
-            primaryVertexContext.getCellsLookupTable()[iLayer - 1], trackletsNum[iLayer - 1]);
-      }
-
-      primaryVertexContext.getDeviceCells()[iLayer].copyIntoVector(primaryVertexContext.getCells()[iLayer], cellsSize);
-
-      if(processedStreamsNum == CAConstants::ITS::CellsPerRoad) {
-
-        break;
-      }
+      primaryVertexContext.getDeviceCellsLookupTable()[iLayer - 1].copyIntoVector(
+          primaryVertexContext.getCellsLookupTable()[iLayer - 1], trackletsNum[iLayer - 1]);
     }
+
+    primaryVertexContext.getDeviceCells()[iLayer].copyIntoVector(primaryVertexContext.getCells()[iLayer], cellsSize);
   }
 }

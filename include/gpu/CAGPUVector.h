@@ -76,7 +76,7 @@ class CAGPUVector
 
   template<typename T>
   CAGPUVector<T>::CAGPUVector()
-      : mArrayPointer { nullptr }, mDeviceSize { nullptr }, mCapacity { 0 }, mIsWeak { true }
+      : CAGPUVector { nullptr, 0 }
   {
     // Nothing to do
   }
@@ -191,13 +191,13 @@ class CAGPUVector
   {
     if(size > mCapacity) {
 
+      if(mArrayPointer != nullptr) {
+
+        CAGPUUtils::Host::gpuFree(mArrayPointer);
+      }
+
       CAGPUUtils::Host::gpuMalloc(reinterpret_cast<void **>(&mArrayPointer), size * sizeof(T));
       mCapacity = size;
-    }
-
-    if(mDeviceSize == nullptr) {
-
-      CAGPUUtils::Host::gpuMalloc(reinterpret_cast<void **>(&mDeviceSize), sizeof(int));
     }
 
     if (source != nullptr) {

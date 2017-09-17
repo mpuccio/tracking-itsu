@@ -52,6 +52,7 @@ class CAGPUPrimaryVertexContext
           CAConstants::ITS::CellsPerRoad - 1>& getCellsLookupTable();
       GPU_HOST_DEVICE CAGPUArray<CAGPUVector<int>,
           CAConstants::ITS::CellsPerRoad - 1>& getCellsPerTrackletTable();
+     CAGPUArray<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad>& getTempTableArray();
 
     private:
       CAGPUUniquePointer<float3> mPrimaryVertex;
