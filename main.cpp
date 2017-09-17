@@ -69,13 +69,14 @@ int main(int argc, char** argv)
 #endif
 
   // Prevent cold cache benchmark noise
-  CATracker<TRACKINGITSU_GPU_MODE>(events[0]).clustersToTracks();
+  CATracker<TRACKINGITSU_GPU_MODE> tracker{};
+  tracker.clustersToTracks(events[0]);
 
 #if defined GPU_PROFILING_MODE
   CAGPUUtils::Host::gpuStartProfiler();
 #endif
 
-  for (int iEvent = 0; iEvent < 1; ++iEvent) {
+  for (int iEvent = 0; iEvent < events.size(); ++iEvent) {
 
     CAEvent& currentEvent = events[iEvent];
     std::cout << "Processing event " << iEvent + 1 << std::endl;
@@ -89,13 +90,13 @@ int main(int argc, char** argv)
 
     try {
 #if defined(MEMORY_BENCHMARK)
-      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksMemoryBenchmark(memoryBenchmarkOutputStream);
+      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracksMemoryBenchmark(currentEvent, memoryBenchmarkOutputStream);
 #elif defined(DEBUG)
-      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
+      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracksVerbose(currentEvent);
 #elif defined TIME_BENCHMARK
-      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksTimeBenchmark(timeBenchmarkOutputStream);
+      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracksTimeBenchmark(currentEvent, timeBenchmarkOutputStream);
 #else
-      std::vector<std::vector<CARoad>> roads = CATracker<TRACKINGITSU_GPU_MODE>(currentEvent).clustersToTracksVerbose();
+      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracks(currentEvent);
 #endif
 
 #if defined HAVE_VALGRIND

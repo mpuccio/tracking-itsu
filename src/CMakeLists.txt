@@ -2,20 +2,78 @@ set(MODULE src)
 
 set(SRCS
   CACell.cxx
-  CACluster.cxx
   CAEvent.cxx
   CAIOUtils.cxx
   CALabel.cxx
   CALayer.cxx
-  CAIndexTableUtils.cxx
-  CAPrimaryVertexContextInitializer.cxx
+  CAPrimaryVertexContext.cxx
   CARoad.cxx
   CATracker.cxx
   CATrackingUtils.cxx
   CATracklet.cxx
-  CAMathUtils.cxx
 )
 
 include_directories(${TRACKING-ITSU_SOURCE_DIR}/include)
 
-add_library(${MODULE} ${SRCS})
+if(TRACKINGITSU_TARGET_DEVICE STREQUAL GPU_CUDA)
+	find_package(CUDA QUIET REQUIRED)
+	include(FindCUDA)
+
+	set(CUDA_ARCH -gencode arch=compute_52,code=sm_52 CACHE STRING "CUDA target architecture.")
+	set(CUDA_HOST_COMPILER_FLAGS -fPIC CACHE STRING "CUDA -Xcompiler flags.")
+
+	set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xcompiler ${CUDA_HOST_COMPILER_FLAGS}; ${CUDA_ARCH}; -std=c++11; --ptxas-options=-v,-dlcm=ca;)
+
+	# Cannot use CUDA_NVCC_FLAGS_<CONFIG> due to issue 16411
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G; -g; -O2; -DDEBUG;)
+	endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	
+	if(CMAKE_BUILD_TYPE STREQUAL "Release")
+	    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O3; --use_fast_math;)
+	endif(CMAKE_BUILD_TYPE STREQUAL "Release")
+
+	if(CMAKE_BUILD_TYPE STREQUAL "Profile")
+	    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -lineinfo)
+	endif(CMAKE_BUILD_TYPE STREQUAL "Profile")
+	
+	set(CUDA_SEPARABLE_COMPILATION ON)
+	set(CUDA_VERBOSE_BUILD ON)
+	set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+
+	# -lcudadevrt option
+	#find_library_local_first(CUDA_CUDADEVRT_LIBRARY cudadevrt "\"cudadevrt\" library")
+	#set(CUDA_LIBRARIES ${CUDA_LIBRARIES} ${CUDA_CUDADEVRT_LIBRARY})
+
+	message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
+
+	include_directories(
+	    ${TRACKING-ITSU_SOURCE_DIR}/include/gpu
+	    ${TRACKING-ITSU_SOURCE_DIR}/include/external/cub
+	)
+
+	set(CUDA_SRCS
+	    gpu/cuda/CAGPUContext.cu
+	    gpu/cuda/CAGPUPrimaryVertexContext.cu
+	    gpu/cuda/CAGPUStream.cu
+	    gpu/cuda/CAGPUUtils.cu
+	    gpu/cuda/CAGPUTracker.cu
+	)
+
+	foreach(HOST_SRC_FILE ${SRCS})
+	    
+	    get_filename_component(HOST_SRC_FILENAME ${HOST_SRC_FILE} NAME_WE)
+	    
+	    add_custom_command(
+	        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${HOST_SRC_FILENAME}.cu
+	        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${HOST_SRC_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${HOST_SRC_FILENAME}.cu
+	    )
+	    
+	    set(CUDA_SRCS ${CUDA_SRCS} ${CMAKE_CURRENT_BINARY_DIR}/${HOST_SRC_FILENAME}.cu)
+	    
+	endforeach(HOST_SRC_FILE)
+
+	cuda_add_library(${MODULE} ${CUDA_SRCS})
+else(TRACKINGITSU_TARGET_DEVICE STREQUAL GPU_CUDA)
+	add_library(${MODULE} ${SRCS})
+endif(TRACKINGITSU_TARGET_DEVICE STREQUAL GPU_CUDA)

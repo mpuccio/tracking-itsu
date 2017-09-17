@@ -24,11 +24,7 @@
 #include <cuda_runtime.h>
 #include <cuda_profiler_api.h>
 
-#include "CAConstants.h"
 #include "CAGPUContext.h"
-#include "CAMathUtils.h"
-
-using namespace TRACKINGITSU_TARGET_NAMESPACE;
 
 namespace {
 void checkCUDAError(const cudaError_t error, const char *file, const int line)
@@ -43,6 +39,42 @@ void checkCUDAError(const cudaError_t error, const char *file, const int line)
     throw std::runtime_error { errorString.str() };
   }
 }
+
+int roundUp(const int numToRound, const int multiple)
+{
+  if (multiple == 0) {
+
+    return numToRound;
+  }
+
+  int remainder { numToRound % multiple };
+
+  if (remainder == 0) {
+
+    return numToRound;
+  }
+
+  return numToRound + multiple - remainder;
+}
+
+int findNearestDivisor(const int numToRound, const int divisor)
+{
+
+  if (numToRound > divisor) {
+
+    return divisor;
+  }
+
+  int result = numToRound;
+
+  while (divisor % result != 0) {
+
+    ++result;
+  }
+
+  return result;
+}
+
 }
 
 dim3 CAGPUUtils::Host::getBlockSize(const int colsNum)
@@ -61,17 +93,17 @@ dim3 CAGPUUtils::Host::getBlockSize(const int colsNum, const int rowsNum, const 
   const CAGPUDeviceProperties& deviceProperties = CAGPUContext::getInstance().getDeviceProperties();
   int xThreads = min(colsNum, deviceProperties.maxThreadsDim.x);
   int yThreads = min(rowsNum, deviceProperties.maxThreadsDim.y);
-  const int totalThreads = CAMathUtils::roundUp(min(xThreads * yThreads, maxThreadsPerBlock),
+  const int totalThreads = roundUp(min(xThreads * yThreads, maxThreadsPerBlock),
       deviceProperties.warpSize);
 
   if (xThreads > yThreads) {
 
-    xThreads = CAMathUtils::findNearestDivisor(xThreads, totalThreads);
+    xThreads = findNearestDivisor(xThreads, totalThreads);
     yThreads = totalThreads / xThreads;
 
   } else {
 
-    yThreads = CAMathUtils::findNearestDivisor(yThreads, totalThreads);
+    yThreads = findNearestDivisor(yThreads, totalThreads);
     xThreads = totalThreads / yThreads;
   }
 

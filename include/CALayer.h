@@ -23,8 +23,6 @@
 #include "CACluster.h"
 #include "CADefinitions.h"
 
-using namespace TRACKINGITSU_TARGET_NAMESPACE;
-
 class CALayer
   final
   {

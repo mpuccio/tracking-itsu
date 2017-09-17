@@ -48,6 +48,8 @@ class CAGPUVector
 
       int getSizeFromDevice() const;
       void resize(const int);
+      void reset(const int, const int = 0);
+      void reset(const T* const, const int, const int = 0);
       void copyIntoVector(std::vector<T>&, const int);
 
       GPU_HOST_DEVICE T* get() const;
@@ -176,6 +178,38 @@ class CAGPUVector
   void CAGPUVector<T>::resize(const int size)
   {
     CAGPUUtils::Host::gpuMemcpyHostToDevice(mDeviceSize, &size, sizeof(int));
+  }
+
+  template<typename T>
+  void CAGPUVector<T>::reset(const int capacity, const int initialSize)
+  {
+    reset(nullptr, capacity, initialSize);
+  }
+
+  template<typename T>
+  void CAGPUVector<T>::reset(const T* const source, const int size, const int initialSize)
+  {
+    if(size > mCapacity) {
+
+      CAGPUUtils::Host::gpuMalloc(reinterpret_cast<void **>(&mArrayPointer), size * sizeof(T));
+      mCapacity = size;
+    }
+
+    if(mDeviceSize == nullptr) {
+
+      CAGPUUtils::Host::gpuMalloc(reinterpret_cast<void **>(&mDeviceSize), sizeof(int));
+    }
+
+    if (source != nullptr) {
+
+      CAGPUUtils::Host::gpuMemcpyHostToDevice(mArrayPointer, source, size * sizeof(T));
+      CAGPUUtils::Host::gpuMemcpyHostToDevice(mDeviceSize, &size, sizeof(int));
+
+    } else {
+
+      CAGPUUtils::Host::gpuMemcpyHostToDevice(mDeviceSize, &initialSize, sizeof(int));
+
+    }
   }
 
   template<typename T>

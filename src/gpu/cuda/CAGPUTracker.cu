@@ -28,7 +28,6 @@
 
 #include "CAConstants.h"
 #include "CAGPUContext.h"
-#include "CAGPUPrimaryVertexContext.h"
 #include "CAGPUStream.h"
 #include "CAGPUVector.h"
 #include "CAIndexTableUtils.h"
@@ -282,7 +281,7 @@ __global__ void sortCellsKernel(CAGPUPrimaryVertexContext& primaryVertexContext,
 }
 
 template<>
-void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext)
+void CATrackerTraits<true>::computeLayerTracklets(CAPrimaryVertexContext& primaryVertexContext)
 {
   std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad> tempTableArray;
   std::array<size_t, CAConstants::ITS::CellsPerRoad> tempSize;
@@ -383,7 +382,7 @@ void CATrackerTraits<true>::computeLayerTracklets(Context& primaryVertexContext)
 }
 
 template<>
-void CATrackerTraits<true>::computeLayerCells(Context& primaryVertexContext)
+void CATrackerTraits<true>::computeLayerCells(CAPrimaryVertexContext& primaryVertexContext)
 {
   std::array<CAGPUVector<int>, CAConstants::ITS::CellsPerRoad - 1> tempTableArray;
   std::array<size_t, CAConstants::ITS::CellsPerRoad - 1> tempSize;

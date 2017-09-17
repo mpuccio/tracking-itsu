@@ -18,7 +18,6 @@
 
 #include "CACell.h"
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
 GPU_DEVICE CACell::CACell(const int firstClusterIndex, const int secondClusterIndex, const int thirdClusterIndex,
     const int firstTrackletIndex, const int secondTrackletIndex, const float3& normalVectorCoordinates,
     const float curvature)
@@ -27,5 +26,4 @@ GPU_DEVICE CACell::CACell(const int firstClusterIndex, const int secondClusterIn
         normalVectorCoordinates), mCurvature { curvature }, mLevel { 1 }
 {
   // Nothing to do
-}
 }

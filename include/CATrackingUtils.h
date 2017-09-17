@@ -22,11 +22,9 @@
 #include "CACluster.h"
 #include "CADefinitions.h"
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
 namespace CATrackingUtils {
 GPU_HOST_DEVICE constexpr int4 getEmptyBinsRect() { return int4{ 0, 0, 0, 0 }; }
 GPU_DEVICE const int4 getBinsRect(const CACluster&, const int, const float);
-}
 }
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKINGUTILS_H_ */

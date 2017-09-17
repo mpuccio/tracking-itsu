@@ -24,7 +24,6 @@
 
 #include "CADefinitions.h"
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
 class CACell
   final
   {
@@ -96,6 +95,5 @@ class CACell
   {
     mLevel = level;
   }
-}
 
 #endif /* TRACKINGITSU_INCLUDE_CACELL_H_ */

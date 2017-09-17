@@ -37,9 +37,6 @@ GPU_HOST_DEVICE int getBinIndex(const int, const int);
 GPU_HOST_DEVICE int countRowSelectedBins(
     const GPUArray<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>&, const int, const int,
     const int);
-const std::vector<std::pair<int, int>> selectClusters(
-    const std::array<int, CAConstants::IndexTable::ZBins * CAConstants::IndexTable::PhiBins + 1>&,
-    const std::array<int, 4>& selectedBinsRect);
 }
 
 inline float getInverseZCoordinate(const int layerIndex)

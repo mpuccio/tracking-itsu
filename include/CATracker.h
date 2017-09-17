@@ -36,11 +36,9 @@
 template<bool IsGPU>
 class CATrackerTraits
 {
-  private:
-    typedef CAPrimaryVertexContext<IsGPU> Context;
   public:
-    void computeLayerTracklets(Context&);
-    void computeLayerCells(Context&);
+    void computeLayerTracklets(CAPrimaryVertexContext&);
+    void computeLayerCells(CAPrimaryVertexContext&);
 
   protected:
     ~CATrackerTraits() = default;
@@ -51,33 +49,31 @@ class CATracker: private CATrackerTraits<IsGPU>
 {
   private:
     typedef CATrackerTraits<IsGPU> TrackerTraits;
-    typedef CAPrimaryVertexContext<IsGPU> TrackerContext;
 
   public:
-    explicit CATracker(const CAEvent&);
+    CATracker();
 
     CATracker(const CATracker&) = delete;
     CATracker &operator=(const CATracker&) = delete;
 
-    std::vector<std::vector<CARoad>> clustersToTracks();
-    std::vector<std::vector<CARoad>> clustersToTracksVerbose();
-    std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark(std::ofstream&);
-    std::vector<std::vector<CARoad>> clustersToTracksTimeBenchmark(std::ofstream&);
+    std::vector<std::vector<CARoad>> clustersToTracks(const CAEvent&);
+    std::vector<std::vector<CARoad>> clustersToTracksVerbose(const CAEvent&);
+    std::vector<std::vector<CARoad>> clustersToTracksMemoryBenchmark(const CAEvent&, std::ofstream&);
+    std::vector<std::vector<CARoad>> clustersToTracksTimeBenchmark(const CAEvent&, std::ofstream&);
 
   protected:
-    void computeTracklets(TrackerContext&);
-    void computeCells(TrackerContext&);
-    void findCellsNeighbours(TrackerContext&);
-    void findTracks(TrackerContext&);
-    void traverseCellsTree(TrackerContext&, const int, const int);
-    void computeMontecarloLabels(TrackerContext&);
+    void computeTracklets();
+    void computeCells();
+    void findCellsNeighbours();
+    void findTracks();
+    void traverseCellsTree(const int, const int);
+    void computeMontecarloLabels();
 
   private:
-    void evaluateTask(void (CATracker<IsGPU>::*)(TrackerContext&), const char*, TrackerContext&);
-    void evaluateTask(void (CATracker<IsGPU>::*)(TrackerContext&), const char*, TrackerContext&, std::ostream&);
+    void evaluateTask(void (CATracker<IsGPU>::*)(void), const char*);
+    void evaluateTask(void (CATracker<IsGPU>::*)(void), const char*, std::ostream&);
 
-    const CAEvent& mEvent;
-    std::vector<int> mUsedClustersTable;
+    CAPrimaryVertexContext mPrimaryVertexContext;
 };
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKER_H_ */

@@ -21,7 +21,6 @@
 
 #include "CACluster.h"
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
 struct CATracklet
     final
     {
@@ -33,6 +32,5 @@ struct CATracklet
       const float tanLambda;
       const float phiCoordinate;
   };
-}
 
 #endif /* TRACKINGITSU_INCLUDE_CATRACKLET_H_ */

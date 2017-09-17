@@ -25,8 +25,8 @@ set(CUDA_VERBOSE_BUILD ON)
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
 # -lcudadevrt option
-find_library_local_first(CUDA_CUDADEVRT_LIBRARY cudadevrt "\"cudadevrt\" library")
-set(CUDA_LIBRARIES ${CUDA_LIBRARIES} ${CUDA_CUDADEVRT_LIBRARY})
+#find_library_local_first(CUDA_CUDADEVRT_LIBRARY cudadevrt "\"cudadevrt\" library")
+#set(CUDA_LIBRARIES ${CUDA_LIBRARIES} ${CUDA_CUDADEVRT_LIBRARY})
 
 message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 
@@ -46,9 +46,6 @@ set(CUDA_SRCS
 
 set(DEPENDENT_HOST_SRCS
    CACell.cxx
-   CACluster.cxx
-   CAMathUtils.cxx
-   CAPrimaryVertexContextInitializer.cxx
    CATrackingUtils.cxx
    CATracklet.cxx
 )

@@ -24,8 +24,6 @@
 #include "CAIndexTableUtils.h"
 #include "CAMathUtils.h"
 
-namespace TRACKINGITSU_TARGET_NAMESPACE {
-
 GPU_DEVICE const int4 CATrackingUtils::getBinsRect(const CACluster& currentCluster, const int layerIndex,
     const float directionZIntersection)
 {
@@ -44,5 +42,4 @@ GPU_DEVICE const int4 CATrackingUtils::getBinsRect(const CACluster& currentClust
       CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMin)), MATH_MIN(
           CAConstants::IndexTable::ZBins - 1, CAIndexTableUtils::getZBinIndex(layerIndex + 1, zRangeMax)),
       CAIndexTableUtils::getPhiBinIndex(CAMathUtils::getNormalizedPhiCoordinate(phiRangeMax)) };
-}
 }
