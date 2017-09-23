@@ -23,11 +23,11 @@ check_include_file_cxx(valgrind/callgrind.h HAVE_VALGRIND)
 
 if(TRACKINGITSU_TARGET_DEVICE STREQUAL GPU_CUDA)
     message("-- Compiling for NVIDIA CUDA enabled devices")
-    
+
     set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE} -DGPU_PROFILING_MODE")
-    
+
     add_definitions(-DTRACKINGITSU_CUDA_COMPILE)
-    
+
     include_directories(${TRACKING-ITSU_SOURCE_DIR}/include/gpu)
 endif(TRACKINGITSU_TARGET_DEVICE STREQUAL GPU_CUDA)
 
