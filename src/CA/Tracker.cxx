@@ -376,21 +376,24 @@ std::vector<std::vector<Road>> Tracker<IsGPU>::clustersToTracksTimeBenchmark(
   for (int iVertex = 0; iVertex < verticesNum; ++iVertex) {
 
     clock_t t1, t2;
-    float diff;
+    float diff, total = .0f;
 
     t1 = clock();
 
     mPrimaryVertexContext.initialize(event, iVertex);
 
-    evaluateTask(&Tracker<IsGPU>::computeTracklets, nullptr, timeBenchmarkOutputStream);
-    evaluateTask(&Tracker<IsGPU>::computeCells, nullptr, timeBenchmarkOutputStream);
-    evaluateTask(&Tracker<IsGPU>::findCellsNeighbours, nullptr, timeBenchmarkOutputStream);
-    evaluateTask(&Tracker<IsGPU>::findTracks, nullptr, timeBenchmarkOutputStream);
-    evaluateTask(&Tracker<IsGPU>::computeMontecarloLabels, nullptr, timeBenchmarkOutputStream);
-
     t2 = clock();
     diff = ((float) t2 - (float) t1) / (CLOCKS_PER_SEC / 1000);
-    timeBenchmarkOutputStream << diff << std::endl;
+    total += diff;
+    timeBenchmarkOutputStream << diff << "\t";
+
+    total += evaluateTask(&CATracker<IsGPU>::computeTracklets, nullptr, timeBenchmarkOutputStream);
+    total += evaluateTask(&CATracker<IsGPU>::computeCells, nullptr, timeBenchmarkOutputStream);
+    total += evaluateTask(&CATracker<IsGPU>::findCellsNeighbours, nullptr, timeBenchmarkOutputStream);
+    total += evaluateTask(&CATracker<IsGPU>::findTracks, nullptr, timeBenchmarkOutputStream);
+    total += evaluateTask(&CATracker<IsGPU>::computeMontecarloLabels, nullptr, timeBenchmarkOutputStream);
+
+    timeBenchmarkOutputStream << total << std::endl;
 
     roads.emplace_back(mPrimaryVertexContext.getRoads());
   }
@@ -649,13 +652,13 @@ void Tracker<IsGPU>::computeMontecarloLabels()
 }
 
 template<bool IsGPU>
-void Tracker<IsGPU>::evaluateTask(void (Tracker<IsGPU>::*task)(void), const char *taskName)
+float Tracker<IsGPU>::evaluateTask(void (Tracker<IsGPU>::*task)(void), const char *taskName)
 {
-  evaluateTask(task, taskName, std::cout);
+  return evaluateTask(task, taskName, std::cout);
 }
 
 template<bool IsGPU>
-void Tracker<IsGPU>::evaluateTask(void (Tracker<IsGPU>::*task)(void), const char *taskName,
+float Tracker<IsGPU>::evaluateTask(void (Tracker<IsGPU>::*task)(void), const char *taskName,
     std::ostream& ostream)
 {
   clock_t t1, t2;
@@ -676,6 +679,8 @@ void Tracker<IsGPU>::evaluateTask(void (Tracker<IsGPU>::*task)(void), const char
 
     ostream << std::setw(2) << " - " << taskName << " completed in: " << diff << "ms" << std::endl;
   }
+
+  return diff;
 }
 
 template class Tracker<TRACKINGITSU_GPU_MODE> ;
