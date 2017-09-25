@@ -26,7 +26,7 @@ namespace {
 
 using namespace o2::ITS::CA;
 
-__device__ void fillIndexTables(PrimaryVertexContext &primaryVertexContext, const int layerIndex)
+__device__ void fillIndexTables(GPU::PrimaryVertexContext &primaryVertexContext, const int layerIndex)
 {
 
   const int currentClusterIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
@@ -69,7 +69,7 @@ __device__ void fillIndexTables(PrimaryVertexContext &primaryVertexContext, cons
   }
 }
 
-__device__ void fillTrackletsPerClusterTables(PrimaryVertexContext &primaryVertexContext, const int layerIndex)
+__device__ void fillTrackletsPerClusterTables(GPU::PrimaryVertexContext &primaryVertexContext, const int layerIndex)
 {
   const int currentClusterIndex { static_cast<int>(blockDim.x * blockIdx.x + threadIdx.x) };
   const int clustersSize { static_cast<int>(primaryVertexContext.getClusters()[layerIndex + 1].size()) };
@@ -80,7 +80,7 @@ __device__ void fillTrackletsPerClusterTables(PrimaryVertexContext &primaryVerte
   }
 }
 
-__device__ void fillCellsPerClusterTables(PrimaryVertexContext &primaryVertexContext, const int layerIndex)
+__device__ void fillCellsPerClusterTables(GPU::PrimaryVertexContext &primaryVertexContext, const int layerIndex)
 {
   const int totalThreadNum { static_cast<int>(primaryVertexContext.getClusters()[layerIndex + 1].size()) };
   const int trackletsSize { static_cast<int>(primaryVertexContext.getTracklets()[layerIndex + 1].capacity()) };
@@ -95,7 +95,7 @@ __device__ void fillCellsPerClusterTables(PrimaryVertexContext &primaryVertexCon
   }
 }
 
-__global__ void fillDeviceStructures(PrimaryVertexContext &primaryVertexContext, const int layerIndex)
+__global__ void fillDeviceStructures(GPU::PrimaryVertexContext &primaryVertexContext, const int layerIndex)
 {
   fillIndexTables(primaryVertexContext, layerIndex);
 

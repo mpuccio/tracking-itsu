@@ -78,7 +78,7 @@ int main(int argc, char** argv)
   Utils::Host::gpuStartProfiler();
 #endif
 
-  for (int iEvent = 0; iEvent < events.size(); ++iEvent) {
+  for (size_t iEvent = 0; iEvent < events.size(); ++iEvent) {
 
     Event& currentEvent = events[iEvent];
     std::cout << "Processing event " << iEvent + 1 << std::endl;

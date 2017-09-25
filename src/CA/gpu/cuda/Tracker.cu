@@ -24,14 +24,14 @@
 
 #include <cuda_runtime.h>
 
-#include "cub.cuh"
+#include "cub/cub.cuh"
 
 #include "ITSReconstruction/CA/Constants.h"
-#include "ITSReconstruction/CA/Context.h"
 #include "ITSReconstruction/CA/IndexTableUtils.h"
 #include "ITSReconstruction/CA/MathUtils.h"
 #include "ITSReconstruction/CA/PrimaryVertexContext.h"
 #include "ITSReconstruction/CA/TrackingUtils.h"
+#include "ITSReconstruction/CA/gpu/Context.h"
 #include "ITSReconstruction/CA/gpu/Stream.h"
 #include "ITSReconstruction/CA/gpu/Vector.h"
 
@@ -289,12 +289,14 @@ __global__ void sortCellsKernel(PrimaryVertexContext& primaryVertexContext, cons
   }
 }
 
+} /// End of GPU namespace
+
 template<>
 void TrackerTraits<true>::computeLayerTracklets(CA::PrimaryVertexContext& primaryVertexContext)
 {
   std::array<size_t, Constants::ITS::CellsPerRoad> tempSize;
   std::array<int, Constants::ITS::CellsPerRoad> trackletsNum;
-  std::array<Stream, Constants::ITS::TrackletsPerRoad> streamArray;
+  std::array<GPU::Stream, Constants::ITS::TrackletsPerRoad> streamArray;
 
   for (int iLayer { 0 }; iLayer < Constants::ITS::CellsPerRoad; ++iLayer) {
 
@@ -314,19 +316,19 @@ void TrackerTraits<true>::computeLayerTracklets(CA::PrimaryVertexContext& primar
 
   for (int iLayer { 0 }; iLayer < Constants::ITS::TrackletsPerRoad; ++iLayer) {
 
-    const DeviceProperties& deviceProperties = Context::getInstance().getDeviceProperties();
+    const GPU::DeviceProperties& deviceProperties = GPU::Context::getInstance().getDeviceProperties();
     const int clustersNum { static_cast<int>(primaryVertexContext.getClusters()[iLayer].size()) };
-    dim3 threadsPerBlock { Utils::Host::getBlockSize(clustersNum, 1, 192) };
-    dim3 blocksGrid { Utils::Host::getBlocksGrid(threadsPerBlock, clustersNum) };
+    dim3 threadsPerBlock { GPU::Utils::Host::getBlockSize(clustersNum, 1, 192) };
+    dim3 blocksGrid { GPU::Utils::Host::getBlocksGrid(threadsPerBlock, clustersNum) };
 
     if (iLayer == 0) {
 
-      layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
+      GPU::layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
           iLayer, primaryVertexContext.getDeviceTracklets()[iLayer].getWeakCopy());
 
     } else {
 
-      layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
+      GPU::layerTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
           iLayer, primaryVertexContext.getTempTrackletArray()[iLayer - 1].getWeakCopy());
     }
 
@@ -354,10 +356,10 @@ void TrackerTraits<true>::computeLayerTracklets(CA::PrimaryVertexContext& primar
         primaryVertexContext.getDeviceTrackletsLookupTable()[iLayer].get(),
         primaryVertexContext.getClusters()[iLayer + 1].size(), streamArray[iLayer + 1].get());
 
-    dim3 threadsPerBlock { Utils::Host::getBlockSize(trackletsNum[iLayer]) };
-    dim3 blocksGrid { Utils::Host::getBlocksGrid(threadsPerBlock, trackletsNum[iLayer]) };
+    dim3 threadsPerBlock { GPU::Utils::Host::getBlockSize(trackletsNum[iLayer]) };
+    dim3 blocksGrid { GPU::Utils::Host::getBlocksGrid(threadsPerBlock, trackletsNum[iLayer]) };
 
-    sortTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer + 1].get() >>>(primaryVertexContext.getDeviceContext(),
+    GPU::sortTrackletsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer + 1].get() >>>(primaryVertexContext.getDeviceContext(),
         iLayer + 1, primaryVertexContext.getTempTrackletArray()[iLayer].getWeakCopy());
 
     cudaError_t error = cudaGetLastError();
@@ -379,7 +381,7 @@ void TrackerTraits<true>::computeLayerCells(CA::PrimaryVertexContext& primaryVer
   std::array<size_t, Constants::ITS::CellsPerRoad - 1> tempSize;
   std::array<int, Constants::ITS::CellsPerRoad - 1> trackletsNum;
   std::array<int, Constants::ITS::CellsPerRoad - 1> cellsNum;
-  std::array<Stream, Constants::ITS::CellsPerRoad> streamArray;
+  std::array<GPU::Stream, Constants::ITS::CellsPerRoad> streamArray;
 
   for (int iLayer { 0 }; iLayer < Constants::ITS::CellsPerRoad - 1; ++iLayer) {
 
@@ -399,19 +401,19 @@ void TrackerTraits<true>::computeLayerCells(CA::PrimaryVertexContext& primaryVer
 
   for (int iLayer { 0 }; iLayer < Constants::ITS::CellsPerRoad; ++iLayer) {
 
-    const DeviceProperties& deviceProperties = Context::getInstance().getDeviceProperties();
+    const GPU::DeviceProperties& deviceProperties = GPU::Context::getInstance().getDeviceProperties();
     const int trackletsSize = primaryVertexContext.getDeviceTracklets()[iLayer].getSizeFromDevice();
-    dim3 threadsPerBlock { Utils::Host::getBlockSize(trackletsSize) };
-    dim3 blocksGrid { Utils::Host::getBlocksGrid(threadsPerBlock, trackletsSize) };
+    dim3 threadsPerBlock { GPU::Utils::Host::getBlockSize(trackletsSize) };
+    dim3 blocksGrid { GPU::Utils::Host::getBlocksGrid(threadsPerBlock, trackletsSize) };
 
     if(iLayer == 0) {
 
-      layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
+      GPU::layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
           iLayer, primaryVertexContext.getDeviceCells()[iLayer].getWeakCopy());
 
     } else {
 
-      layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
+      GPU::layerCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer].get() >>>(primaryVertexContext.getDeviceContext(),
           iLayer, primaryVertexContext.getTempCellArray()[iLayer - 1].getWeakCopy());
     }
 
@@ -439,10 +441,10 @@ void TrackerTraits<true>::computeLayerCells(CA::PrimaryVertexContext& primaryVer
         primaryVertexContext.getDeviceCellsLookupTable()[iLayer].get(), trackletsNum[iLayer],
         streamArray[iLayer + 1].get());
 
-    dim3 threadsPerBlock { Utils::Host::getBlockSize(trackletsNum[iLayer]) };
-    dim3 blocksGrid { Utils::Host::getBlocksGrid(threadsPerBlock, trackletsNum[iLayer]) };
+    dim3 threadsPerBlock { GPU::Utils::Host::getBlockSize(trackletsNum[iLayer]) };
+    dim3 blocksGrid { GPU::Utils::Host::getBlocksGrid(threadsPerBlock, trackletsNum[iLayer]) };
 
-    sortCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer + 1].get() >>>(primaryVertexContext.getDeviceContext(),
+    GPU::sortCellsKernel<<< blocksGrid, threadsPerBlock, 0, streamArray[iLayer + 1].get() >>>(primaryVertexContext.getDeviceContext(),
         iLayer + 1, primaryVertexContext.getTempCellArray()[iLayer].getWeakCopy());
 
     cudaError_t error = cudaGetLastError();
@@ -479,7 +481,6 @@ void TrackerTraits<true>::computeLayerCells(CA::PrimaryVertexContext& primaryVer
   }
 }
 
-}
 }
 }
 }

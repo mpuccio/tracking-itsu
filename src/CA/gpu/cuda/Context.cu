@@ -104,7 +104,7 @@ Context::Context()
     throw std::runtime_error { "There are no available device(s) that support CUDA\n" };
   }
 
-  mDeviceProperties.resize(mDevicesNum, CAGPUDeviceProperties { });
+  mDeviceProperties.resize(mDevicesNum, DeviceProperties { });
 
   int currentDeviceIndex;
   checkCUDAError(cudaGetDevice(&currentDeviceIndex), __FILE__, __LINE__);
@@ -149,7 +149,7 @@ Context& Context::getInstance()
   return gpuContext;
 }
 
-const CAGPUDeviceProperties& Context::getDeviceProperties()
+const DeviceProperties& Context::getDeviceProperties()
 {
   int currentDeviceIndex;
   checkCUDAError(cudaGetDevice(&currentDeviceIndex), __FILE__, __LINE__);
@@ -157,7 +157,7 @@ const CAGPUDeviceProperties& Context::getDeviceProperties()
   return getDeviceProperties(currentDeviceIndex);
 }
 
-const CAGPUDeviceProperties& Context::getDeviceProperties(const int deviceIndex)
+const DeviceProperties& Context::getDeviceProperties(const int deviceIndex)
 {
   return mDeviceProperties[deviceIndex];
 }

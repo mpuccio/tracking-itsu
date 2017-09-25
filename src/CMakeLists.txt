@@ -51,8 +51,8 @@ if(TRACKINGITSU_TARGET_DEVICE STREQUAL GPU_CUDA)
 	message(STATUS "Compiling with NVCC flags: ${CUDA_NVCC_FLAGS}")
 
 	include_directories(
-	    ${TRACKING-ITSU_SOURCE_DIR}/include/gpu
-	    ${TRACKING-ITSU_SOURCE_DIR}/include/external/cub
+		#FIXME with aliBuild dependencies
+	    ${TRACKING-ITSU_SOURCE_DIR}/include/ITSReconstruction/CA/external/cub
 	)
 
 	set(CUDA_SRCS

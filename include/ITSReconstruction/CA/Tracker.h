@@ -56,7 +56,6 @@ class Tracker: private TrackerTraits<IsGPU>
 {
   private:
     typedef TrackerTraits<IsGPU> Trait;
-
   public:
     Tracker();
 
@@ -82,6 +81,9 @@ class Tracker: private TrackerTraits<IsGPU>
 
     PrimaryVertexContext mPrimaryVertexContext;
 };
+
+template<> void TrackerTraits<TRACKINGITSU_GPU_MODE>::computeLayerTracklets(PrimaryVertexContext&);
+template<> void TrackerTraits<TRACKINGITSU_GPU_MODE>::computeLayerCells(PrimaryVertexContext&);
 
 }
 }

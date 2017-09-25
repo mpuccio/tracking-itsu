@@ -50,10 +50,10 @@
 # define MATH_MIN min
 # define MATH_SQRT sqrt
 
-# include "CAGPUArray.h"
+# include "ITSReconstruction/CA/gpu/Array.h"
 
 template<typename T, std::size_t Size>
-using GPUArray = CAGPUArray<T, Size>;
+using GPUArray = o2::ITS::CA::GPU::Array<T, Size>;
 
 typedef cudaStream_t GPUStream;
 

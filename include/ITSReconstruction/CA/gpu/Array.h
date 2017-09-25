@@ -50,7 +50,7 @@ template<typename T, std::size_t Size>
 struct Array
     final
     {
-      typedef ArrayTraits<T, Size> ArrayTraits;
+      typedef ArrayTraits<T, Size> Trait;
 
       GPU_HOST_DEVICE T* data() noexcept;
       GPU_HOST_DEVICE const T* data() const noexcept;
@@ -58,31 +58,31 @@ struct Array
       GPU_HOST_DEVICE constexpr T& operator[](const int) const noexcept;
       GPU_HOST_DEVICE std::size_t size() const noexcept;
 
-      typename ArrayTraits::InternalArray arrayPointer;
+      typename Trait::InternalArray arrayPointer;
   };
 
   template<typename T, std::size_t Size>
   GPU_HOST_DEVICE T* Array<T, Size>::data() noexcept
   {
-    return ArrayTraits::getPointer(arrayPointer);
+    return Trait::getPointer(arrayPointer);
   }
 
   template<typename T, std::size_t Size>
   GPU_HOST_DEVICE const T* Array<T, Size>::data() const noexcept
   {
-    return ArrayTraits::getPointer(arrayPointer);
+    return Trait::getPointer(arrayPointer);
   }
 
   template<typename T, std::size_t Size>
   GPU_HOST_DEVICE constexpr T& Array<T, Size>::operator[](const int index) const noexcept
   {
-    return ArrayTraits::getReference(arrayPointer, index);
+    return Trait::getReference(arrayPointer, index);
   }
 
   template<typename T, std::size_t Size>
   GPU_HOST_DEVICE T& Array<T, Size>::operator[](const int index) noexcept
   {
-    return ArrayTraits::getReference(arrayPointer, index);
+    return Trait::getReference(arrayPointer, index);
   }
 
   template<typename T, std::size_t Size>

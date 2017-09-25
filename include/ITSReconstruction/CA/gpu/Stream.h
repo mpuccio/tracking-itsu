@@ -19,7 +19,7 @@
 #ifndef TRAKINGITSU_INCLUDE_GPU_STREAM_H_
 #define TRAKINGITSU_INCLUDE_GPU_STREAM_H_
 
-#include "ITSReconstruction/CA/gpu/Definitions.h"
+#include "ITSReconstruction/CA/Definitions.h"
 
 namespace o2
 {
