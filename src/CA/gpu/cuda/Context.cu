@@ -15,6 +15,7 @@
 #include "ITSReconstruction/CA/gpu/Context.h"
 
 #include <sstream>
+#include <stdexcept>
 
 #include <cuda_runtime.h>
 

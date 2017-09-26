@@ -43,7 +43,7 @@ void Event::printPrimaryVertices() const
 
   for (int iVertex { 0 }; iVertex < verticesNum; ++iVertex) {
 
-    const float3& currentVertex { mPrimaryVertices[iVertex] };
+    const float3& currentVertex = mPrimaryVertices[iVertex];
 
     std::cout << "-1\t" << currentVertex.x << "\t" << currentVertex.y << "\t" << currentVertex.z << std::endl;
   }
