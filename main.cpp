@@ -4,17 +4,19 @@
 #include <fstream>
 #include <vector>
 
-#include "CADefinitions.h"
-#include "CAIOUtils.h"
-#include "CATracker.h"
+#include "ITSReconstruction/CA/Definitions.h"
+#include "ITSReconstruction/CA/IOUtils.h"
+#include "ITSReconstruction/CA/Tracker.h"
 
 #if defined HAVE_VALGRIND
 # include <valgrind/callgrind.h>
 #endif
 
 #if TRACKINGITSU_GPU_MODE
-# include "CAGPUUtils.h"
+# include "ITSReconstruction/CA/gpu/Utils.h"
 #endif
+
+using namespace o2::ITS::CA;
 
 std::string getDirectory(const std::string& fname)
 {
@@ -32,9 +34,9 @@ int main(int argc, char** argv)
 
   std::string eventsFileName(argv[1]);
   std::string benchmarkFolderName = getDirectory(eventsFileName);
-  std::vector<CAEvent> events = CAIOUtils::loadEventData(eventsFileName);
+  std::vector<Event> events = IOUtils::loadEventData(eventsFileName);
   const int eventsNum = events.size();
-  std::vector<std::unordered_map<int, CALabel>> labelsMap;
+  std::vector<std::unordered_map<int, Label>> labelsMap;
   bool createBenchmarkData = false;
   std::ofstream correctRoadsOutputStream;
   std::ofstream duplicateRoadsOutputStream;
@@ -51,7 +53,7 @@ int main(int argc, char** argv)
     std::string labelsFileName(argv[2]);
 
     createBenchmarkData = true;
-    labelsMap = CAIOUtils::loadLabels(eventsNum, labelsFileName);
+    labelsMap = IOUtils::loadLabels(eventsNum, labelsFileName);
 
     correctRoadsOutputStream.open(benchmarkFolderName + "CorrectRoads.txt");
     duplicateRoadsOutputStream.open(benchmarkFolderName + "DuplicateRoads.txt");
@@ -69,16 +71,16 @@ int main(int argc, char** argv)
 #endif
 
   // Prevent cold cache benchmark noise
-  CATracker<TRACKINGITSU_GPU_MODE> tracker{};
+  Tracker<TRACKINGITSU_GPU_MODE> tracker{};
   tracker.clustersToTracks(events[0]);
 
 #if defined GPU_PROFILING_MODE
-  CAGPUUtils::Host::gpuStartProfiler();
+  Utils::Host::gpuStartProfiler();
 #endif
 
-  for (int iEvent = 0; iEvent < events.size(); ++iEvent) {
+  for (size_t iEvent = 0; iEvent < events.size(); ++iEvent) {
 
-    CAEvent& currentEvent = events[iEvent];
+    Event& currentEvent = events[iEvent];
     std::cout << "Processing event " << iEvent + 1 << std::endl;
 
     t1 = clock();
@@ -90,13 +92,13 @@ int main(int argc, char** argv)
 
     try {
 #if defined(MEMORY_BENCHMARK)
-      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracksMemoryBenchmark(currentEvent, memoryBenchmarkOutputStream);
+      std::vector<std::vector<Road>> roads = tracker.clustersToTracksMemoryBenchmark(currentEvent, memoryBenchmarkOutputStream);
 #elif defined(DEBUG)
-      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracksVerbose(currentEvent);
+      std::vector<std::vector<Road>> roads = tracker.clustersToTracksVerbose(currentEvent);
 #elif defined TIME_BENCHMARK
-      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracksTimeBenchmark(currentEvent, timeBenchmarkOutputStream);
+      std::vector<std::vector<Road>> roads = tracker.clustersToTracksTimeBenchmark(currentEvent, timeBenchmarkOutputStream);
 #else
-      std::vector<std::vector<CARoad>> roads = tracker.clustersToTracks(currentEvent);
+      std::vector<std::vector<Road>> roads = tracker.clustersToTracks(currentEvent);
 #endif
 
 #if defined HAVE_VALGRIND
@@ -129,7 +131,7 @@ int main(int argc, char** argv)
 
       if (createBenchmarkData) {
 
-        CAIOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
+        IOUtils::writeRoadsReport(correctRoadsOutputStream, duplicateRoadsOutputStream, fakeRoadsOutputStream, roads,
             labelsMap[iEvent]);
       }
 
@@ -140,7 +142,7 @@ int main(int argc, char** argv)
   }
 
 #if defined GPU_PROFILING_MODE
-  CAGPUUtils::Host::gpuStopProfiler();
+  Utils::Host::gpuStopProfiler();
 #endif
 
   std::cout << std::endl;
