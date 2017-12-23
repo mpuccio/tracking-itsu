@@ -387,11 +387,11 @@ std::vector<std::vector<Road>> Tracker<IsGPU>::clustersToTracksTimeBenchmark(
     total += diff;
     timeBenchmarkOutputStream << diff << "\t";
 
-    total += evaluateTask(&CATracker<IsGPU>::computeTracklets, nullptr, timeBenchmarkOutputStream);
-    total += evaluateTask(&CATracker<IsGPU>::computeCells, nullptr, timeBenchmarkOutputStream);
-    total += evaluateTask(&CATracker<IsGPU>::findCellsNeighbours, nullptr, timeBenchmarkOutputStream);
-    total += evaluateTask(&CATracker<IsGPU>::findTracks, nullptr, timeBenchmarkOutputStream);
-    total += evaluateTask(&CATracker<IsGPU>::computeMontecarloLabels, nullptr, timeBenchmarkOutputStream);
+    total += evaluateTask(&Tracker<IsGPU>::computeTracklets, nullptr, timeBenchmarkOutputStream);
+    total += evaluateTask(&Tracker<IsGPU>::computeCells, nullptr, timeBenchmarkOutputStream);
+    total += evaluateTask(&Tracker<IsGPU>::findCellsNeighbours, nullptr, timeBenchmarkOutputStream);
+    total += evaluateTask(&Tracker<IsGPU>::findTracks, nullptr, timeBenchmarkOutputStream);
+    total += evaluateTask(&Tracker<IsGPU>::computeMontecarloLabels, nullptr, timeBenchmarkOutputStream);
 
     timeBenchmarkOutputStream << total << std::endl;
 
