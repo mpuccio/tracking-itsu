@@ -1,47 +1,17 @@
-sudo: requires
-compiler: gcc
-dist: trusty
-
+sudo: required
+language: cpp
+services:
+  - docker
+  
 env:
-  global:
-    - CUDA_VERSION_MAJOR="9"
-    - CUDA_VERSION_MINOR="1"
-    - CUDA_VERSION_PATCH="85"
-    - CUDA_PKG_LONGVERSION="${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR}.{CUDA_VERSION_PATCH}-1"
-    - CUDA_PKG_VERSION="${CUDA_VERSION_MAJOR}-${CUDA_VERSION_MINOR}"
-  matrix:
-    - GCC_VERSION="5"
-    - GCC_VERSION="6"
-before_install:
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq
+    - TARGET="gcc"
+    - TARGET="cuda"
 
 install:
-  - sudo apt-get install -qq g++-$GCC_VERSION cmake
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC_VERSION 60 --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC_VERSION
-  - CUDA_REPO_PKG=cuda-repo-ubuntu1404_${CUDA_PKG_LONGVERSION}_amd64.deb
-  - wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/$CUDA_REPO_PKG
-  - sudo dpkg -i $CUDA_REPO_PKG
-  - rm $CUDA_REPO_PKG
-  - sudo apt-get -y update
-  - sudo apt-get install -y --no-install-recommends  cuda-core-$CUDA_PKG_VERSION  cuda-cudart-dev-$CUDA_PKG_VERSION  cuda-cublas-dev-$CUDA_PKG_VERSION cuda-curand-dev-$CUDA_PKG_VERSION
-  - sudo ln -s /usr/local/cuda-${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} /usr/local/cuda
-
-script: |
-  set -ex
-  g++ --version
-  cmake --version
-  mkdir build 
-  cd build 
-  if [ $GCC_VERSION -eq "6" ]; then
-    cmake -DTRACKINGITSU_TARGET_DEVICE=CPU ..
-    make
-    wget http://personalpages.to.infn.it/~puccio/data.tgz
-    tar -xvzf data.tgz
-    wget personalpages.to.infn.it/~puccio/labels.tgz
-    tar -xvzf labels.tgz
-    ./tracking-itsu-main data.txt labels.txt
-  else
-    cmake -DTRACKINGITSU_TARGET_DEVICE=GPU_CUDA ..
-    make
-  fi
+  - docker build -t mpuccio/tracking-itsu:$TARGET -f Dockerfile.$TARGET .
+ 
+script:
+  - docker run -v $(pwd):/usr/local/tracking-itsu mpuccio/tracking-itsu:$TARGET /bin/bash test/build.sh
+  
+after_script:
+  - docker rm -f mpuccio/tracking-itsu:$TARGET
