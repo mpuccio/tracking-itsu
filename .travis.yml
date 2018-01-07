@@ -8,10 +8,7 @@ env:
     - TARGET="cuda"
 
 install:
-  - docker build -t mpuccio/tracking-itsu:$TARGET -f Dockerfile.$TARGET .
+  - docker pull glassofwhiskey/tracking-itsu:$TARGET
  
 script:
-  - docker run -v $(pwd):/usr/local/tracking-itsu mpuccio/tracking-itsu:$TARGET /bin/bash test/build.sh
-  
-after_script:
-  - docker rm -f mpuccio/tracking-itsu:$TARGET
+  - docker run -v $(pwd):/usr/local/tracking-itsu glassofwhiskey/tracking-itsu:$TARGET /bin/bash test/build.sh

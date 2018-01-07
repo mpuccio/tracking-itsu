@@ -1,7 +1,10 @@
 FROM ubuntu:xenial
 
+LABEL maintainer="Iacopo Colonnelli <iacopo.colonnelli@cern.ch>"
+
 ENV TRACKINGITSU_BUILD_DIR /tmp/tracking-itsu/build
 ENV TRACKINGITSU_SRC_DIR /usr/local/tracking-itsu
+ENV TRACKINGITSU_TARGET_DEVICE CPU
 
 RUN apt-get update -qq \
 	&& apt-get install -qq software-properties-common \
