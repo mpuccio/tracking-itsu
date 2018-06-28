@@ -20,7 +20,7 @@ if(TRACKINGITSU_TARGET_DEVICE STREQUAL GPU_CUDA)
 	find_package(CUDA QUIET REQUIRED)
 	include(FindCUDA)
 
-	set(CUDA_ARCH -gencode arch=compute_52,code=sm_52 CACHE STRING "CUDA target architecture.")
+	set(CUDA_ARCH -gencode arch=compute_61,code=sm_61 CACHE STRING "CUDA target architecture.")
 	set(CUDA_PTXAS_OPTIONS -dlcm=ca)
 	#set(CUDA_PTXAS_OPTIONS ${CUDA_PTXAS_OPTIONS},-v)
 	set(CUDA_HOST_COMPILER_FLAGS -fPIC CACHE STRING "CUDA -Xcompiler flags.")

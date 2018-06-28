@@ -47,17 +47,17 @@ template<typename T, std::size_t Size>
 struct Array
     final
     {
-      typedef ArrayTraits<T, Size> Trait;
 
-      GPU_HOST_DEVICE T* data() noexcept;
-      GPU_HOST_DEVICE const T* data() const noexcept;
-      GPU_HOST_DEVICE T& operator[](const int) noexcept;
-      GPU_HOST_DEVICE constexpr T& operator[](const int) const noexcept;
-      GPU_HOST_DEVICE std::size_t size() const noexcept;
+      GPU_HOST_DEVICE T* data() noexcept { return const_cast<T*>(InternalArray); }
+      GPU_HOST_DEVICE const T* data() const noexcept { return const_cast<T*>(InternalArray); }
+      GPU_HOST_DEVICE T& operator[](const int index) noexcept { return const_cast<T&>(InternalArray[index]); }
+      GPU_HOST_DEVICE constexpr T& operator[](const int index) const noexcept { return const_cast<T&>(InternalArray[index]); }
+      GPU_HOST_DEVICE std::size_t size() const noexcept { return Size; }
 
-      typename Trait::InternalArray arrayPointer;
+      T InternalArray[Size];
+
   };
-
+/*
   template<typename T, std::size_t Size>
   GPU_HOST_DEVICE T* Array<T, Size>::data() noexcept
   {
@@ -87,7 +87,7 @@ struct Array
   {
     return Size;
   }
-
+*/
 }
 }
 }

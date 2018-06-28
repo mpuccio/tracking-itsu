@@ -75,7 +75,7 @@ int main(int argc, char** argv)
   tracker.clustersToTracks(events[0]);
 
 #if defined GPU_PROFILING_MODE
-  Utils::Host::gpuStartProfiler();
+  o2::ITS::CA::GPU::Utils::Host::gpuStartProfiler();
 #endif
 
   for (size_t iEvent = 0; iEvent < events.size(); ++iEvent) {
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
   }
 
 #if defined GPU_PROFILING_MODE
-  Utils::Host::gpuStopProfiler();
+  o2::ITS::CA::GPU::Utils::Host::gpuStopProfiler();
 #endif
 
   std::cout << std::endl;
